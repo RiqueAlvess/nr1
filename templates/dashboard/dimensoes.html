@@ -1,0 +1,56 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Análise de Dimensões - Plataforma NR-1{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="bg-base-100 rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold">
+            <i class="fas fa-layer-group text-primary mr-2"></i>
+            Análise de Dimensões Psicossociais
+        </h1>
+        <p class="text-base-content/70 mt-2">{{ empresa.nome }}</p>
+    </div>
+    
+    {% if not dados.pode_visualizar %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <h3 class="font-bold">Sem Dados Disponíveis</h3>
+            <p class="text-sm">{{ dados.mensagem }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="space-y-4">
+        {% for dimensao in dados.dimensoes %}
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <h2 class="card-title">{{ dimensao.dimensao }}</h2>
+                        <p class="text-sm text-base-content/70 mt-1">
+                            Polaridade: {{ dimensao.polaridade }}
+                        </p>
+                    </div>
+                    <div class="text-right">
+                        {% if dimensao.nivel_risco == 'CRÍTICO' %}
+                        <span class="badge badge-error badge-lg">{{ dimensao.nivel_risco }}</span>
+                        {% elif dimensao.nivel_risco == 'ATENÇÃO' %}
+                        <span class="badge badge-warning badge-lg">{{ dimensao.nivel_risco }}</span>
+                        {% else %}
+                        <span class="badge badge-success badge-lg">{{ dimensao.nivel_risco }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="stat mt-4">
+                    <div class="stat-title">Score Médio</div>
+                    <div class="stat-value text-3xl">{{ dimensao.score_medio }}</div>
+                    <div class="stat-desc">de 0 a 4 pontos</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

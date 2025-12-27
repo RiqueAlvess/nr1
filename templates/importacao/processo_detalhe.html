@@ -1,0 +1,87 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Detalhes da Importação - Plataforma NR-1{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="bg-base-100 rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold">
+            <i class="fas fa-info-circle text-primary mr-2"></i>
+            Detalhes da Importação
+        </h1>
+        <p class="text-base-content/70 mt-2">{{ processo.arquivo_nome }}</p>
+    </div>
+    
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Informações Gerais</h2>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+                <div class="stat">
+                    <div class="stat-title">Data/Hora</div>
+                    <div class="stat-value text-2xl">{{ processo.created_at|date:"d/m/Y H:i" }}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Status</div>
+                    <div class="stat-value text-2xl">
+                        {% if processo.status == 'COMPLETED' %}
+                        <span class="badge badge-success badge-lg">Concluído</span>
+                        {% elif processo.status == 'FAILED' %}
+                        <span class="badge badge-error badge-lg">Falhou</span>
+                        {% else %}
+                        <span class="badge badge-info badge-lg">{{ processo.status }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Total de Linhas</div>
+                    <div class="stat-value text-2xl">{{ processo.total_linhas }}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Processadas</div>
+                    <div class="stat-value text-2xl text-success">{{ processo.linhas_processadas }}</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Erros</div>
+                    <div class="stat-value text-2xl text-error">{{ processo.linhas_erro }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if processo.erros %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title text-error">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                Erros Encontrados
+            </h2>
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Linha</th>
+                            <th>Erro</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for erro in processo.erros %}
+                        <tr>
+                            <td>{{ erro.linha|default:"N/A" }}</td>
+                            <td>{{ erro.erro }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="flex justify-end">
+        <a href="{% url 'importacao:importacao' %}" class="btn btn-primary">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Voltar
+        </a>
+    </div>
+</div>
+{% endblock %}
