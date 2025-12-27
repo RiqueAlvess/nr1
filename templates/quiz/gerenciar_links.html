@@ -1,0 +1,186 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Gerenciar Magic Links - Plataforma NR-1{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-base-100 rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold">
+            <i class="fas fa-envelope text-primary mr-2"></i>
+            Gerenciar Magic Links
+        </h1>
+        <p class="text-base-content/70 mt-2">
+            Envie questionários anônimos para colaboradores
+        </p>
+    </div>
+    
+    <!-- Estatísticas -->
+    <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-users text-3xl"></i>
+            </div>
+            <div class="stat-title">Total de Colaboradores</div>
+            <div class="stat-value text-primary">{{ total }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <i class="fas fa-link text-3xl"></i>
+            </div>
+            <div class="stat-title">Com Magic Link</div>
+            <div class="stat-value text-secondary">{{ com_link }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <i class="fas fa-clock text-3xl"></i>
+            </div>
+            <div class="stat-title">Pendentes</div>
+            <div class="stat-value text-accent">{{ total|add:"-com_link" }}</div>
+        </div>
+    </div>
+    
+    <!-- Form para Enviar -->
+    <form method="post" action="{% url 'quiz:enviar_links' %}" id="enviar-form">
+        {% csrf_token %}
+        
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">
+                        <i class="fas fa-list mr-2"></i>
+                        Colaboradores
+                    </h2>
+                    <div class="space-x-2">
+                        <button type="button" class="btn btn-sm btn-ghost" onclick="selecionarTodos()">
+                            <i class="fas fa-check-square mr-1"></i>
+                            Selecionar Todos
+                        </button>
+                        <button type="button" class="btn btn-sm btn-ghost" onclick="limparSelecao()">
+                            <i class="fas fa-square mr-1"></i>
+                            Limpar Seleção
+                        </button>
+                        <button type="submit" class="btn btn-sm btn-primary" id="btn-enviar">
+                            <i class="fas fa-paper-plane mr-1"></i>
+                            Enviar Selecionados
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <label>
+                                        <input type="checkbox" class="checkbox checkbox-primary" id="select-all" />
+                                    </label>
+                                </th>
+                                <th>Email</th>
+                                <th>Unidade</th>
+                                <th>Setor</th>
+                                <th>Cargo</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for colaborador in colaboradores %}
+                            <tr>
+                                <td>
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            name="colaboradores" 
+                                            value="{{ colaborador.id }}" 
+                                            class="checkbox checkbox-primary colaborador-checkbox"
+                                            {% if colaborador.magic_link.status == 'COMPLETED' %}disabled{% endif %}
+                                        />
+                                    </label>
+                                </td>
+                                <td>{{ colaborador.email }}</td>
+                                <td>{{ colaborador.setor.unidade.nome }}</td>
+                                <td>{{ colaborador.setor.nome }}</td>
+                                <td>{{ colaborador.cargo.nome }}</td>
+                                <td>
+                                    {% if colaborador.magic_link %}
+                                        {% if colaborador.magic_link.status == 'COMPLETED' %}
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-check mr-1"></i>
+                                            Respondido
+                                        </span>
+                                        {% elif colaborador.magic_link.status == 'EXPIRED' %}
+                                        <span class="badge badge-error">
+                                            <i class="fas fa-times mr-1"></i>
+                                            Expirado
+                                        </span>
+                                        {% elif colaborador.magic_link.status == 'ACCESSED' %}
+                                        <span class="badge badge-warning">
+                                            <i class="fas fa-eye mr-1"></i>
+                                            Acessado
+                                        </span>
+                                        {% else %}
+                                        <span class="badge badge-info">
+                                            <i class="fas fa-envelope mr-1"></i>
+                                            Enviado
+                                        </span>
+                                        {% endif %}
+                                    {% else %}
+                                    <span class="badge badge-ghost">
+                                        <i class="fas fa-minus mr-1"></i>
+                                        Sem Link
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.colaborador-checkbox:not([disabled])');
+    const btnEnviar = document.getElementById('btn-enviar');
+    
+    selectAll.addEventListener('change', function() {
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        updateButtonState();
+    });
+    
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateButtonState);
+    });
+    
+    function selecionarTodos() {
+        checkboxes.forEach(cb => cb.checked = true);
+        selectAll.checked = true;
+        updateButtonState();
+    }
+    
+    function limparSelecao() {
+        checkboxes.forEach(cb => cb.checked = false);
+        selectAll.checked = false;
+        updateButtonState();
+    }
+    
+    function updateButtonState() {
+        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        btnEnviar.disabled = !anyChecked;
+    }
+    
+    document.getElementById('enviar-form').addEventListener('submit', function(e) {
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        if (!confirm(`Deseja enviar magic links para ${checkedCount} colaborador(es)?`)) {
+            e.preventDefault();
+        }
+    });
+    
+    updateButtonState();
+</script>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Importação de Dados - Plataforma NR-1{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-base-100 rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold">
+            <i class="fas fa-file-import text-primary mr-2"></i>
+            Importação de Dados Organizacionais
+        </h1>
+        <p class="text-base-content/70 mt-2">
+            Importe a estrutura hierárquica (unidades, setores, cargos) e lista de colaboradores
+        </p>
+    </div>
+    
+    <!-- Upload Form -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-upload mr-2"></i>
+                Upload de Arquivo CSV
+            </h2>
+            
+            <form method="post" action="{% url 'importacao:upload_csv' %}" enctype="multipart/form-data" class="space-y-4">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Nome da Empresa</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="empresa_nome" 
+                        placeholder="Ex: Acme Corporation" 
+                        class="input input-bordered" 
+                        required
+                    />
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Arquivo CSV</span>
+                    </label>
+                    <input 
+                        type="file" 
+                        name="arquivo" 
+                        accept=".csv" 
+                        class="file-input file-input-bordered file-input-primary w-full" 
+                        required
+                    />
+                    <label class="label">
+                        <span class="label-text-alt">
+                            Formato: unidade, setor, cargo, email
+                        </span>
+                    </label>
+                </div>
+                
+                <div class="card-actions justify-end">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>
+                        Importar Dados
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Instructions -->
+    <div class="card bg-base-100 shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title">
+                <i class="fas fa-book-open text-info mr-2"></i>
+                Formato do Arquivo CSV
+            </h3>
+            <div class="text-sm space-y-2">
+                <p>O arquivo CSV deve conter as seguintes colunas (com cabeçalho):</p>
+                <ul class="list-disc list-inside space-y-1 ml-4">
+                    <li><strong>unidade</strong>: Nome da unidade organizacional</li>
+                    <li><strong>setor</strong>: Nome do setor</li>
+                    <li><strong>cargo</strong>: Nome do cargo</li>
+                    <li><strong>email</strong>: Email do colaborador</li>
+                </ul>
+                <p class="mt-4"><strong>Exemplo:</strong></p>
+                <div class="mockup-code">
+                    <pre><code>unidade,setor,cargo,email
+Matriz,RH,Analista,joao@empresa.com
+Matriz,TI,Desenvolvedor,maria@empresa.com
+Filial SP,Vendas,Vendedor,pedro@empresa.com</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- History -->
+    {% if processos %}
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-history mr-2"></i>
+                Histórico de Importações
+            </h2>
+            
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Arquivo</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th>Processadas</th>
+                            <th>Erros</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for processo in processos %}
+                        <tr>
+                            <td>{{ processo.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>{{ processo.arquivo_nome }}</td>
+                            <td>
+                                {% if processo.status == 'COMPLETED' %}
+                                <span class="badge badge-success">Concluído</span>
+                                {% elif processo.status == 'PROCESSING' %}
+                                <span class="badge badge-warning">Processando</span>
+                                {% elif processo.status == 'FAILED' %}
+                                <span class="badge badge-error">Falhou</span>
+                                {% else %}
+                                <span class="badge badge-info">Pendente</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ processo.total_linhas }}</td>
+                            <td>{{ processo.linhas_processadas }}</td>
+                            <td>
+                                {% if processo.linhas_erro > 0 %}
+                                <span class="badge badge-error">{{ processo.linhas_erro }}</span>
+                                {% else %}
+                                <span class="badge badge-ghost">0</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'importacao:processo_detalhe' processo.id %}" class="btn btn-xs btn-ghost">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

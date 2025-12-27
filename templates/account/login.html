@@ -1,0 +1,64 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Login - Plataforma NR-1{% endblock %}
+
+{% block content %}
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content flex-col">
+        <div class="text-center">
+            <h1 class="text-5xl font-bold mb-2">
+                <i class="fas fa-shield-alt text-primary"></i>
+                Plataforma NR-1
+            </h1>
+            <p class="text-lg text-base-content/70">
+                Avaliação, Gestão e Governança de Riscos Psicossociais
+            </p>
+        </div>
+        
+        <div class="card w-96 shadow-2xl bg-base-100">
+            <form method="post" class="card-body">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Usuário</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        placeholder="Digite seu usuário" 
+                        class="input input-bordered" 
+                        required 
+                        autofocus
+                    />
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Senha</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        placeholder="Digite sua senha" 
+                        class="input input-bordered" 
+                        required 
+                    />
+                </div>
+                
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Entrar
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="mt-6 text-center text-sm text-base-content/60">
+            <p>Sistema fundamentado na NR-1 (GRO/PGR) e LGPD</p>
+            <p class="mt-2">Questionário HSE-IT validado para o Brasil</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

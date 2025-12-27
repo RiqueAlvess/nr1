@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionário HSE-IT - Plataforma NR-1</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="bg-base-200">
+    <div class="container mx-auto p-4 max-w-4xl">
+        <!-- Header -->
+        <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-center">
+                <i class="fas fa-clipboard-list text-primary mr-2"></i>
+                Questionário HSE-IT
+            </h1>
+            <p class="text-center text-base-content/70 mt-2">
+                Avaliação de Riscos Psicossociais no Trabalho
+            </p>
+            
+            <div class="alert alert-info mt-4">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <h3 class="font-bold">Suas respostas são totalmente anônimas</h3>
+                    <div class="text-xs">
+                        Nenhuma informação pessoal será associada às suas respostas.
+                        Este questionário segue as diretrizes da NR-1 e LGPD.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form -->
+        <form method="post" action="{% url 'quiz:submeter' token=token %}" id="quiz-form">
+            {% csrf_token %}
+            
+            <div class="space-y-6">
+                {% for pergunta in perguntas %}
+                <div class="card bg-base-100 shadow-lg">
+                    <div class="card-body">
+                        <div class="flex items-start">
+                            <div class="badge badge-primary mr-3">{{ pergunta.numero }}</div>
+                            <div class="flex-1">
+                                <p class="font-semibold text-lg mb-4">
+                                    {{ pergunta.texto }}
+                                </p>
+                                
+                                <div class="form-control">
+                                    <div class="flex flex-wrap gap-2">
+                                        <label class="label cursor-pointer bg-base-200 rounded-lg px-4 py-3 flex-1 min-w-[120px]">
+                                            <span class="label-text">Nunca</span>
+                                            <input 
+                                                type="radio" 
+                                                name="pergunta_{{ pergunta.numero }}" 
+                                                value="0" 
+                                                class="radio radio-primary" 
+                                                required
+                                            />
+                                        </label>
+                                        
+                                        <label class="label cursor-pointer bg-base-200 rounded-lg px-4 py-3 flex-1 min-w-[120px]">
+                                            <span class="label-text">Raramente</span>
+                                            <input 
+                                                type="radio" 
+                                                name="pergunta_{{ pergunta.numero }}" 
+                                                value="1" 
+                                                class="radio radio-primary" 
+                                                required
+                                            />
+                                        </label>
+                                        
+                                        <label class="label cursor-pointer bg-base-200 rounded-lg px-4 py-3 flex-1 min-w-[120px]">
+                                            <span class="label-text">Às vezes</span>
+                                            <input 
+                                                type="radio" 
+                                                name="pergunta_{{ pergunta.numero }}" 
+                                                value="2" 
+                                                class="radio radio-primary" 
+                                                required
+                                            />
+                                        </label>
+                                        
+                                        <label class="label cursor-pointer bg-base-200 rounded-lg px-4 py-3 flex-1 min-w-[120px]">
+                                            <span class="label-text">Frequentemente</span>
+                                            <input 
+                                                type="radio" 
+                                                name="pergunta_{{ pergunta.numero }}" 
+                                                value="3" 
+                                                class="radio radio-primary" 
+                                                required
+                                            />
+                                        </label>
+                                        
+                                        <label class="label cursor-pointer bg-base-200 rounded-lg px-4 py-3 flex-1 min-w-[120px]">
+                                            <span class="label-text">Sempre</span>
+                                            <input 
+                                                type="radio" 
+                                                name="pergunta_{{ pergunta.numero }}" 
+                                                value="4" 
+                                                class="radio radio-primary" 
+                                                required
+                                            />
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-xs text-base-content/60 mt-2">
+                                    <i class="fas fa-tag mr-1"></i>
+                                    {{ pergunta.dimensao.nome }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Progress -->
+            <div class="sticky bottom-4 mt-6">
+                <div class="card bg-base-100 shadow-xl">
+                    <div class="card-body p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm">
+                                    <strong id="answered-count">0</strong> de {{ perguntas|length }} perguntas respondidas
+                                </p>
+                                <progress id="progress-bar" class="progress progress-primary w-56" value="0" max="{{ perguntas|length }}"></progress>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Enviar Respostas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Track answered questions
+        const totalQuestions = {{ perguntas|length }};
+        const form = document.getElementById('quiz-form');
+        const progressBar = document.getElementById('progress-bar');
+        const countDisplay = document.getElementById('answered-count');
+        const submitBtn = document.getElementById('submit-btn');
+        
+        function updateProgress() {
+            const answered = new Set();
+            form.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                answered.add(radio.name);
+            });
+            
+            const count = answered.size;
+            progressBar.value = count;
+            countDisplay.textContent = count;
+            
+            submitBtn.disabled = count !== totalQuestions;
+        }
+        
+        form.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', updateProgress);
+        });
+        
+        // Confirmation before submit
+        form.addEventListener('submit', (e) => {
+            if (!confirm('Tem certeza que deseja enviar suas respostas? Após o envio, você não poderá mais alterá-las.')) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

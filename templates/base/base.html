@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Plataforma NR-1{% endblock %}</title>
+    
+    <!-- DaisyUI + Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-base-200 min-h-screen">
+    
+    {% if user.is_authenticated %}
+    <!-- Navbar -->
+    <div class="navbar bg-base-100 shadow-lg">
+        <div class="flex-1">
+            <a href="{% url 'account:dashboard' %}" class="btn btn-ghost text-xl">
+                <i class="fas fa-shield-alt mr-2"></i>
+                Plataforma NR-1
+            </a>
+        </div>
+        <div class="flex-none">
+            <ul class="menu menu-horizontal px-1">
+                <li><a href="{% url 'dashboard:principal' %}"><i class="fas fa-chart-line mr-2"></i>Dashboard</a></li>
+                <li><a href="{% url 'importacao:importacao' %}"><i class="fas fa-file-import mr-2"></i>Importação</a></li>
+                <li><a href="{% url 'quiz:gerenciar_links' %}"><i class="fas fa-envelope mr-2"></i>Magic Links</a></li>
+                <li>
+                    <details>
+                        <summary>
+                            <i class="fas fa-user mr-2"></i>
+                            {{ user.username }}
+                        </summary>
+                        <ul class="p-2 bg-base-100 rounded-t-none">
+                            {% if user.is_superuser %}
+                            <li><a href="/admin/"><i class="fas fa-cog mr-2"></i>Admin</a></li>
+                            {% endif %}
+                            <li><a href="{% url 'account:logout' %}"><i class="fas fa-sign-out-alt mr-2"></i>Sair</a></li>
+                        </ul>
+                    </details>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Messages/Toast -->
+    <div class="toast-container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}info{% endif %} shadow-lg mb-2">
+                <div>
+                    <span>{{ message }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 max-w-7xl">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer footer-center p-10 bg-base-100 text-base-content mt-10">
+        <aside>
+            <p class="font-bold">
+                Plataforma NR-1 - Gestão de Riscos Psicossociais
+            </p> 
+            <p>Copyright © 2025 - 3S Dev</p>
+        </aside>
+    </footer>
+    
+    <script>
+        // Auto-hide messages after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.toast-container .alert').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transition = 'opacity 0.5s';
+                setTimeout(() => el.remove(), 500);
+            });
+        }, 5000);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
