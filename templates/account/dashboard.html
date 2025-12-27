@@ -1,0 +1,136 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - Plataforma NR-1{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-base-100 rounded-lg shadow-lg p-6">
+        <h1 class="text-3xl font-bold">
+            <i class="fas fa-home text-primary mr-2"></i>
+            Bem-vindo, {{ user.get_full_name|default:user.username }}!
+        </h1>
+        <p class="text-base-content/70 mt-2">
+            Plataforma NR-1 - Gestão de Riscos Psicossociais
+        </p>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Card 1: Importação -->
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <h2 class="card-title">
+                        <i class="fas fa-file-import text-primary text-2xl"></i>
+                    </h2>
+                    <div class="badge badge-primary">Passo 1</div>
+                </div>
+                <h3 class="text-xl font-bold mt-2">Importar Dados</h3>
+                <p class="text-sm text-base-content/70">
+                    Importe a hierarquia organizacional e colaboradores
+                </p>
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'importacao:importacao' %}" class="btn btn-primary btn-sm">
+                        Acessar
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 2: Enviar Links -->
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <h2 class="card-title">
+                        <i class="fas fa-envelope text-secondary text-2xl"></i>
+                    </h2>
+                    <div class="badge badge-secondary">Passo 2</div>
+                </div>
+                <h3 class="text-xl font-bold mt-2">Enviar Questionários</h3>
+                <p class="text-sm text-base-content/70">
+                    Envie magic links para coleta de respostas
+                </p>
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'quiz:gerenciar_links' %}" class="btn btn-secondary btn-sm">
+                        Acessar
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Card 3: Dashboard -->
+        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+                <div class="flex items-center justify-between">
+                    <h2 class="card-title">
+                        <i class="fas fa-chart-line text-accent text-2xl"></i>
+                    </h2>
+                    <div class="badge badge-accent">Passo 3</div>
+                </div>
+                <h3 class="text-xl font-bold mt-2">Visualizar Análises</h3>
+                <p class="text-sm text-base-content/70">
+                    Acesse dashboards e análises de risco
+                </p>
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'dashboard:principal' %}" class="btn btn-accent btn-sm">
+                        Acessar
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Sobre NR-1 -->
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-info-circle text-info mr-2"></i>
+                    Sobre a NR-1
+                </h3>
+                <p class="text-sm">
+                    A NR-1 estabelece diretrizes para o Gerenciamento de Riscos Ocupacionais (GRO) 
+                    e Programa de Gerenciamento de Riscos (PGR), incluindo riscos psicossociais.
+                </p>
+                <p class="text-sm mt-2">
+                    Este sistema oferece uma solução completa e auditável para identificação, 
+                    avaliação e gestão de riscos psicossociais no trabalho.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Anonimato -->
+        <div class="card bg-base-100 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-user-shield text-success mr-2"></i>
+                    Garantia de Anonimato
+                </h3>
+                <p class="text-sm">
+                    Todos os dados são processados com <strong>k-anonymity</strong>, 
+                    garantindo que nenhum colaborador possa ser identificado.
+                </p>
+                <p class="text-sm mt-2">
+                    Os dashboards só exibem dados agregados de grupos com no mínimo 
+                    <strong>5 respondentes</strong>, em conformidade com a LGPD.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    {% if not has_perfil %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span>
+            Seu usuário ainda não possui um perfil de acesso configurado. 
+            Contate o administrador do sistema.
+        </span>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
