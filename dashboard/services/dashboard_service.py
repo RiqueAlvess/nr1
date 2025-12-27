@@ -29,12 +29,12 @@ class DashboardService:
         """
         # Total de colaboradores
         total_colaboradores = MagicLink.objects.filter(
-            colaborador__empresa_id=empresa_id
+            colaborador__cargo__setor__unidade__empresa_id=empresa_id
         ).count()
         
         # Respostas concluídas
         respostas_concluidas = Resposta.objects.filter(
-            magic_link__colaborador__empresa_id=empresa_id
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         ).count()
         
         # Taxa de adesão
@@ -46,7 +46,7 @@ class DashboardService:
         
         # Scores
         respostas = Resposta.objects.filter(
-            magic_link__colaborador__empresa_id=empresa_id
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         )
         
         if respostas.count() < settings.MIN_GROUP_SIZE:
@@ -108,7 +108,7 @@ class DashboardService:
         
         for unidade in unidades:
             respostas = Resposta.objects.filter(
-                magic_link__colaborador__setor__unidade=unidade
+                magic_link__colaborador__cargo__setor__unidade=unidade
             )
             
             count = respostas.count()
@@ -156,7 +156,7 @@ class DashboardService:
         
         for setor in setores_query:
             respostas = Resposta.objects.filter(
-                magic_link__colaborador__setor=setor
+                magic_link__colaborador__cargo__setor=setor
             )
             
             count = respostas.count()
@@ -195,7 +195,7 @@ class DashboardService:
             Dict com dimensões ordenadas por criticidade
         """
         respostas = Resposta.objects.filter(
-            magic_link__colaborador__empresa_id=empresa_id
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         )
         
         if respostas.count() < settings.MIN_GROUP_SIZE:

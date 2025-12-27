@@ -4,14 +4,39 @@ from importacao.models import Colaborador, ProcessoImportacao
 
 @admin.register(Colaborador)
 class ColaboradorAdmin(admin.ModelAdmin):
-    list_display = ['id_truncado', 'email', 'empresa', 'setor', 'cargo', 'ativo']
-    list_filter = ['empresa', 'ativo']
-    search_fields = ['email', 'setor__nome', 'cargo__nome']
+    list_display = ['id_truncado', 'email', 'cargo', 'get_setor', 'get_unidade', 'get_empresa', 'ativo']
+    list_filter = ['cargo__setor__unidade__empresa', 'ativo']
+    search_fields = ['email', 'cargo__nome', 'cargo__setor__nome']
     readonly_fields = ['id', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Informações do Colaborador', {
+            'fields': ('email', 'cargo', 'ativo')
+        }),
+        ('Sistema', {
+            'fields': ('id', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
     
     def id_truncado(self, obj):
         return str(obj.id)[:8] + '...'
     id_truncado.short_description = 'ID'
+    
+    def get_setor(self, obj):
+        return obj.cargo.setor.nome
+    get_setor.short_description = 'Setor'
+    get_setor.admin_order_field = 'cargo__setor__nome'
+    
+    def get_unidade(self, obj):
+        return obj.cargo.setor.unidade.nome
+    get_unidade.short_description = 'Unidade'
+    get_unidade.admin_order_field = 'cargo__setor__unidade__nome'
+    
+    def get_empresa(self, obj):
+        return obj.cargo.setor.unidade.empresa.nome
+    get_empresa.short_description = 'Empresa'
+    get_empresa.admin_order_field = 'cargo__setor__unidade__empresa__nome'
 
 
 @admin.register(ProcessoImportacao)

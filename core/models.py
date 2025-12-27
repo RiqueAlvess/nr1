@@ -98,13 +98,25 @@ class Setor(TimeStampedModel):
 
 
 class Cargo(TimeStampedModel):
-    """Cargo (dimensão analítica, não hierárquica)"""
-    nome = models.CharField(max_length=255, unique=True)
+    """Cargo vinculado à hierarquia completa (Setor → Unidade → Empresa)"""
+    setor = models.ForeignKey(Setor, on_delete=models.CASCADE, related_name='cargos')
+    nome = models.CharField(max_length=255)
     ativo = models.BooleanField(default=True)
     
     class Meta:
         db_table = 'cargos'
         ordering = ['nome']
+        unique_together = [['setor', 'nome']]
     
     def __str__(self):
-        return self.nome
+        return f"{self.setor.unidade.empresa.nome} - {self.setor.nome} - {self.nome}"
+    
+    @property
+    def unidade(self):
+        """Retorna a unidade através do setor"""
+        return self.setor.unidade
+    
+    @property
+    def empresa(self):
+        """Retorna a empresa através do setor"""
+        return self.setor.unidade.empresa

@@ -1,5 +1,5 @@
 from django.db import models
-from core.models import TimeStampedModel, Empresa, Unidade, Setor, Cargo
+from core.models import TimeStampedModel, Empresa, Setor, Cargo
 
 
 class Colaborador(TimeStampedModel):
@@ -11,10 +11,8 @@ class Colaborador(TimeStampedModel):
     # Email isolado - usado apenas para envio
     email = models.EmailField(unique=True, db_index=True)
     
-    # Dimensões analíticas (sem dados pessoais)
-    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE)
-    setor = models.ForeignKey(Setor, on_delete=models.CASCADE)
-    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE)
+    # Dimensões analíticas (hierarquia completa via Cargo)
+    cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, related_name='colaboradores')
     
     # Controle
     ativo = models.BooleanField(default=True)
@@ -25,11 +23,21 @@ class Colaborador(TimeStampedModel):
         verbose_name_plural = 'Colaboradores'
         indexes = [
             models.Index(fields=['email']),
-            models.Index(fields=['empresa', 'setor']),
+            models.Index(fields=['cargo']),
         ]
     
     def __str__(self):
         return f"Colaborador {str(self.id)[:8]}"
+    
+    @property
+    def setor(self):
+        """Retorna o setor através do cargo"""
+        return self.cargo.setor
+    
+    @property
+    def empresa(self):
+        """Retorna a empresa através do cargo"""
+        return self.cargo.setor.unidade.empresa
 
 
 class ProcessoImportacao(TimeStampedModel):

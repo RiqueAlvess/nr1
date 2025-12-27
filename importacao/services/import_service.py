@@ -102,7 +102,7 @@ class ImportService:
                             })
                             continue
                         
-                        # Criar hierarquia
+                        # Criar hierarquia completa
                         unidade, _ = Unidade.objects.get_or_create(
                             empresa=empresa,
                             nome=unidade_nome
@@ -113,16 +113,16 @@ class ImportService:
                             nome=setor_nome
                         )
                         
+                        # Cargo agora vinculado ao setor
                         cargo, _ = Cargo.objects.get_or_create(
+                            setor=setor,
                             nome=cargo_nome
                         )
                         
-                        # Criar ou atualizar colaborador
+                        # Criar ou atualizar colaborador (apenas com cargo)
                         colaborador, created = Colaborador.objects.update_or_create(
                             email=email,
                             defaults={
-                                'empresa': empresa,
-                                'setor': setor,
                                 'cargo': cargo,
                                 'ativo': True
                             }
@@ -141,7 +141,7 @@ class ImportService:
                 processo.linhas_processadas = processadas
                 processo.linhas_erro = len(erros)
                 processo.erros = erros
-                processo.status = 'COMPLETED' if not erros else 'COMPLETED'
+                processo.status = 'COMPLETED'
                 processo.metadata = {
                     'empresa_id': str(empresa.id),
                     'empresa_nome': empresa.nome
