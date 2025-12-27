@@ -14,7 +14,7 @@ from importacao.models import Colaborador
 def gerenciar_links_view(request):
     """View para gerenciar envio de magic links"""
     colaboradores = Colaborador.objects.filter(ativo=True).select_related(
-        'empresa', 'setor', 'cargo'
+        'cargo__setor__unidade__empresa'
     ).prefetch_related('magic_link')
     
     context = {

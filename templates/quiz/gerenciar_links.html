@@ -79,6 +79,7 @@
                                     </label>
                                 </th>
                                 <th>Email</th>
+                                <th>Empresa</th>
                                 <th>Unidade</th>
                                 <th>Setor</th>
                                 <th>Cargo</th>
@@ -100,8 +101,9 @@
                                     </label>
                                 </td>
                                 <td>{{ colaborador.email }}</td>
-                                <td>{{ colaborador.setor.unidade.nome }}</td>
-                                <td>{{ colaborador.setor.nome }}</td>
+                                <td>{{ colaborador.cargo.setor.unidade.empresa.nome }}</td>
+                                <td>{{ colaborador.cargo.setor.unidade.nome }}</td>
+                                <td>{{ colaborador.cargo.setor.nome }}</td>
                                 <td>{{ colaborador.cargo.nome }}</td>
                                 <td>
                                     {% if colaborador.magic_link %}
