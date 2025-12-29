@@ -11,37 +11,69 @@ from core.services.audit_service import AuditService
 
 @login_required
 def dashboard_principal_view(request):
-    """Dashboard principal com visão geral"""
-    
+    """Dashboard principal consolidado com visão geral e análises detalhadas"""
+
     # Verificar perfil de acesso
     if not hasattr(request.user, 'perfil_acesso'):
         return render(request, 'dashboard/sem_acesso.html')
-    
+
     perfil = request.user.perfil_acesso
-    
+
+    # Verificar se o usuário tem acesso ao dashboard
+    if not (perfil.tem_acesso_completo_dashboards() or perfil.tem_acesso_limitado()):
+        return render(request, 'dashboard/sem_permissao.html')
+
     if not perfil.empresa:
         return render(request, 'dashboard/sem_empresa.html')
-    
-    # Buscar KPIs
+
+    # Buscar todos os dados necessários
     dashboard_service = DashboardService()
-    kpis = dashboard_service.get_kpis_empresa(str(perfil.empresa.id))
-    
+    empresa_id = str(perfil.empresa.id)
+
+    kpis = dashboard_service.get_kpis_empresa(empresa_id)
+    dados_unidades = dashboard_service.get_dados_por_unidade(empresa_id)
+    dados_setores = dashboard_service.get_dados_por_setor(empresa_id)
+    dados_dimensoes = dashboard_service.get_dimensoes_criticas(empresa_id)
+
+    # Filtrar dados por nível de acesso
+    if perfil.tem_acesso_limitado():
+        # Aplicar filtros de hierarquia para Liderança e Consultoria
+        if perfil.nivel_acesso == 'UNIDADE':
+            unidades_permitidas = perfil.unidades.values_list('id', flat=True)
+            dados_unidades['unidades'] = [
+                u for u in dados_unidades['unidades']
+                if u['unidade_id'] in [str(uid) for uid in unidades_permitidas]
+            ]
+        elif perfil.nivel_acesso == 'SETOR':
+            setores_permitidos = perfil.setores.values_list('id', flat=True)
+            dados_setores['setores'] = [
+                s for s in dados_setores['setores']
+                if s['setor_id'] in [str(sid) for sid in setores_permitidos]
+            ]
+
     # Auditoria
     AuditService.log(
         action='DASHBOARD_ACCESSED',
-        description=f'Dashboard principal acessado por {request.user.username}',
+        description=f'Dashboard consolidado acessado por {request.user.username}',
         user=request.user,
         ip_address=AuditService.get_client_ip(request),
         user_agent=AuditService.get_user_agent(request),
-        metadata={'empresa_id': str(perfil.empresa.id)}
+        metadata={
+            'empresa_id': empresa_id,
+            'grupo': perfil.get_grupo_principal(),
+            'nivel_acesso': perfil.nivel_acesso
+        }
     )
-    
+
     context = {
         'kpis': kpis,
+        'dados_unidades': dados_unidades,
+        'dados_setores': dados_setores,
+        'dados_dimensoes': dados_dimensoes,
         'empresa': perfil.empresa,
         'perfil': perfil
     }
-    
+
     return render(request, 'dashboard/principal.html', context)
 
 
