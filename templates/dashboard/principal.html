@@ -410,8 +410,11 @@ function dashboardApp() {
         },
 
         init() {
-            this.criarGraficoDistribuicao();
-            this.atualizarGraficos();
+            // Aguardar DOM estar completamente carregado
+            this.$nextTick(() => {
+                this.criarGraficoDistribuicao();
+                this.atualizarGraficos();
+            });
         },
 
         atualizarGraficos() {
@@ -423,8 +426,10 @@ function dashboardApp() {
             };
             this.tituloGrafico = titulos[this.filtroTipo];
 
+            // Destruir gráfico anterior se existir
             if (this.chartMain) {
                 this.chartMain.destroy();
+                this.chartMain = null;
             }
 
             this.criarGraficoPrincipal();
@@ -432,7 +437,16 @@ function dashboardApp() {
 
         criarGraficoPrincipal() {
             const ctx = document.getElementById('graficoMain');
-            if (!ctx) return;
+            if (!ctx) {
+                console.error('Canvas graficoMain não encontrado');
+                return;
+            }
+
+            // Verificar se os dados existem
+            if (!this.dados || !this.dados.kpis) {
+                console.error('Dados insuficientes para gráfico principal');
+                return;
+            }
 
             let labels = [];
             let data = [];
@@ -447,83 +461,119 @@ function dashboardApp() {
                 success: '#22C55E'
             };
 
-            if (this.filtroTipo === 'unidades') {
-                labels = this.dados.unidades.map(u => u.unidade_nome);
-                data = this.dados.unidades.map(u => u.score_medio);
-                backgroundColor = Array(data.length).fill(cores.primary);
-            } else if (this.filtroTipo === 'setores') {
-                let setores = this.dados.setores;
-                if (this.filtroUnidade) {
-                    setores = setores.filter(s => s.unidade_id === this.filtroUnidade);
+            try {
+                if (this.filtroTipo === 'unidades') {
+                    if (!this.dados.unidades || !Array.isArray(this.dados.unidades)) {
+                        console.error('Dados de unidades não disponíveis');
+                        return;
+                    }
+                    labels = this.dados.unidades.map(u => u.unidade_nome);
+                    data = this.dados.unidades.map(u => u.score_medio);
+                    backgroundColor = Array(data.length).fill(cores.primary);
+                } else if (this.filtroTipo === 'setores') {
+                    if (!this.dados.setores || !Array.isArray(this.dados.setores)) {
+                        console.error('Dados de setores não disponíveis');
+                        return;
+                    }
+                    let setores = this.dados.setores;
+                    if (this.filtroUnidade) {
+                        setores = setores.filter(s => s.unidade_id === this.filtroUnidade);
+                    }
+                    labels = setores.map(s => s.setor_nome);
+                    data = setores.map(s => s.score_medio);
+                    backgroundColor = setores.map(s => {
+                        if (s.nivel_risco_nr1 === 'CRÍTICO') return cores.error;
+                        if (s.nivel_risco_nr1 === 'ATENÇÃO') return cores.warning;
+                        return cores.success;
+                    });
+                } else if (this.filtroTipo === 'dimensoes') {
+                    if (!this.dados.dimensoes || !Array.isArray(this.dados.dimensoes)) {
+                        console.error('Dados de dimensões não disponíveis');
+                        return;
+                    }
+                    labels = this.dados.dimensoes.map(d => d.dimensao);
+                    data = this.dados.dimensoes.map(d => d.score_medio);
+                    backgroundColor = this.dados.dimensoes.map(d => {
+                        if (d.nivel_risco === 'CRÍTICO') return cores.error;
+                        if (d.nivel_risco === 'ATENÇÃO') return cores.warning;
+                        return cores.success;
+                    });
+                } else {
+                    // Visão geral - verificar distribuição de risco
+                    if (!this.dados.kpis.distribuicao_risco) {
+                        console.error('Dados de distribuição de risco não disponíveis');
+                        return;
+                    }
+                    labels = ['Crítico', 'Atenção', 'Satisfatório'];
+                    data = [
+                        this.dados.kpis.distribuicao_risco.critico || 0,
+                        this.dados.kpis.distribuicao_risco.atencao || 0,
+                        this.dados.kpis.distribuicao_risco.satisfatorio || 0
+                    ];
+                    backgroundColor = [cores.error, cores.warning, cores.success];
                 }
-                labels = setores.map(s => s.setor_nome);
-                data = setores.map(s => s.score_medio);
-                backgroundColor = setores.map(s => {
-                    if (s.nivel_risco_nr1 === 'CRÍTICO') return cores.error;
-                    if (s.nivel_risco_nr1 === 'ATENÇÃO') return cores.warning;
-                    return cores.success;
-                });
-            } else if (this.filtroTipo === 'dimensoes') {
-                labels = this.dados.dimensoes.map(d => d.dimensao);
-                data = this.dados.dimensoes.map(d => d.score_medio);
-                backgroundColor = this.dados.dimensoes.map(d => {
-                    if (d.nivel_risco === 'CRÍTICO') return cores.error;
-                    if (d.nivel_risco === 'ATENÇÃO') return cores.warning;
-                    return cores.success;
-                });
-            } else {
-                labels = ['Crítico', 'Atenção', 'Satisfatório'];
-                data = [
-                    this.dados.kpis.distribuicao_risco.critico,
-                    this.dados.kpis.distribuicao_risco.atencao,
-                    this.dados.kpis.distribuicao_risco.satisfatorio
-                ];
-                backgroundColor = [cores.error, cores.warning, cores.success];
-            }
 
-            this.chartMain = new Chart(ctx, {
-                type: this.tipoGrafico,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Score',
-                        data: data,
-                        backgroundColor: backgroundColor,
-                        borderWidth: 0,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: this.tipoGrafico === 'doughnut',
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            backgroundColor: '#0F3D52',
-                            padding: 12,
-                            cornerRadius: 8
-                        }
+                this.chartMain = new Chart(ctx.getContext('2d'), {
+                    type: this.tipoGrafico,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Score',
+                            data: data,
+                            backgroundColor: backgroundColor,
+                            borderWidth: 0,
+                            borderRadius: 8
+                        }]
                     },
-                    scales: this.tipoGrafico !== 'doughnut' ? {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(229, 236, 233, 0.5)' }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: this.tipoGrafico === 'doughnut',
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                backgroundColor: '#0F3D52',
+                                padding: 12,
+                                cornerRadius: 8
+                            }
                         },
-                        x: {
-                            grid: { display: false },
-                            ticks: { maxRotation: 45, minRotation: 0 }
-                        }
-                    } : {}
-                }
-            });
+                        scales: this.tipoGrafico !== 'doughnut' ? {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(229, 236, 233, 0.5)' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { maxRotation: 45, minRotation: 0 }
+                            }
+                        } : {}
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao criar gráfico principal:', error);
+            }
         },
 
         criarGraficoDistribuicao() {
             const ctx = document.getElementById('graficoDistribuicao');
-            if (!ctx) return;
+            if (!ctx) {
+                console.error('Canvas graficoDistribuicao não encontrado');
+                return;
+            }
+
+            // Verificar se os dados existem
+            if (!this.dados || !this.dados.kpis || !this.dados.kpis.distribuicao_risco) {
+                console.error('Dados insuficientes para gráfico de distribuição');
+                return;
+            }
+
+            // Destruir gráfico anterior se existir
+            if (this.chartDistribuicao) {
+                this.chartDistribuicao.destroy();
+                this.chartDistribuicao = null;
+            }
 
             const cores = {
                 error: '#EF4444',
@@ -531,37 +581,41 @@ function dashboardApp() {
                 success: '#22C55E'
             };
 
-            this.chartDistribuicao = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Crítico', 'Atenção', 'Satisfatório'],
-                    datasets: [{
-                        data: [
-                            this.dados.kpis.distribuicao_risco.critico,
-                            this.dados.kpis.distribuicao_risco.atencao,
-                            this.dados.kpis.distribuicao_risco.satisfatorio
-                        ],
-                        backgroundColor: [cores.error, cores.warning, cores.success],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: { padding: 15, font: { size: 12 } }
-                        },
-                        tooltip: {
-                            backgroundColor: '#0F3D52',
-                            padding: 12,
-                            cornerRadius: 8
+            try {
+                this.chartDistribuicao = new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Crítico', 'Atenção', 'Satisfatório'],
+                        datasets: [{
+                            data: [
+                                this.dados.kpis.distribuicao_risco.critico || 0,
+                                this.dados.kpis.distribuicao_risco.atencao || 0,
+                                this.dados.kpis.distribuicao_risco.satisfatorio || 0
+                            ],
+                            backgroundColor: [cores.error, cores.warning, cores.success],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { padding: 15, font: { size: 12 } }
+                            },
+                            tooltip: {
+                                backgroundColor: '#0F3D52',
+                                padding: 12,
+                                cornerRadius: 8
+                            }
                         }
                     }
-                }
-            });
+                });
+            } catch (error) {
+                console.error('Erro ao criar gráfico de distribuição:', error);
+            }
         }
     }
 }
