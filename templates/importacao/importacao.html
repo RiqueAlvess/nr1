@@ -2,62 +2,76 @@
 
 {% block title %}Importação de Dados - Plataforma NR-1{% endblock %}
 
+{% block breadcrumb %}
+<div class="text-sm breadcrumbs mb-4">
+    <ul>
+        <li><a href="{% url 'account:dashboard' %}" class="text-accent hover:text-primary"><i class="fas fa-home mr-1"></i>Início</a></li>
+        <li class="text-neutral font-medium">Importação</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-neutral">
+            <i class="fas fa-file-import text-primary mr-2"></i>
+            Importação de Dados
+        </h1>
+        <p class="text-sm text-neutral/60 mt-1">Importe estrutura organizacional e lista de colaboradores</p>
+    </div>
+</div>
+{% endblock %}
+
 {% block content %}
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="bg-base-100 rounded-lg shadow-lg p-6">
-        <h1 class="text-3xl font-bold">
-            <i class="fas fa-file-import text-primary mr-2"></i>
-            Importação de Dados Organizacionais
-        </h1>
-        <p class="text-base-content/70 mt-2">
-            Importe a estrutura hierárquica (unidades, setores, cargos) e lista de colaboradores
-        </p>
-    </div>
-    
+
     <!-- Upload Form -->
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <h2 class="card-title">
-                <i class="fas fa-upload mr-2"></i>
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-upload mr-2 text-primary"></i>
                 Upload de Arquivo CSV
             </h2>
-            
-            <form method="post" action="{% url 'importacao:upload_csv' %}" enctype="multipart/form-data" class="space-y-4">
+
+            <form method="post" action="{% url 'importacao:upload_csv' %}" enctype="multipart/form-data" class="space-y-4 mt-4">
                 {% csrf_token %}
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Nome da Empresa</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        name="empresa_nome" 
-                        placeholder="Ex: Acme Corporation" 
-                        class="input input-bordered" 
-                        required
-                    />
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Nome da Empresa</span>
+                        </label>
+                        <input
+                            type="text"
+                            name="empresa_nome"
+                            placeholder="Ex: Acme Corporation"
+                            class="input input-bordered w-full focus:input-primary"
+                            required
+                        />
+                        <label class="label">
+                            <span class="label-text-alt text-neutral/50">A empresa será criada se não existir</span>
+                        </label>
+                    </div>
+
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text font-semibold">Arquivo CSV</span>
+                        </label>
+                        <input
+                            type="file"
+                            name="arquivo"
+                            accept=".csv"
+                            class="file-input file-input-bordered file-input-primary w-full"
+                            required
+                        />
+                        <label class="label">
+                            <span class="label-text-alt text-neutral/50">Formato: unidade, setor, cargo, email</span>
+                        </label>
+                    </div>
                 </div>
-                
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Arquivo CSV</span>
-                    </label>
-                    <input 
-                        type="file" 
-                        name="arquivo" 
-                        accept=".csv" 
-                        class="file-input file-input-bordered file-input-primary w-full" 
-                        required
-                    />
-                    <label class="label">
-                        <span class="label-text-alt">
-                            Formato: unidade, setor, cargo, email
-                        </span>
-                    </label>
-                </div>
-                
-                <div class="card-actions justify-end">
+
+                <div class="card-actions justify-end pt-2">
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-cloud-upload-alt mr-2"></i>
                         Importar Dados
@@ -66,83 +80,118 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Instructions -->
-    <div class="card bg-base-100 shadow-lg">
+    <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <h3 class="card-title">
+            <h3 class="card-title text-lg">
                 <i class="fas fa-book-open text-info mr-2"></i>
                 Formato do Arquivo CSV
             </h3>
-            <div class="text-sm space-y-2">
-                <p>O arquivo CSV deve conter as seguintes colunas (com cabeçalho):</p>
-                <ul class="list-disc list-inside space-y-1 ml-4">
-                    <li><strong>unidade</strong>: Nome da unidade organizacional</li>
-                    <li><strong>setor</strong>: Nome do setor</li>
-                    <li><strong>cargo</strong>: Nome do cargo</li>
-                    <li><strong>email</strong>: Email do colaborador</li>
-                </ul>
-                <p class="mt-4"><strong>Exemplo:</strong></p>
-                <div class="mockup-code">
-                    <pre><code>unidade,setor,cargo,email
-Matriz,RH,Analista,joao@empresa.com
-Matriz,TI,Desenvolvedor,maria@empresa.com
-Filial SP,Vendas,Vendedor,pedro@empresa.com</code></pre>
+
+            <div class="text-sm space-y-3 mt-4">
+                <p class="text-neutral/70">O arquivo CSV deve conter as seguintes colunas (com cabeçalho):</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div class="bg-base-200 rounded-lg p-3">
+                        <p class="font-semibold text-neutral">unidade</p>
+                        <p class="text-xs text-neutral/60">Nome da unidade organizacional</p>
+                    </div>
+                    <div class="bg-base-200 rounded-lg p-3">
+                        <p class="font-semibold text-neutral">setor</p>
+                        <p class="text-xs text-neutral/60">Nome do setor/departamento</p>
+                    </div>
+                    <div class="bg-base-200 rounded-lg p-3">
+                        <p class="font-semibold text-neutral">cargo</p>
+                        <p class="text-xs text-neutral/60">Nome do cargo</p>
+                    </div>
+                    <div class="bg-base-200 rounded-lg p-3">
+                        <p class="font-semibold text-neutral">email</p>
+                        <p class="text-xs text-neutral/60">Email do colaborador</p>
+                    </div>
+                </div>
+
+                <div class="mockup-code mt-4 text-xs">
+                    <pre data-prefix="1"><code>unidade,setor,cargo,email</code></pre>
+                    <pre data-prefix="2"><code>Matriz,RH,Analista,joao@empresa.com</code></pre>
+                    <pre data-prefix="3"><code>Matriz,TI,Desenvolvedor,maria@empresa.com</code></pre>
+                    <pre data-prefix="4"><code>Filial SP,Vendas,Vendedor,pedro@empresa.com</code></pre>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- History -->
     {% if processos %}
-    <div class="card bg-base-100 shadow-xl">
+    <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <h2 class="card-title">
-                <i class="fas fa-history mr-2"></i>
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-history mr-2 text-accent"></i>
                 Histórico de Importações
             </h2>
-            
-            <div class="overflow-x-auto">
-                <table class="table table-zebra">
+
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
                     <thead>
-                        <tr>
-                            <th>Data/Hora</th>
-                            <th>Arquivo</th>
-                            <th>Status</th>
-                            <th>Total</th>
-                            <th>Processadas</th>
-                            <th>Erros</th>
-                            <th></th>
+                        <tr class="bg-base-200">
+                            <th class="font-semibold">Data/Hora</th>
+                            <th class="font-semibold hidden sm:table-cell">Arquivo</th>
+                            <th class="font-semibold text-center">Status</th>
+                            <th class="font-semibold text-center hidden md:table-cell">Total</th>
+                            <th class="font-semibold text-center hidden md:table-cell">Processadas</th>
+                            <th class="font-semibold text-center">Erros</th>
+                            <th class="font-semibold text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for processo in processos %}
-                        <tr>
-                            <td>{{ processo.created_at|date:"d/m/Y H:i" }}</td>
-                            <td>{{ processo.arquivo_nome }}</td>
+                        <tr class="hover">
                             <td>
+                                <span class="text-sm">{{ processo.created_at|date:"d/m/Y" }}</span>
+                                <span class="text-xs text-neutral/60 block">{{ processo.created_at|date:"H:i" }}</span>
+                            </td>
+                            <td class="hidden sm:table-cell">
+                                <span class="text-sm font-medium">{{ processo.arquivo_nome }}</span>
+                            </td>
+                            <td class="text-center">
                                 {% if processo.status == 'COMPLETED' %}
-                                <span class="badge badge-success">Concluído</span>
+                                <span class="badge badge-success badge-sm gap-1">
+                                    <i class="fas fa-check text-xs"></i>
+                                    <span class="hidden sm:inline">Concluído</span>
+                                </span>
                                 {% elif processo.status == 'PROCESSING' %}
-                                <span class="badge badge-warning">Processando</span>
+                                <span class="badge badge-warning badge-sm gap-1">
+                                    <i class="fas fa-spinner fa-spin text-xs"></i>
+                                    <span class="hidden sm:inline">Processando</span>
+                                </span>
                                 {% elif processo.status == 'FAILED' %}
-                                <span class="badge badge-error">Falhou</span>
+                                <span class="badge badge-error badge-sm gap-1">
+                                    <i class="fas fa-times text-xs"></i>
+                                    <span class="hidden sm:inline">Falhou</span>
+                                </span>
                                 {% else %}
-                                <span class="badge badge-info">Pendente</span>
+                                <span class="badge badge-info badge-sm gap-1">
+                                    <i class="fas fa-clock text-xs"></i>
+                                    <span class="hidden sm:inline">Pendente</span>
+                                </span>
                                 {% endif %}
                             </td>
-                            <td>{{ processo.total_linhas }}</td>
-                            <td>{{ processo.linhas_processadas }}</td>
-                            <td>
+                            <td class="text-center hidden md:table-cell">
+                                <span class="font-medium">{{ processo.total_linhas }}</span>
+                            </td>
+                            <td class="text-center hidden md:table-cell">
+                                <span class="font-medium">{{ processo.linhas_processadas }}</span>
+                            </td>
+                            <td class="text-center">
                                 {% if processo.linhas_erro > 0 %}
-                                <span class="badge badge-error">{{ processo.linhas_erro }}</span>
+                                <span class="badge badge-error badge-sm">{{ processo.linhas_erro }}</span>
                                 {% else %}
-                                <span class="badge badge-ghost">0</span>
+                                <span class="badge badge-ghost badge-sm">0</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                <a href="{% url 'importacao:processo_detalhe' processo.id %}" class="btn btn-xs btn-ghost">
-                                    <i class="fas fa-eye"></i>
+                            <td class="text-center">
+                                <a href="{% url 'importacao:processo_detalhe' processo.id %}" class="btn btn-ghost btn-xs">
+                                    <i class="fas fa-eye text-primary"></i>
                                 </a>
                             </td>
                         </tr>
@@ -153,5 +202,22 @@ Filial SP,Vendas,Vendedor,pedro@empresa.com</code></pre>
         </div>
     </div>
     {% endif %}
+
+    <!-- Dicas -->
+    <div class="alert bg-info/10 border-0 shadow-soft">
+        <div>
+            <i class="fas fa-lightbulb text-info text-xl"></i>
+            <div>
+                <h3 class="font-bold text-neutral">Dicas de Importação</h3>
+                <ul class="text-sm text-neutral/70 mt-2 space-y-1 list-disc list-inside">
+                    <li>Use codificação UTF-8 para evitar problemas com acentos</li>
+                    <li>Separe as colunas por vírgula (,)</li>
+                    <li>Emails duplicados serão ignorados automaticamente</li>
+                    <li>A hierarquia (unidade > setor > cargo) é criada automaticamente</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
 </div>
 {% endblock %}

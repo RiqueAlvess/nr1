@@ -173,6 +173,7 @@ class DashboardService:
             dados_setores.append({
                 'setor_id': str(setor.id),
                 'setor_nome': setor.nome,
+                'unidade_id': str(setor.unidade.id),
                 'unidade_nome': setor.unidade.nome,
                 'total_respostas': count,
                 'score_medio': round(score_medio, 2) if score_medio else 0,
