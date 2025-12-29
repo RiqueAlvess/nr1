@@ -118,20 +118,31 @@
             height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
-            z-index: 40;
+            z-index: 30;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: width;
         }
 
         .sidebar-expanded { width: 16rem; }
         .sidebar-collapsed { width: 4.5rem; }
 
-        .main-content-expanded { margin-left: 16rem; }
-        .main-content-collapsed { margin-left: 4.5rem; }
+        /* Main content adjusts based on sidebar state */
+        .main-content-expanded {
+            margin-left: 16rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content-collapsed {
+            margin-left: 4.5rem;
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
         @media (max-width: 1023px) {
             .sidebar-desktop { display: none; }
             .main-content-expanded,
-            .main-content-collapsed { margin-left: 0; }
+            .main-content-collapsed {
+                margin-left: 0;
+                transition: none;
+            }
             .bottom-nav {
                 position: fixed;
                 bottom: 0;
@@ -149,7 +160,7 @@
             align-items: center;
             padding: 0.625rem 0.875rem;
             border-radius: 0.5rem;
-            transition: all 0.15s ease;
+            transition: background-color 0.15s ease;
             white-space: nowrap;
             overflow: hidden;
         }
@@ -167,13 +178,48 @@
         .sidebar-menu-text {
             margin-left: 0.75rem;
             opacity: 1;
-            transition: opacity 0.2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: opacity 0.2s ease 0.1s, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .sidebar-collapsed .sidebar-menu-text { opacity: 0; width: 0; }
-        .sidebar-collapsed .sidebar-section-title { opacity: 0; height: 0; margin: 0; padding: 0; }
-        .sidebar-collapsed .sidebar-badge { display: none; }
-        .sidebar-collapsed .sidebar-user-info { display: none; }
+        .sidebar-section-title {
+            transition: opacity 0.2s ease, height 0.2s ease, margin 0.2s ease, padding 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar-badge {
+            transition: opacity 0.15s ease, transform 0.15s ease;
+        }
+
+        .sidebar-user-info {
+            transition: opacity 0.2s ease, width 0.2s ease;
+            overflow: hidden;
+        }
+
+        .sidebar-collapsed .sidebar-menu-text {
+            opacity: 0;
+            width: 0;
+            margin-left: 0;
+            transition: opacity 0.1s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s ease;
+        }
+        .sidebar-collapsed .sidebar-section-title {
+            opacity: 0;
+            height: 0;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar-collapsed .sidebar-badge {
+            opacity: 0;
+            transform: scale(0);
+            width: 0;
+            margin: 0;
+            padding: 0;
+        }
+        .sidebar-collapsed .sidebar-user-info {
+            opacity: 0;
+            width: 0;
+        }
 
         /* Modern card styles */
         .card-modern {
@@ -205,8 +251,7 @@
         .sidebar-toggle {
             position: absolute;
             right: -12px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 72px;
             width: 24px;
             height: 24px;
             background: white;
@@ -216,20 +261,20 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
-            z-index: 50;
+            transition: background 0.2s ease, box-shadow 0.2s ease;
+            z-index: 35;
             box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
         }
 
         .sidebar-toggle:hover {
             background: #F8FAFC;
-            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
         }
 
         .sidebar-toggle i {
             font-size: 10px;
             color: #64748B;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .sidebar-collapsed .sidebar-toggle i {
@@ -480,7 +525,7 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main class="{% if user.is_authenticated %}lg:transition-all lg:duration-300 main-content-mobile{% endif %} min-h-screen w-full"
+    <main class="{% if user.is_authenticated %}lg:transition-all lg:duration-300 main-content-mobile{% endif %} min-h-screen"
           :class="{ 'lg:main-content-expanded': sidebarExpanded, 'lg:main-content-collapsed': !sidebarExpanded }">
 
         {% if user.is_authenticated %}
@@ -492,7 +537,7 @@
                 {% block content %}{% endblock %}
             </div>
         {% else %}
-            {% block content %}{% endblock %}
+        {% block public_content %}{% endblock %}
         {% endif %}
 
     </main>
