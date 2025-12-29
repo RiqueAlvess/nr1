@@ -103,7 +103,10 @@
                 <i class="fas fa-chart-bar text-primary mr-2"></i>
                 Comparativo de Risco por Setor
             </h2>
-            <div class="mt-4" style="height: 350px;">
+            <div id="chart-setores-loading" class="flex items-center justify-center h-80">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+            <div id="chart-setores-container" class="hidden mt-4" style="height: 350px;">
                 <canvas id="graficoSetores"></canvas>
             </div>
         </div>
@@ -273,6 +276,9 @@ function setoresApp() {
 
         criarGrafico() {
             const ctx = document.getElementById('graficoSetores');
+            const loadingEl = document.getElementById('chart-setores-loading');
+            const containerEl = document.getElementById('chart-setores-container');
+
             if (!ctx) return;
 
             const cores = {
@@ -288,70 +294,80 @@ function setoresApp() {
                 return cores.success;
             });
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: setoresData.map(s => s.nome),
-                    datasets: [{
-                        label: 'Score Médio',
-                        data: setoresData.map(s => s.score),
-                        backgroundColor: coresBarras,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    indexAxis: setoresData.length > 6 ? 'y' : 'x',
-                    plugins: {
-                        legend: {
-                            display: false
+            try {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: setoresData.map(s => s.nome),
+                        datasets: [{
+                            label: 'Score Médio',
+                            data: setoresData.map(s => s.score),
+                            backgroundColor: coresBarras,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: setoresData.length > 6 ? 'y' : 'x',
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: cores.secondary,
+                                padding: 12,
+                                cornerRadius: 8,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        const idx = context.dataIndex;
+                                        return [
+                                            `Unidade: ${setoresData[idx].unidade}`,
+                                            `Respostas: ${setoresData[idx].respostas}`,
+                                            `Nível: ${setoresData[idx].risco}`
+                                        ];
+                                    }
+                                }
+                            }
                         },
-                        tooltip: {
-                            backgroundColor: cores.secondary,
-                            padding: 12,
-                            cornerRadius: 8,
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 },
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    const idx = context.dataIndex;
-                                    return [
-                                        `Unidade: ${setoresData[idx].unidade}`,
-                                        `Respostas: ${setoresData[idx].respostas}`,
-                                        `Nível: ${setoresData[idx].risco}`
-                                    ];
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(229, 236, 233, 0.5)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 12 },
+                                    color: '#1F2933'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: { size: 11 },
+                                    color: '#1F2933',
+                                    maxRotation: 45,
+                                    minRotation: 0
                                 }
                             }
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(229, 236, 233, 0.5)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                font: { size: 12 },
-                                color: '#1F2933'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: { size: 11 },
-                                color: '#1F2933',
-                                maxRotation: 45,
-                                minRotation: 0
-                            }
-                        }
                     }
-                }
-            });
+                });
+
+                // Esconder loading e mostrar gráfico
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (containerEl) containerEl.classList.remove('hidden');
+            } catch (error) {
+                console.error('Erro ao criar gráfico de setores:', error);
+                // Em caso de erro, esconder loading mesmo assim
+                if (loadingEl) loadingEl.classList.add('hidden');
+            }
         }
     }
 }
