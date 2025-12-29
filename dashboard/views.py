@@ -1,7 +1,9 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
+from django.core.serializers.json import DjangoJSONEncoder
 from core.models import Empresa, Unidade
 from dashboard.services.dashboard_service import DashboardService
 from core.services.audit_service import AuditService
@@ -87,10 +89,17 @@ def dashboard_principal_view(request):
     )
 
     context = {
+        # Dados originais para uso no template HTML
         'kpis': kpis,
         'dados_unidades': dados_unidades,
         'dados_setores': dados_setores,
         'dados_dimensoes': dados_dimensoes,
+        # Dados serializados em JSON para uso no JavaScript
+        'kpis_json': json.dumps(kpis, cls=DjangoJSONEncoder),
+        'dados_unidades_json': json.dumps(dados_unidades, cls=DjangoJSONEncoder),
+        'dados_setores_json': json.dumps(dados_setores, cls=DjangoJSONEncoder),
+        'dados_dimensoes_json': json.dumps(dados_dimensoes, cls=DjangoJSONEncoder),
+        # Outros dados do contexto
         'empresa': empresa_selecionada,
         'empresas': empresas,
         'empresa_selecionada_id': str(empresa_selecionada.id),
