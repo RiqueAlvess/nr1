@@ -1,105 +1,110 @@
-{% extends 'base/base.html' %}
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="nr1theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Plataforma NR-1</title>
 
-{% block title %}Login - Plataforma NR-1{% endblock %}
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-{% block public_content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-base-200 via-base-100 to-base-200 px-4 py-8">
-    <div class="w-full max-w-md">
-        <!-- Logo e Título -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl shadow-soft mb-4">
-                <i class="fas fa-shield-alt text-white text-3xl"></i>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#1EEB88',
+                        'secondary': '#0F3D52',
+                        'neutral': '#1F2933',
+                        'base-100': '#FFFFFF',
+                        'base-200': '#F8FAFC',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Garante que o botão tenha texto visível e contraste */
+        .btn-login {
+            background-color: #1EEB88 !important;
+            color: #0F3D52 !important; /* Texto escuro para contraste no verde */
+            border: none;
+        }
+        .btn-login:hover {
+            background-color: #17c972 !important;
+        }
+    </style>
+</head>
+<body class="bg-base-200 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-[420px]">
+        <div class="bg-white rounded-xl border border-base-300 shadow-sm p-8 md:p-10">
+            
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-primary rounded-lg mb-4">
+                    <i class="fas fa-shield-alt text-secondary text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-neutral">Plataforma NR-1</h1>
+                <p class="text-neutral/60 text-sm mt-1">Fazer login</p>
             </div>
-            <h1 class="text-3xl font-bold text-neutral">Plataforma NR-1</h1>
-            <p class="text-neutral/60 mt-2">
-                Gestão de Riscos Psicossociais
-            </p>
-        </div>
 
-        <!-- Card de Login -->
-        <div class="card bg-base-100 shadow-soft">
-            <div class="card-body p-6 sm:p-8">
-                <form method="post" class="space-y-5">
-                    {% csrf_token %}
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="form-control">
+                    <input 
+                        type="text" 
+                        name="username" 
+                        placeholder="E-mail ou usuário" 
+                        class="input input-bordered w-full focus:border-primary focus:outline-none bg-transparent" 
+                        required 
+                        autofocus 
+                    />
+                </div>
 
-                    <!-- Campo Usuário -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-neutral">Usuário</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-neutral/40">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input
-                                type="text"
-                                name="username"
-                                placeholder="Digite seu usuário"
-                                class="input input-bordered w-full pl-11 focus:input-primary"
-                                required
-                                autofocus
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Campo Senha -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-neutral">Senha</span>
-                        </label>
-                        <div class="relative" x-data="{ showPassword: false }">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-neutral/40">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input
-                                :type="showPassword ? 'text' : 'password'"
-                                name="password"
-                                placeholder="Digite sua senha"
-                                class="input input-bordered w-full pl-11 pr-11 focus:input-primary"
-                                required
-                            />
-                            <button
-                                type="button"
-                                @click="showPassword = !showPassword"
-                                class="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral/40 hover:text-neutral transition-smooth"
-                            >
-                                <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Botão de Login -->
-                    <div class="form-control pt-2">
-                        <button type="submit" class="btn btn-primary w-full h-12 text-base font-semibold">
-                            <i class="fas fa-sign-in-alt mr-2"></i>
-                            Entrar
+                <div class="form-control" x-data="{ show: false }">
+                    <div class="relative">
+                        <input 
+                            :type="show ? 'text' : 'password'" 
+                            name="password" 
+                            placeholder="Digite sua senha" 
+                            class="input input-bordered w-full pr-12 focus:border-primary focus:outline-none bg-transparent" 
+                            required 
+                        />
+                        <button 
+                            type="button" 
+                            @click="show = !show" 
+                            class="absolute right-4 top-1/2 -translate-y-1/2 text-neutral/40 hover:text-neutral"
+                        >
+                            <i class="fas" :class="show ? 'fa-eye-slash' : 'fa-eye'"></i>
                         </button>
                     </div>
-                </form>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="btn btn-login w-full font-bold text-base shadow-sm">
+                        Acessar
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 flex justify-between items-center text-sm">
+                <a href="#" class="text-secondary hover:underline font-medium">Esqueceu a senha?</a>
+                <span class="text-neutral/30">|</span>
+                <span class="text-neutral/50">Suporte TI</span>
             </div>
         </div>
 
-        <!-- Informações Adicionais -->
-        <div class="mt-8 space-y-4">
-            <div class="flex items-center justify-center space-x-6 text-sm text-neutral/50">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-check-circle text-success"></i>
-                    <span>NR-1 Compliant</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-shield-alt text-primary"></i>
-                    <span>LGPD</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-user-shield text-accent"></i>
-                    <span>HSE-IT</span>
-                </div>
-            </div>
-
-            <p class="text-center text-xs text-neutral/40">
-                Sistema fundamentado na NR-1 (GRO/PGR) com garantia de anonimato k-anonymity
+        <div class="mt-8 text-center">
+            <p class="text-[11px] text-neutral/40 font-medium uppercase tracking-widest">
+                Conformidade: NR-1 • LGPD • HSE-IT
             </p>
         </div>
     </div>
-</div>
-{% endblock public_content %}
+
+</body>
+</html>

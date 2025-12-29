@@ -22,13 +22,9 @@
             <i class="fas fa-sitemap text-primary mr-2"></i>
             Análise por Setores
         </h1>
-        <p class="text-sm text-neutral/60 mt-1">{{ empresa.nome }}</p>
-    </div>
-    <div class="mt-4 lg:mt-0 flex items-center gap-2">
-        <a href="{% url 'dashboard:unidades' %}" class="btn btn-outline btn-sm">
-            <i class="fas fa-arrow-left mr-2"></i>
-            Voltar
-        </a>
+        {% if unidade_id %}
+            <p class="text-sm text-neutral/60 mt-1">Unidade selecionada: {{ unidade_id }}</p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
@@ -37,138 +33,71 @@
 <div class="space-y-6" x-data="setoresApp">
 
     {% if dados.setores %}
-    <!-- Resumo -->
-    <div class="stats stats-vertical sm:stats-horizontal shadow-soft bg-base-100 w-full">
-        <div class="stat">
-            <div class="stat-figure text-primary">
-                <i class="fas fa-sitemap text-3xl"></i>
-            </div>
-            <div class="stat-title">Total de Setores</div>
-            <div class="stat-value text-primary">{{ dados.total_setores_visiveis }}</div>
-            <div class="stat-desc">Com dados suficientes</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-figure text-error">
-                <i class="fas fa-exclamation-triangle text-3xl"></i>
-            </div>
-            <div class="stat-title">Setores Críticos</div>
-            <div class="stat-value text-error" x-text="setoresCriticos"></div>
-            <div class="stat-desc">Requerem atenção imediata</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-figure text-success">
-                <i class="fas fa-check-circle text-3xl"></i>
-            </div>
-            <div class="stat-title">Setores Satisfatórios</div>
-            <div class="stat-value text-success" x-text="setoresSatisfatorios"></div>
-            <div class="stat-desc">Baixo risco identificado</div>
-        </div>
-    </div>
-
-    <!-- Filtro de Visualização -->
+    <!-- Resumo / filtros -->
     <div class="card bg-base-100 shadow-soft">
-        <div class="card-body py-4">
-            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                <div class="form-control flex-1">
-                    <label class="label">
-                        <span class="label-text font-semibold">Filtrar por Nível de Risco</span>
-                    </label>
+        <div class="card-body">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <i class="fas fa-sitemap text-primary text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-medium text-lg">Setores</div>
+                        <div class="text-sm text-neutral/60">Análise e comparativo por setor</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
                     <select x-model="filtroRisco" class="select select-bordered w-full max-w-xs">
-                        <option value="">Todos os níveis</option>
-                        <option value="CRÍTICO">Crítico</option>
-                        <option value="ATENÇÃO">Atenção</option>
-                        <option value="SATISFATÓRIO">Satisfatório</option>
+                        <option value="">Todos</option>
+                        <option value="CRÍTICO">CRÍTICO</option>
+                        <option value="ATENÇÃO">ATENÇÃO</option>
+                        <option value="SATISFATÓRIO">SATISFATÓRIO</option>
                     </select>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Ordenar por</span>
-                    </label>
                     <select x-model="ordenacao" class="select select-bordered w-full max-w-xs">
-                        <option value="risco">Nível de Risco</option>
-                        <option value="score">Score Médio</option>
-                        <option value="nome">Nome</option>
+                        <option value="risco">Ordenar por risco</option>
+                        <option value="score">Ordenar por score</option>
                     </select>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Gráfico de Comparação -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <h2 class="card-title text-neutral">
-                <i class="fas fa-chart-bar text-primary mr-2"></i>
-                Comparativo de Risco por Setor
-            </h2>
-            <div id="chart-setores-loading" class="flex items-center justify-center h-80">
-                <span class="loading loading-spinner loading-lg text-primary"></span>
-            </div>
-            <div id="chart-setores-container" class="hidden mt-4" style="height: 350px;">
-                <canvas id="graficoSetores"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cards de Setores -->
+    <!-- Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for setor in dados.setores %}
-        <div class="card bg-base-100 shadow-soft card-hover transition-smooth"
-             x-show="!filtroRisco || '{{ setor.nivel_risco_nr1 }}' === filtroRisco"
-             x-transition>
-            <div class="card-body">
-                <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-12 h-12 rounded-lg flex items-center justify-center
-                            {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}bg-error/10{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}bg-warning/10{% else %}bg-success/10{% endif %}">
-                            <i class="fas fa-sitemap text-xl
-                                {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}text-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}text-warning{% else %}text-success{% endif %}"></i>
+        <template x-for="setor in (ordenados || [])" :key="setor.setor_id">
+            <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
+                <div class="card-body">
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <i class="fas fa-users text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <div class="font-medium" x-text="setor.setor_nome"></div>
+                                <div class="text-sm text-neutral/60" x-text="setor.unidade_nome"></div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="font-bold text-neutral">{{ setor.setor_nome }}</h3>
-                            <p class="text-sm text-neutral/60">{{ setor.unidade_nome }}</p>
+                        <div class="text-right">
+                            <div class="text-sm text-neutral/60">Score Médio</div>
+                            <div class="font-bold text-secondary" x-text="setor.score_medio"></div>
                         </div>
                     </div>
-                    <span class="badge {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}badge-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %}">
-                        {{ setor.nivel_risco_nr1 }}
-                    </span>
-                </div>
-
-                <div class="divider my-3"></div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <p class="text-sm text-neutral/60">Score Médio</p>
-                        <p class="text-xl font-bold text-secondary">{{ setor.score_medio }}</p>
+                    <div class="card-actions justify-end mt-4">
+                        <a :href="`{% url 'dashboard:setores' %}?unidade=${setor.unidade_id}`" class="btn btn-outline btn-sm btn-primary">
+                            <i class="fas fa-arrow-right mr-1"></i>
+                            Ver
+                        </a>
                     </div>
-                    <div>
-                        <p class="text-sm text-neutral/60">Respostas</p>
-                        <p class="text-xl font-bold text-accent">{{ setor.total_respostas }}</p>
-                    </div>
-                </div>
-
-                <!-- Progress bar visual -->
-                <div class="mt-4">
-                    <div class="flex justify-between text-xs text-neutral/60 mb-1">
-                        <span>Score</span>
-                        <span>{{ setor.score_medio }}/140</span>
-                    </div>
-                    <progress class="progress w-full
-                        {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}progress-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}progress-warning{% else %}progress-success{% endif %}"
-                        value="{{ setor.score_medio }}" max="140"></progress>
                 </div>
             </div>
-        </div>
-        {% endfor %}
+        </template>
     </div>
 
-    <!-- Tabela Detalhada -->
+    <!-- Tabela -->
     <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <h2 class="card-title text-neutral">
-                <i class="fas fa-table text-accent mr-2"></i>
+            <h2 class="card-title text-neutral text-lg">
+                <i class="fas fa-table mr-2 text-accent"></i>
                 Dados Detalhados
             </h2>
 
@@ -176,41 +105,21 @@
                 <table class="table table-zebra w-full">
                     <thead>
                         <tr class="bg-base-200">
-                            <th class="font-semibold">Setor</th>
-                            <th class="font-semibold">Unidade</th>
-                            <th class="font-semibold text-center">Respostas</th>
-                            <th class="font-semibold text-center">Score Médio</th>
-                            <th class="font-semibold text-center">Nível de Risco</th>
+                            <th>Setor</th>
+                            <th class="text-center">Unidade</th>
+                            <th class="text-center">Respostas</th>
+                            <th class="text-center">Score Médio</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for setor in dados.setores %}
-                        <tr class="hover"
-                            x-show="!filtroRisco || '{{ setor.nivel_risco_nr1 }}' === filtroRisco">
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center
-                                        {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}bg-error/10{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}bg-warning/10{% else %}bg-success/10{% endif %}">
-                                        <i class="fas fa-sitemap
-                                            {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}text-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}text-warning{% else %}text-success{% endif %}"></i>
-                                    </div>
-                                    <span class="font-medium">{{ setor.setor_nome }}</span>
-                                </div>
-                            </td>
-                            <td class="text-neutral/70">{{ setor.unidade_nome }}</td>
-                            <td class="text-center">
-                                <span class="badge badge-ghost">{{ setor.total_respostas }}</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="font-bold text-secondary">{{ setor.score_medio }}</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}badge-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %}">
-                                    {{ setor.nivel_risco_nr1 }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
+                        <template x-for="setor in (ordenados || [])" :key="setor.setor_id">
+                            <tr class="hover">
+                                <td x-text="setor.setor_nome"></td>
+                                <td class="text-center" x-text="setor.unidade_nome"></td>
+                                <td class="text-center" x-text="setor.total_respostas"></td>
+                                <td class="text-center" x-text="setor.score_medio"></td>
+                            </tr>
+                        </template>
                     </tbody>
                 </table>
             </div>
@@ -218,7 +127,6 @@
     </div>
 
     {% else %}
-    <!-- Estado Vazio -->
     <div class="card bg-base-100 shadow-soft">
         <div class="card-body items-center text-center py-12">
             <div class="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mb-4">
@@ -243,110 +151,65 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const setoresData = {{ dados_setores_json|safe }}.setores || [];
-    
-    document.addEventListener('alpine:init', () => {
+  {% if dados %}
+    {{ dados|json_script:"dados-setores-json" }}
+  {% endif %}
+
+  <script>
+    (function registerSetores() {
+      const defineComponent = () => {
         Alpine.data('setoresApp', () => ({
-            filtroRisco: '',
-            ordenacao: 'risco',
+          filtroRisco: '',
+          ordenacao: 'risco',
 
-            get setoresCriticos() {
-                return setoresData.filter(s => s.nivel_risco_nr1 === 'CRÍTICO').length;
-            },
-
-            get setoresSatisfatorios() {
-                return setoresData.filter(s => s.nivel_risco_nr1 === 'SATISFATÓRIO').length;
-            },
-
-            init() {
-                this.$nextTick(() => {
-                    if (setoresData.length > 0) {
-                        this.criarGrafico();
-                    }
-                });
-            },
-
-            criarGrafico() {
-                const ctx = document.getElementById('graficoSetores');
-                const loadingEl = document.getElementById('chart-setores-loading');
-                const containerEl = document.getElementById('chart-setores-container');
-
-                if (!ctx || !window.Chart) {
-                    console.error('Canvas ou Chart.js não encontrado');
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                    return;
-                }
-
-                const cores = {
-                    error: '#EF4444',
-                    warning: '#FACC15',
-                    success: '#22C55E',
-                    secondary: '#0F3D52'
-                };
-
-                const coresBarras = setoresData.map(s => {
-                    if (s.nivel_risco_nr1 === 'CRÍTICO') return cores.error;
-                    if (s.nivel_risco_nr1 === 'ATENÇÃO') return cores.warning;
-                    return cores.success;
-                });
-
-                try {
-                    new Chart(ctx.getContext('2d'), {
-                        type: 'bar',
-                        data: {
-                            labels: setoresData.map(s => s.setor_nome || 'Sem nome'),
-                            datasets: [{
-                                label: 'Score Médio',
-                                data: setoresData.map(s => s.score_medio || 0),
-                                backgroundColor: coresBarras,
-                                borderRadius: 8,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            indexAxis: setoresData.length > 6 ? 'y' : 'x',
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: {
-                                    backgroundColor: cores.secondary,
-                                    padding: 12,
-                                    cornerRadius: 8,
-                                    callbacks: {
-                                        afterLabel: function(context) {
-                                            const idx = context.dataIndex;
-                                            return [
-                                                `Unidade: ${setoresData[idx].unidade_nome || 'N/A'}`,
-                                                `Respostas: ${setoresData[idx].total_respostas || 0}`,
-                                                `Nível: ${setoresData[idx].nivel_risco_nr1 || 'N/A'}`
-                                            ];
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: { color: 'rgba(229, 236, 233, 0.5)' }
-                                },
-                                x: {
-                                    grid: { display: false }
-                                }
-                            }
-                        }
-                    });
-
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                    if (containerEl) containerEl.classList.remove('hidden');
-                } catch (error) {
-                    console.error('Erro ao criar gráfico:', error);
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                }
+          setoresData: (function() {
+            try {
+              const el = document.getElementById('dados-setores-json');
+              return el ? JSON.parse(el.textContent).setores || [] : [];
+            } catch (err) {
+              console.error('Falha ao parsear dados-setores-json:', err);
+              return [];
             }
+          })(),
+
+          get setoresCriticos() {
+            return this.setoresData.filter(s => (s.nivel_risco_nr1 || '').toUpperCase() === 'CRÍTICO');
+          },
+
+          get setoresSatisfatorios() {
+            return this.setoresData.filter(s => (s.nivel_risco_nr1 || '').toUpperCase() === 'SATISFATÓRIO');
+          },
+
+          get filtrados() {
+            if (!this.filtroRisco) return this.setoresData;
+            const risk = this.filtroRisco.toUpperCase();
+            return this.setoresData.filter(s => (s.nivel_risco_nr1 || '').toUpperCase() === risk);
+          },
+
+          get ordenados() {
+            const arr = [...this.filtrados];
+            if (this.ordenacao === 'score') {
+              arr.sort((a, b) => (b.score_medio || 0) - (a.score_medio || 0));
+            } else {
+              // ordenar por nível de risco: CRÍTICO > ATENÇÃO > SATISFATÓRIO
+              const rank = r => (r === 'CRÍTICO' ? 3 : (r === 'ATENÇÃO' ? 2 : 1));
+              arr.sort((a, b) => rank((b.nivel_risco_nr1 || '').toUpperCase()) - rank((a.nivel_risco_nr1 || '').toUpperCase()));
+            }
+            return arr;
+          },
+
+          init() {
+            // Nenhuma ação crítica no init além de garantir que getters funcionem com dados
+            this.$nextTick(() => {});
+          }
         }));
-    });
-});
-</script>
+      };
+
+      if (window.Alpine && window.Alpine.data) {
+        defineComponent();
+      } else {
+        document.addEventListener('alpine:init', defineComponent);
+      }
+    })();
+  </script>
 {% endblock %}

@@ -51,15 +51,25 @@
             </div>
             <div class="stat-title">Respostas Totais</div>
             <div class="stat-value text-accent">
-                {% widthratio 0 1 0 as total_respostas %}
-                {% for unidade in dados.unidades %}
-                    {% with unidade.total_respostas as resp %}
-                        {{ resp|add:total_respostas }}
-                    {% endwith %}
-                {% endfor %}
-                {% for unidade in dados.unidades %}{{ unidade.total_respostas }}{% if not forloop.last %}+{% endif %}{% endfor %}
+                {% comment %} Soma simples das respostas por unidade {% endcomment %}
+                {% with total=0 %}
+                    {% for unidade in dados.unidades %}
+                        {% with total=total|add:unidade.total_respostas %}
+                        {% endwith %}
+                    {% endfor %}
+                    {{ total }}
+                {% endwith %}
             </div>
             <div class="stat-desc">Questionários concluídos</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-figure text-secondary">
+                <i class="fas fa-chart-bar text-3xl"></i>
+            </div>
+            <div class="stat-title">Comparativo</div>
+            <div class="stat-value text-secondary">Score Médio</div>
+            <div class="stat-desc">Comparação entre unidades</div>
         </div>
     </div>
 
@@ -90,24 +100,15 @@
                             <i class="fas fa-building text-primary text-xl"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-neutral">{{ unidade.unidade_nome }}</h3>
-                            <p class="text-sm text-neutral/60">{{ unidade.total_respostas }} respostas</p>
+                            <div class="font-medium">{{ unidade.unidade_nome }}</div>
+                            <div class="text-sm text-neutral/60">{{ unidade.total_respostas }} respostas</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="divider my-3"></div>
-
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-neutral/60">Score Médio</p>
-                        <p class="text-2xl font-bold text-secondary">{{ unidade.score_medio }}</p>
-                    </div>
-                    <div class="radial-progress text-primary" style="--value:{{ unidade.score_medio|floatformat:0 }}; --size:3.5rem; --thickness: 4px;" role="progressbar">
-                        <span class="text-xs font-medium">{{ unidade.score_medio|floatformat:0 }}%</span>
+                    <div class="text-right">
+                        <div class="text-sm text-neutral/60">Score Médio</div>
+                        <div class="font-bold text-secondary">{{ unidade.score_medio }}</div>
                     </div>
                 </div>
-
                 <div class="card-actions justify-end mt-4">
                     <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}" class="btn btn-outline btn-sm btn-primary">
                         <i class="fas fa-sitemap mr-1"></i>
@@ -193,100 +194,100 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-// Aguardar DOM completamente carregado
-document.addEventListener('DOMContentLoaded', function() {
-    // Dados do Django (com validação)
-    const unidadesData = {{ dados_unidades_json|safe }}.unidades || [];
-    
-    // Aguardar Alpine.js estar pronto
-    document.addEventListener('alpine:init', () => {
+  {# Inserir JSON de forma segura com json_script (Django builtin) #}
+  {% if dados %}
+    {{ dados|json_script:"dados-unidades-json" }}
+  {% endif %}
+
+  <script>
+    (function registerUnidades() {
+      const defineComponent = () => {
         Alpine.data('unidadesApp', () => ({
-            init() {
-                // Aguardar próximo tick para garantir que DOM está pronto
-                this.$nextTick(() => {
-                    if (unidadesData.length > 0) {
-                        this.criarGrafico();
-                    }
-                });
-            },
-
-            criarGrafico() {
-                const ctx = document.getElementById('graficoUnidades');
-                const loadingEl = document.getElementById('chart-unidades-loading');
-                const containerEl = document.getElementById('chart-unidades-container');
-
-                if (!ctx || !window.Chart) {
-                    console.error('Canvas ou Chart.js não encontrado');
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                    return;
-                }
-
-                const contextCanvas = ctx.getContext('2d');
-                if (!contextCanvas) {
-                    console.error('Contexto 2D não disponível');
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                    return;
-                }
-
-                const cores = {
-                    primary: '#1EEB88',
-                    secondary: '#0F3D52',
-                    accent: '#6EDBC1'
-                };
-
-                try {
-                    new Chart(contextCanvas, {
-                        type: 'bar',
-                        data: {
-                            labels: unidadesData.map(d => d.unidade_nome || 'Sem nome'),
-                            datasets: [{
-                                label: 'Score Médio',
-                                data: unidadesData.map(d => d.score_medio || 0),
-                                backgroundColor: cores.primary,
-                                borderRadius: 8,
-                                borderSkipped: false,
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                tooltip: {
-                                    backgroundColor: cores.secondary,
-                                    padding: 12,
-                                    cornerRadius: 8,
-                                    callbacks: {
-                                        afterLabel: function(context) {
-                                            const idx = context.dataIndex;
-                                            return `Respostas: ${unidadesData[idx].total_respostas || 0}`;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    max: 140,
-                                    grid: { color: 'rgba(229, 236, 233, 0.5)' }
-                                },
-                                x: {
-                                    grid: { display: false }
-                                }
-                            }
-                        }
-                    });
-
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                    if (containerEl) containerEl.classList.remove('hidden');
-                } catch (error) {
-                    console.error('Erro ao criar gráfico:', error);
-                    if (loadingEl) loadingEl.classList.add('hidden');
-                }
+          unidadesData: (function() {
+            try {
+              const el = document.getElementById('dados-unidades-json');
+              return el ? JSON.parse(el.textContent).unidades || [] : [];
+            } catch (err) {
+              console.error('Falha ao parsear dados-unidades-json:', err);
+              return [];
             }
+          })(),
+
+          init() {
+            this.$nextTick(() => {
+              if (this.unidadesData.length > 0) {
+                this.criarGrafico();
+              } else {
+                const loadingEl = document.getElementById('chart-unidades-loading');
+                if (loadingEl) loadingEl.classList.add('hidden');
+              }
+            });
+          },
+
+          criarGrafico() {
+            const ctx = document.getElementById('graficoUnidades');
+            const loadingEl = document.getElementById('chart-unidades-loading');
+            const containerEl = document.getElementById('chart-unidades-container');
+
+            if (!ctx || !window.Chart) {
+              console.error('Canvas ou Chart.js não encontrado');
+              if (loadingEl) loadingEl.classList.add('hidden');
+              return;
+            }
+
+            const contextCanvas = ctx.getContext('2d');
+            if (!contextCanvas) {
+              if (loadingEl) loadingEl.classList.add('hidden');
+              return;
+            }
+
+            const cores = { primary: '#1EEB88', secondary: '#0F3D52', accent: '#6EDBC1' };
+
+            try {
+              new Chart(contextCanvas, {
+                type: 'bar',
+                data: {
+                  labels: this.unidadesData.map(d => d.unidade_nome || 'Sem nome'),
+                  datasets: [{
+                    label: 'Score Médio',
+                    data: this.unidadesData.map(d => d.score_medio || 0),
+                    backgroundColor: Array(this.unidadesData.length).fill(cores.primary),
+                    borderRadius: 8,
+                    borderSkipped: false,
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    x: { grid: { display: false } },
+                    y: { beginAtZero: true }
+                  }
+                }
+              });
+
+              if (loadingEl) loadingEl.classList.add('hidden');
+              if (containerEl) containerEl.classList.remove('hidden');
+            } catch (err) {
+              console.error('Erro ao criar gráfico:', err);
+              if (loadingEl) loadingEl.classList.add('hidden');
+            }
+          }
         }));
-    });
-});
-</script>
+      };
+
+      if (window.Alpine && window.Alpine.data) {
+        defineComponent();
+      } else {
+        document.addEventListener('alpine:init', defineComponent);
+      }
+    })();
+  </script>
 {% endblock %}
+
+
+
+
+
+
