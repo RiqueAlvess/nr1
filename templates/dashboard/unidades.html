@@ -194,118 +194,99 @@
 
 {% block extra_js %}
 <script>
-// Dados do Django preparados ANTES do Alpine
-const unidadesData = [
-    {% for unidade in dados.unidades %}
-    {
-        nome: "{{ unidade.unidade_nome }}",
-        score: {{ unidade.score_medio }},
-        respostas: {{ unidade.total_respostas }}
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-];
+// Aguardar DOM completamente carregado
+document.addEventListener('DOMContentLoaded', function() {
+    // Dados do Django (com validação)
+    const unidadesData = {{ dados_unidades_json|safe }}.unidades || [];
+    
+    // Aguardar Alpine.js estar pronto
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('unidadesApp', () => ({
+            init() {
+                // Aguardar próximo tick para garantir que DOM está pronto
+                this.$nextTick(() => {
+                    if (unidadesData.length > 0) {
+                        this.criarGrafico();
+                    }
+                });
+            },
 
-// Registrar componente ANTES da inicialização do Alpine
-document.addEventListener('alpine:init', () => {
-    Alpine.data('unidadesApp', () => ({
-        init() {
-            this.$nextTick(() => {
-                this.criarGrafico();
-            });
-        },
+            criarGrafico() {
+                const ctx = document.getElementById('graficoUnidades');
+                const loadingEl = document.getElementById('chart-unidades-loading');
+                const containerEl = document.getElementById('chart-unidades-container');
 
-        criarGrafico() {
-            const ctx = document.getElementById('graficoUnidades');
-            const loadingEl = document.getElementById('chart-unidades-loading');
-            const containerEl = document.getElementById('chart-unidades-container');
+                if (!ctx || !window.Chart) {
+                    console.error('Canvas ou Chart.js não encontrado');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    return;
+                }
 
-            if (!ctx) {
-                console.error('Canvas não encontrado');
-                return;
-            }
+                const contextCanvas = ctx.getContext('2d');
+                if (!contextCanvas) {
+                    console.error('Contexto 2D não disponível');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    return;
+                }
 
-            const contextCanvas = ctx.getContext('2d');
-            if (!contextCanvas) {
-                console.error('Contexto 2D não disponível');
-                return;
-            }
+                const cores = {
+                    primary: '#1EEB88',
+                    secondary: '#0F3D52',
+                    accent: '#6EDBC1'
+                };
 
-            const cores = {
-                primary: '#1EEB88',
-                secondary: '#0F3D52',
-                accent: '#6EDBC1'
-            };
-
-            try {
-                new Chart(contextCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: unidadesData.map(d => d.nome),
-                        datasets: [{
-                            label: 'Score Médio',
-                            data: unidadesData.map(d => d.score),
-                            backgroundColor: cores.primary,
-                            borderRadius: 8,
-                            borderSkipped: false,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: cores.secondary,
-                                padding: 12,
-                                cornerRadius: 8,
-                                titleFont: { size: 14, weight: 'bold' },
-                                bodyFont: { size: 13 },
-                                callbacks: {
-                                    afterLabel: function(context) {
-                                        const idx = context.dataIndex;
-                                        return `Respostas: ${unidadesData[idx].respostas}`;
+                try {
+                    new Chart(contextCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: unidadesData.map(d => d.unidade_nome || 'Sem nome'),
+                            datasets: [{
+                                label: 'Score Médio',
+                                data: unidadesData.map(d => d.score_medio || 0),
+                                backgroundColor: cores.primary,
+                                borderRadius: 8,
+                                borderSkipped: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: cores.secondary,
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        afterLabel: function(context) {
+                                            const idx = context.dataIndex;
+                                            return `Respostas: ${unidadesData[idx].total_respostas || 0}`;
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 140,
-                                grid: {
-                                    color: 'rgba(229, 236, 233, 0.5)',
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    font: { size: 12 },
-                                    color: '#1F2933'
-                                }
                             },
-                            x: {
-                                grid: {
-                                    display: false
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 140,
+                                    grid: { color: 'rgba(229, 236, 233, 0.5)' }
                                 },
-                                ticks: {
-                                    font: { size: 12 },
-                                    color: '#1F2933'
+                                x: {
+                                    grid: { display: false }
                                 }
                             }
                         }
-                    }
-                });
+                    });
 
-                // Esconder loading e mostrar gráfico
-                if (loadingEl) loadingEl.classList.add('hidden');
-                if (containerEl) containerEl.classList.remove('hidden');
-            } catch (error) {
-                console.error('Erro ao criar gráfico de unidades:', error);
-                // Em caso de erro, esconder loading mesmo assim
-                if (loadingEl) loadingEl.classList.add('hidden');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    if (containerEl) containerEl.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Erro ao criar gráfico:', error);
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                }
             }
-        }
-    }));
+        }));
+    });
 });
 </script>
 {% endblock %}

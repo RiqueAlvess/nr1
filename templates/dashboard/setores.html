@@ -244,144 +244,109 @@
 
 {% block extra_js %}
 <script>
-// Dados do Django preparados ANTES do Alpine
-const setoresData = [
-    {% for setor in dados.setores %}
-    {
-        nome: "{{ setor.setor_nome }}",
-        unidade: "{{ setor.unidade_nome }}",
-        score: {{ setor.score_medio }},
-        respostas: {{ setor.total_respostas }},
-        risco: "{{ setor.nivel_risco_nr1 }}"
-    }{% if not forloop.last %},{% endif %}
-    {% endfor %}
-];
+document.addEventListener('DOMContentLoaded', function() {
+    const setoresData = {{ dados_setores_json|safe }}.setores || [];
+    
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('setoresApp', () => ({
+            filtroRisco: '',
+            ordenacao: 'risco',
 
-// Registrar componente ANTES da inicialização do Alpine
-document.addEventListener('alpine:init', () => {
-    Alpine.data('setoresApp', () => ({
-        filtroRisco: '',
-        ordenacao: 'risco',
+            get setoresCriticos() {
+                return setoresData.filter(s => s.nivel_risco_nr1 === 'CRÍTICO').length;
+            },
 
-        get setoresCriticos() {
-            return setoresData.filter(s => s.risco === 'CRÍTICO').length;
-        },
+            get setoresSatisfatorios() {
+                return setoresData.filter(s => s.nivel_risco_nr1 === 'SATISFATÓRIO').length;
+            },
 
-        get setoresSatisfatorios() {
-            return setoresData.filter(s => s.risco === 'SATISFATÓRIO').length;
-        },
+            init() {
+                this.$nextTick(() => {
+                    if (setoresData.length > 0) {
+                        this.criarGrafico();
+                    }
+                });
+            },
 
-        init() {
-            this.$nextTick(() => {
-                this.criarGrafico();
-            });
-        },
+            criarGrafico() {
+                const ctx = document.getElementById('graficoSetores');
+                const loadingEl = document.getElementById('chart-setores-loading');
+                const containerEl = document.getElementById('chart-setores-container');
 
-        criarGrafico() {
-            const ctx = document.getElementById('graficoSetores');
-            const loadingEl = document.getElementById('chart-setores-loading');
-            const containerEl = document.getElementById('chart-setores-container');
+                if (!ctx || !window.Chart) {
+                    console.error('Canvas ou Chart.js não encontrado');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    return;
+                }
 
-            if (!ctx) {
-                console.error('Canvas não encontrado');
-                return;
-            }
+                const cores = {
+                    error: '#EF4444',
+                    warning: '#FACC15',
+                    success: '#22C55E',
+                    secondary: '#0F3D52'
+                };
 
-            const contextCanvas = ctx.getContext('2d');
-            if (!contextCanvas) {
-                console.error('Contexto 2D não disponível');
-                return;
-            }
+                const coresBarras = setoresData.map(s => {
+                    if (s.nivel_risco_nr1 === 'CRÍTICO') return cores.error;
+                    if (s.nivel_risco_nr1 === 'ATENÇÃO') return cores.warning;
+                    return cores.success;
+                });
 
-            const cores = {
-                error: '#EF4444',
-                warning: '#FACC15',
-                success: '#22C55E',
-                secondary: '#0F3D52'
-            };
-
-            const coresBarras = setoresData.map(s => {
-                if (s.risco === 'CRÍTICO') return cores.error;
-                if (s.risco === 'ATENÇÃO') return cores.warning;
-                return cores.success;
-            });
-
-            try {
-                new Chart(contextCanvas, {
-                    type: 'bar',
-                    data: {
-                        labels: setoresData.map(s => s.nome),
-                        datasets: [{
-                            label: 'Score Médio',
-                            data: setoresData.map(s => s.score),
-                            backgroundColor: coresBarras,
-                            borderRadius: 8,
-                            borderSkipped: false,
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        indexAxis: setoresData.length > 6 ? 'y' : 'x',
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: cores.secondary,
-                                padding: 12,
-                                cornerRadius: 8,
-                                titleFont: { size: 14, weight: 'bold' },
-                                bodyFont: { size: 13 },
-                                callbacks: {
-                                    afterLabel: function(context) {
-                                        const idx = context.dataIndex;
-                                        return [
-                                            `Unidade: ${setoresData[idx].unidade}`,
-                                            `Respostas: ${setoresData[idx].respostas}`,
-                                            `Nível: ${setoresData[idx].risco}`
-                                        ];
+                try {
+                    new Chart(ctx.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: setoresData.map(s => s.setor_nome || 'Sem nome'),
+                            datasets: [{
+                                label: 'Score Médio',
+                                data: setoresData.map(s => s.score_medio || 0),
+                                backgroundColor: coresBarras,
+                                borderRadius: 8,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            indexAxis: setoresData.length > 6 ? 'y' : 'x',
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    backgroundColor: cores.secondary,
+                                    padding: 12,
+                                    cornerRadius: 8,
+                                    callbacks: {
+                                        afterLabel: function(context) {
+                                            const idx = context.dataIndex;
+                                            return [
+                                                `Unidade: ${setoresData[idx].unidade_nome || 'N/A'}`,
+                                                `Respostas: ${setoresData[idx].total_respostas || 0}`,
+                                                `Nível: ${setoresData[idx].nivel_risco_nr1 || 'N/A'}`
+                                            ];
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(229, 236, 233, 0.5)',
-                                    drawBorder: false
-                                },
-                                ticks: {
-                                    font: { size: 12 },
-                                    color: '#1F2933'
-                                }
                             },
-                            x: {
-                                grid: {
-                                    display: false
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: { color: 'rgba(229, 236, 233, 0.5)' }
                                 },
-                                ticks: {
-                                    font: { size: 11 },
-                                    color: '#1F2933',
-                                    maxRotation: 45,
-                                    minRotation: 0
+                                x: {
+                                    grid: { display: false }
                                 }
                             }
                         }
-                    }
-                });
+                    });
 
-                // Esconder loading e mostrar gráfico
-                if (loadingEl) loadingEl.classList.add('hidden');
-                if (containerEl) containerEl.classList.remove('hidden');
-            } catch (error) {
-                console.error('Erro ao criar gráfico de setores:', error);
-                // Em caso de erro, esconder loading mesmo assim
-                if (loadingEl) loadingEl.classList.add('hidden');
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                    if (containerEl) containerEl.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Erro ao criar gráfico:', error);
+                    if (loadingEl) loadingEl.classList.add('hidden');
+                }
             }
-        }
-    }));
+        }));
+    });
 });
 </script>
 {% endblock %}

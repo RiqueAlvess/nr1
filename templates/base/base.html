@@ -125,7 +125,7 @@
             }
         }
 
-        /* Sidebar Desktop - Fixed layout para acompanhar scroll */
+        /* Sidebar Desktop - Fixed layout com hover */
         .sidebar-desktop {
             position: fixed;
             top: 0;
@@ -139,17 +139,23 @@
             z-index: 40;
         }
 
-        .sidebar-expanded { width: 16rem; }
-        .sidebar-collapsed { width: 5rem; }
+        .sidebar-expanded { width: 14rem; } /* Reduced from 16rem for more compactness */
+        .sidebar-collapsed { width: 4rem; } /* Adjusted for better fit */
+
+        /* Hover para expandir */
+        .sidebar-desktop.sidebar-collapsed:hover {
+            width: 14rem;
+        }
 
         /* Spacer para compensar sidebar fixed */
         .main-content-with-sidebar {
-            margin-left: 16rem;
+            margin-left: 4rem; /* Matches collapsed width */
             transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .main-content-with-sidebar.collapsed {
-            margin-left: 5rem;
+        /* Remover botão de toggle - não é mais necessário */
+        .sidebar-toggle {
+            display: none;
         }
 
         /* Mobile styles */
@@ -165,43 +171,78 @@
             .main-content-mobile { padding-bottom: 5rem; }
         }
 
-        /* Sidebar menu styling */
+        /* Sidebar menu styling - Improved for compactness and UX */
         .sidebar-menu-item {
             display: flex;
             align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            transition: background-color 0.15s ease, padding 0.3s ease;
+            padding: 0.5rem 0.75rem; /* Reduced padding for compactness */
+            border-radius: 0.375rem; /* Slightly smaller radius for modern feel */
+            transition: background-color 0.2s ease, padding-left 0.3s ease, box-shadow 0.2s ease;
             white-space: nowrap;
             overflow: hidden;
-            min-height: 2.75rem;
+            min-height: 2.25rem; /* Slightly smaller height */
+            gap: 0.5rem; /* Consistent gap between icon and text */
+        }
+
+        .sidebar-menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.08); /* Subtle hover */
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05); /* Subtle border on hover */
+        }
+
+        .sidebar-menu-item.active {
+            background-color: rgba(30, 235, 136, 0.12); /* Slightly less opacity for subtlety */
+            box-shadow: 0 0 0 2px rgba(30, 235, 136, 0.15); /* Active glow */
         }
 
         .sidebar-collapsed .sidebar-menu-item {
-            justify-content: center;
-            padding: 0.75rem;
+            justify-content: flex-start;
+            padding: 0.5rem 0.75rem;
         }
-
-        .sidebar-menu-item:hover { background-color: rgba(255, 255, 255, 0.1); }
-        .sidebar-menu-item.active { background-color: rgba(30, 235, 136, 0.15); }
 
         .sidebar-menu-icon {
-            min-width: 1.5rem;
-            width: 1.5rem;
-            font-size: 1.125rem;
+            min-width: 1.25rem; /* Smaller icon for compactness */
+            width: 1.25rem;
+            font-size: 1rem; /* Slightly smaller icons */
             text-align: center;
             flex-shrink: 0;
+            transition: transform 0.2s ease; /* Smooth icon animation */
         }
 
+        .sidebar-menu-item:hover .sidebar-menu-icon {
+            transform: translateX(0.125rem); /* Subtle shift on hover for interactivity */
+        }
+
+        /* Mostrar texto apenas no hover */
         .sidebar-menu-text {
-            margin-left: 0.75rem;
+            margin-left: 0.5rem; /* Reduced margin for compactness */
             opacity: 1;
             white-space: nowrap;
             overflow: hidden;
-            transition: opacity 0.2s ease 0.1s, width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.25s ease 0.1s, transform 0.25s ease;
+            font-size: 0.875rem; /* Smaller text for clean look */
+            font-weight: 500; /* Medium weight for better readability */
+        }
+        
+        .sidebar-collapsed .sidebar-menu-text {
+            opacity: 0;
+            transform: translateX(-0.5rem); /* Fade out with slide */
+            width: 0;
+            margin-left: 0;
+        }
+
+        .sidebar-collapsed:hover .sidebar-menu-text {
+            opacity: 1;
+            transform: translateX(0);
+            width: auto;
+            margin-left: 0.5rem;
         }
 
         .sidebar-section-title {
+            padding: 0.25rem 0.75rem; /* Compact padding */
+            font-size: 0.65rem; /* Smaller for hierarchy */
+            letter-spacing: 0.05em; /* Better tracking */
+            opacity: 0.7; /* Subtle opacity */
+            margin-bottom: 0.25rem; /* Reduced margin */
             transition: opacity 0.2s ease, height 0.2s ease, margin 0.2s ease, padding 0.2s ease;
             overflow: hidden;
         }
@@ -209,23 +250,25 @@
         .sidebar-user-info {
             transition: opacity 0.2s ease, width 0.2s ease;
             overflow: hidden;
+            font-size: 0.875rem; /* Compact text */
         }
-
-        .sidebar-collapsed .sidebar-menu-text {
-            opacity: 0;
-            width: 0;
-            margin-left: 0;
-            transition: opacity 0.1s ease, width 0.3s cubic-bezier(0.4, 0, 0.2, 1), margin-left 0.3s ease;
-        }
-        .sidebar-collapsed .sidebar-section-title {
+        
+        .sidebar-collapsed .sidebar-section-title,
+        .sidebar-collapsed .sidebar-user-info {
             opacity: 0;
             height: 0;
             margin: 0;
             padding: 0;
+            overflow: hidden;
         }
-        .sidebar-collapsed .sidebar-user-info {
-            opacity: 0;
-            width: 0;
+
+        .sidebar-collapsed:hover .sidebar-section-title,
+        .sidebar-collapsed:hover .sidebar-user-info {
+            opacity: 1;
+            height: auto;
+            margin: initial;
+            padding: initial;
+            transition: opacity 0.3s ease 0.1s;
         }
 
         /* Modern card styles */
@@ -253,74 +296,30 @@
             outline: 2px solid #1EEB88;
             outline-offset: 2px;
         }
-
-        /* Collapse toggle button */
-        .sidebar-toggle {
-            position: absolute;
-            right: -12px;
-            top: 72px;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border: 1px solid #E2E8F0;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s ease, box-shadow 0.2s ease;
-            z-index: 35;
-            box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
-        }
-
-        .sidebar-toggle:hover {
-            background: #F8FAFC;
-            box-shadow: 0 2px 6px rgb(0 0 0 / 0.15);
-        }
-
-        .sidebar-toggle i {
-            font-size: 10px;
-            color: #64748B;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .sidebar-collapsed .sidebar-toggle i {
-            transform: rotate(180deg);
-        }
     </style>
 
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-base-200 min-h-screen flex" x-data="{ sidebarOpen: false, sidebarExpanded: true }">
+<body class="bg-base-200 min-h-screen flex" x-data="{ sidebarOpen: false, sidebarExpanded: false }">
 
     {% if user.is_authenticated %}
-        <!-- Desktop Sidebar -->
-        <aside class="hidden lg:flex lg:flex-col sidebar-desktop bg-secondary text-white"
-               :class="sidebarExpanded ? 'sidebar-expanded' : 'sidebar-collapsed'">
+        <aside class="hidden lg:flex lg:flex-col sidebar-desktop sidebar-collapsed bg-secondary text-white">
 
-            <!-- Toggle Button -->
-            <div class="sidebar-toggle" @click="sidebarExpanded = !sidebarExpanded">
-                <i class="fas fa-chevron-left"></i>
-            </div>
-
-            <!-- Logo -->
-            <div class="p-4 border-b border-white/10">
-                <a href="{% url 'account:dashboard' %}" class="flex items-center" :class="sidebarExpanded ? 'space-x-3' : 'justify-center'">
-                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                        <i class="fas fa-shield-alt text-white text-lg"></i>
+            <div class="p-3 border-b border-white/10"> <!-- Reduced padding -->
+                <a href="{% url 'account:dashboard' %}" class="flex items-center justify-start"> <!-- Left-aligned -->
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0"> <!-- Smaller logo -->
+                        <i class="fas fa-shield-alt text-white text-base"></i> <!-- Smaller icon -->
                     </div>
-                    <div x-show="sidebarExpanded" x-transition class="sidebar-menu-text" style="margin-left: 0.75rem;">
-                        <h1 class="font-bold text-white text-sm">Plataforma NR-1</h1>
-                        <p class="text-xs text-accent">Riscos Psicossociais</p>
+                    <div class="sidebar-menu-text" style="margin-left: 0.5rem;">
+                        <h1 class="font-bold text-white text-sm whitespace-nowrap">Plataforma NR-1</h1>
+                        <p class="text-xs text-accent whitespace-nowrap">Riscos Psicossociais</p>
                     </div>
                 </a>
             </div>
 
-            <!-- Menu -->
-            <nav class="flex-1 p-3 space-y-1 overflow-y-auto overflow-x-hidden">
-                <!-- Principal -->
-                <div class="mb-4">
-                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-2">Principal</p>
+            <nav class="flex-1 p-2 space-y-0.5 overflow-y-auto overflow-x-hidden"> <!-- Reduced padding and spacing -->
+                <div class="mb-2"> <!-- Reduced margin -->
+                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Principal</p> <!-- Adjusted px-3 -->
 
                     <a href="{% url 'account:dashboard' %}"
                        class="sidebar-menu-item {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}active{% endif %}"
@@ -331,9 +330,8 @@
                 </div>
 
                 {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
-                <!-- Análises -->
-                <div class="mb-4">
-                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-2">Análises</p>
+                <div class="mb-2">
+                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Análises</p>
 
                     <a href="{% url 'dashboard:principal' %}"
                        class="sidebar-menu-item {% if request.resolver_match.url_name == 'principal' %}active{% endif %}"
@@ -368,9 +366,8 @@
                 {% endif %}
 
                 {% if user.perfil_acesso.is_rh %}
-                <!-- Gestão -->
-                <div class="mb-4">
-                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-2">Gestão</p>
+                <div class="mb-2">
+                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Gestão</p>
 
                     <a href="{% url 'importacao:importacao' %}"
                        class="sidebar-menu-item {% if request.resolver_match.app_name == 'importacao' %}active{% endif %}"
@@ -388,9 +385,8 @@
                 </div>
                 {% endif %}
 
-                <!-- Sistema -->
-                <div class="mb-4">
-                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-2">Sistema</p>
+                <div class="mb-2">
+                    <p class="sidebar-section-title px-3 text-[10px] uppercase tracking-wider text-white/40 font-semibold mb-1">Sistema</p>
 
                     {% if user.is_superuser %}
                     <a href="/admin/"
@@ -410,13 +406,12 @@
                 </div>
             </nav>
 
-            <!-- User Footer -->
-            <div class="p-3 border-t border-white/10">
-                <div class="sidebar-menu-item" :class="sidebarExpanded ? '' : 'justify-center'">
-                    <div class="w-9 h-9 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+            <div class="p-3 border-t border-white/10"> <!-- Adjusted to p-3 -->
+                <div class="sidebar-menu-item justify-start"> <!-- Left-aligned -->
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0"> <!-- Smaller avatar -->
                         <span class="font-medium text-white text-sm">{{ user.username|first|upper }}</span>
                     </div>
-                    <div class="sidebar-user-info flex-1 min-w-0 ml-3">
+                    <div class="sidebar-user-info flex-1 min-w-0 ml-2"> <!-- Reduced ml -->
                         <p class="text-sm font-medium text-white truncate">{{ user.username }}</p>
                         {% if user.perfil_acesso %}
                         <p class="text-xs text-accent truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
@@ -426,10 +421,7 @@
             </div>
         </aside>
 
-        <!-- Wrapper para Mobile Header + Main Content -->
-        <div class="flex-1 flex flex-col min-w-0 main-content-with-sidebar"
-             :class="{'collapsed': !sidebarExpanded}">
-            <!-- Mobile Header -->
+        <div class="flex-1 flex flex-col min-w-0 main-content-with-sidebar">
             <header class="lg:hidden navbar bg-secondary text-white shadow-sm sticky top-0 z-40 h-14">
             <div class="flex-none">
                 <button @click="sidebarOpen = !sidebarOpen" class="btn btn-ghost btn-circle text-white hover:bg-white/10" aria-label="Menu">
@@ -470,7 +462,6 @@
             </div>
         </header>
 
-        <!-- Mobile Sidebar Overlay -->
         <div class="lg:hidden">
             <div x-show="sidebarOpen"
                  @click="sidebarOpen = false"
@@ -515,7 +506,6 @@
             </aside>
         </div>
 
-            <!-- Main Content -->
             <main class="flex-1 main-content-mobile">
                 <div class="p-4 lg:p-6 max-w-7xl mx-auto">
                     {% block breadcrumb %}{% endblock %}
@@ -526,7 +516,6 @@
                 </div>
             </main>
 
-            <!-- Mobile Bottom Nav -->
             <nav class="lg:hidden bottom-nav bg-base-100 border-t border-base-300 shadow-lg">
             <div class="flex justify-around items-center h-full max-w-lg mx-auto">
                 <a href="{% url 'account:dashboard' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-all {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-primary{% else %}text-neutral/50{% endif %}">
@@ -565,10 +554,7 @@
                 </div>
             </div>
             </nav>
-        </div><!-- End Wrapper -->
-
-    {% else %}
-        <!-- Public Header -->
+        </div>{% else %}
         <header class="navbar bg-secondary text-white shadow-sm">
             <div class="flex-1">
                 <a href="/" class="flex items-center space-x-3">
@@ -583,13 +569,11 @@
             </div>
         </header>
 
-        <!-- Public Content -->
         <main class="flex-1">
             {% block public_content %}{% endblock %}
         </main>
     {% endif %}
 
-    <!-- Toast Messages -->
     <div class="toast-container" x-data="{ messages: [] }" x-init="
         {% if messages %}
             messages = [
