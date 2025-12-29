@@ -3,10 +3,10 @@
 {% block title %}Dashboard - Plataforma NR-1{% endblock %}
 
 {% block breadcrumb %}
-<div class="text-sm breadcrumbs">
+<div class="text-sm breadcrumbs mb-4">
     <ul>
-        <li><a href="{% url 'account:dashboard' %}">Início</a></li>
-        <li>Dashboard</li>
+        <li><a href="{% url 'account:dashboard' %}" class="text-accent hover:text-primary"><i class="fas fa-home mr-1"></i>Início</a></li>
+        <li class="text-neutral font-medium">Dashboard</li>
     </ul>
 </div>
 {% endblock %}
@@ -15,9 +15,30 @@
 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
     <div>
         <h1 class="text-2xl lg:text-3xl font-bold text-neutral">Dashboard de Riscos Psicossociais</h1>
-        <p class="text-sm text-accent mt-1">{{ empresa.nome }}</p>
+        <p class="text-sm text-neutral/60 mt-1">{{ empresa.nome }}</p>
     </div>
-    <div class="mt-4 lg:mt-0">
+    <div class="mt-4 lg:mt-0 flex flex-wrap items-center gap-3">
+        {% if tem_multiplas_empresas %}
+        <!-- Seletor de Empresa -->
+        <div class="dropdown dropdown-end">
+            <label tabindex="0" class="btn btn-outline btn-sm gap-2">
+                <i class="fas fa-building"></i>
+                {{ empresa.nome }}
+                <i class="fas fa-chevron-down text-xs"></i>
+            </label>
+            <ul tabindex="0" class="dropdown-content menu p-2 shadow-soft bg-base-100 rounded-xl w-56 mt-2 border border-base-300">
+                {% for emp in empresas %}
+                <li>
+                    <a href="?empresa={{ emp.id }}" class="{% if emp.id == empresa.id %}active bg-primary/10{% endif %}">
+                        <i class="fas fa-building mr-2"></i>
+                        {{ emp.nome }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
         <div class="badge badge-lg badge-outline">
             <i class="fas fa-user-tag mr-2"></i>
             {{ perfil.get_grupo_principal }}
@@ -31,19 +52,19 @@
 
     {% if not kpis.pode_visualizar %}
     <!-- Bloqueio por K-Anonymity -->
-    <div class="alert alert-warning shadow-custom">
-        <div>
-            <i class="fas fa-exclamation-triangle text-xl"></i>
-        </div>
-        <div>
-            <h3 class="font-bold">Dados Insuficientes para Garantir Anonimato</h3>
-            <p class="text-sm">{{ kpis.mensagem }}</p>
+    <div class="alert alert-warning shadow-soft">
+        <div class="flex items-start gap-3">
+            <i class="fas fa-exclamation-triangle text-2xl mt-1"></i>
+            <div>
+                <h3 class="font-bold text-lg">Dados Insuficientes para Garantir Anonimato</h3>
+                <p class="text-sm mt-1">{{ kpis.mensagem }}</p>
+            </div>
         </div>
     </div>
 
-    <!-- KPIs Básicos (mesmo sem dados suficientes) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="stat bg-base-100 shadow-custom rounded-lg">
+    <!-- KPIs Básicos -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="stat bg-base-100 shadow-soft rounded-xl">
             <div class="stat-figure text-primary">
                 <i class="fas fa-users text-3xl"></i>
             </div>
@@ -52,7 +73,7 @@
             <div class="stat-desc">Total de convites enviados</div>
         </div>
 
-        <div class="stat bg-base-100 shadow-custom rounded-lg">
+        <div class="stat bg-base-100 shadow-soft rounded-xl">
             <div class="stat-figure text-accent">
                 <i class="fas fa-percentage text-3xl"></i>
             </div>
@@ -65,62 +86,58 @@
     {% else %}
 
     <!-- === RESUMO: KPIs Principais === -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Taxa de Adesão -->
-        <div class="stat bg-base-100 shadow-custom rounded-lg">
-            <div class="stat-figure text-primary">
+        <div class="stat bg-base-100 shadow-soft rounded-xl">
+            <div class="stat-figure text-primary hidden sm:block">
                 <i class="fas fa-percentage text-2xl"></i>
             </div>
-            <div class="stat-title text-neutral">Taxa de Adesão</div>
-            <div class="stat-value text-primary">{{ kpis.taxa_adesao }}%</div>
-            <div class="stat-desc">{{ kpis.respostas_concluidas }}/{{ kpis.total_colaboradores }} respostas</div>
+            <div class="stat-title text-xs sm:text-sm">Taxa de Adesão</div>
+            <div class="stat-value text-primary text-2xl sm:text-3xl">{{ kpis.taxa_adesao }}%</div>
+            <div class="stat-desc text-xs">{{ kpis.respostas_concluidas }}/{{ kpis.total_colaboradores }}</div>
         </div>
 
         <!-- IGRP -->
-        <div class="stat bg-base-100 shadow-custom rounded-lg">
-            <div class="stat-figure text-secondary">
+        <div class="stat bg-base-100 shadow-soft rounded-xl">
+            <div class="stat-figure text-secondary hidden sm:block">
                 <i class="fas fa-heartbeat text-2xl"></i>
             </div>
-            <div class="stat-title text-neutral">IGRP</div>
-            <div class="stat-value text-secondary">{{ kpis.igrp }}</div>
-            <div class="stat-desc">Índice Geral de Risco</div>
+            <div class="stat-title text-xs sm:text-sm">IGRP</div>
+            <div class="stat-value text-secondary text-2xl sm:text-3xl">{{ kpis.igrp }}</div>
+            <div class="stat-desc text-xs">Índice Geral de Risco</div>
         </div>
 
         <!-- Score Médio -->
-        <div class="stat bg-base-100 shadow-custom rounded-lg">
-            <div class="stat-figure text-accent">
+        <div class="stat bg-base-100 shadow-soft rounded-xl">
+            <div class="stat-figure text-accent hidden sm:block">
                 <i class="fas fa-chart-bar text-2xl"></i>
             </div>
-            <div class="stat-title text-neutral">Score Médio</div>
-            <div class="stat-value text-accent">{{ kpis.score_medio_global }}</div>
-            <div class="stat-desc">de 140 pontos</div>
+            <div class="stat-title text-xs sm:text-sm">Score Médio</div>
+            <div class="stat-value text-accent text-2xl sm:text-3xl">{{ kpis.score_medio_global }}</div>
+            <div class="stat-desc text-xs">de 140 pontos</div>
         </div>
 
         <!-- Alto Risco -->
-        <div class="stat bg-base-100 shadow-custom rounded-lg">
-            <div class="stat-figure text-error">
+        <div class="stat bg-base-100 shadow-soft rounded-xl">
+            <div class="stat-figure text-error hidden sm:block">
                 <i class="fas fa-exclamation-triangle text-2xl"></i>
             </div>
-            <div class="stat-title text-neutral">Risco Crítico</div>
-            <div class="stat-value text-error">{{ kpis.percentual_alto_risco }}%</div>
-            <div class="stat-desc">Requer atenção</div>
+            <div class="stat-title text-xs sm:text-sm">Risco Crítico</div>
+            <div class="stat-value text-error text-2xl sm:text-3xl">{{ kpis.percentual_alto_risco }}%</div>
+            <div class="stat-desc text-xs">Requer atenção</div>
         </div>
     </div>
 
     <!-- === FILTROS === -->
-    <div class="card bg-base-100 shadow-custom">
-        <div class="card-body">
-            <h2 class="card-title text-neutral">
-                <i class="fas fa-filter mr-2 text-primary"></i>
-                Filtros de Visualização
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body py-4">
+            <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
                 <!-- Filtro de Visualização -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Visualizar por</span>
+                <div class="form-control flex-1 w-full sm:w-auto">
+                    <label class="label pb-1">
+                        <span class="label-text font-semibold text-sm">Visualizar por</span>
                     </label>
-                    <select x-model="filtroTipo" @change="atualizarGraficos()" class="select select-bordered w-full">
+                    <select x-model="filtroTipo" @change="atualizarGraficos()" class="select select-bordered select-sm w-full">
                         <option value="geral">Visão Geral</option>
                         <option value="unidades">Por Unidade</option>
                         <option value="setores">Por Setor</option>
@@ -129,11 +146,11 @@
                 </div>
 
                 <!-- Filtro de Unidade (condicional) -->
-                <div class="form-control" x-show="filtroTipo === 'setores'">
-                    <label class="label">
-                        <span class="label-text font-semibold">Unidade</span>
+                <div class="form-control flex-1 w-full sm:w-auto" x-show="filtroTipo === 'setores'" x-cloak>
+                    <label class="label pb-1">
+                        <span class="label-text font-semibold text-sm">Unidade</span>
                     </label>
-                    <select x-model="filtroUnidade" @change="atualizarGraficos()" class="select select-bordered w-full">
+                    <select x-model="filtroUnidade" @change="atualizarGraficos()" class="select select-bordered select-sm w-full">
                         <option value="">Todas</option>
                         {% for unidade in dados_unidades.unidades %}
                         <option value="{{ unidade.unidade_id }}">{{ unidade.unidade_nome }}</option>
@@ -142,13 +159,12 @@
                 </div>
 
                 <!-- Tipo de Gráfico -->
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Tipo de Gráfico</span>
+                <div class="form-control w-full sm:w-auto">
+                    <label class="label pb-1">
+                        <span class="label-text font-semibold text-sm">Tipo</span>
                     </label>
-                    <select x-model="tipoGrafico" @change="atualizarGraficos()" class="select select-bordered w-full">
+                    <select x-model="tipoGrafico" @change="atualizarGraficos()" class="select select-bordered select-sm w-full sm:w-32">
                         <option value="bar">Barras</option>
-                        <option value="line">Linhas</option>
                         <option value="doughnut">Rosca</option>
                     </select>
                 </div>
@@ -157,56 +173,57 @@
     </div>
 
     <!-- === GRÁFICO PRINCIPAL === -->
-    <div class="card bg-base-100 shadow-custom">
+    <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <h2 class="card-title text-neutral">
+            <h2 class="card-title text-neutral text-lg">
                 <i class="fas fa-chart-line mr-2 text-primary"></i>
                 <span x-text="tituloGrafico"></span>
             </h2>
-            <div class="mt-4">
-                <canvas id="graficoMain" class="w-full" style="max-height: 400px;"></canvas>
+            <div class="mt-4" style="height: 320px;">
+                <canvas id="graficoMain"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- === GRÁFICO SECUNDÁRIO: Distribuição de Risco === -->
+    <!-- === GRÁFICOS SECUNDÁRIOS === -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="card bg-base-100 shadow-custom">
+        <!-- Distribuição de Risco -->
+        <div class="card bg-base-100 shadow-soft">
             <div class="card-body">
-                <h2 class="card-title text-neutral">
+                <h2 class="card-title text-neutral text-lg">
                     <i class="fas fa-chart-pie mr-2 text-accent"></i>
                     Distribuição de Risco
                 </h2>
-                <div class="mt-4">
+                <div class="mt-4 flex justify-center" style="height: 250px;">
                     <canvas id="graficoDistribuicao"></canvas>
                 </div>
             </div>
         </div>
 
         <!-- Matriz NR-1 -->
-        <div class="card bg-base-100 shadow-custom">
+        <div class="card bg-base-100 shadow-soft">
             <div class="card-body">
-                <h2 class="card-title text-neutral">
-                    <i class="fas fa-table mr-2 text-secondary"></i>
+                <h2 class="card-title text-neutral text-lg">
+                    <i class="fas fa-th mr-2 text-secondary"></i>
                     Matriz de Risco NR-1
                 </h2>
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Classificação</div>
-                        <div class="stat-value text-sm">{{ kpis.matriz_nr1.classificacao }}</div>
+                <div class="grid grid-cols-2 gap-3 mt-4">
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Classificação</div>
+                        <div class="stat-value text-base">{{ kpis.matriz_nr1.classificacao }}</div>
                     </div>
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Nível de Risco</div>
-                        <div class="stat-value text-lg">{{ kpis.matriz_nr1.nivel_risco }}</div>
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Nível de Risco</div>
+                        <div class="stat-value text-base">{{ kpis.matriz_nr1.nivel_risco }}</div>
                     </div>
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Probabilidade</div>
-                        <div class="stat-value text-lg">{{ kpis.matriz_nr1.probabilidade }}%</div>
-                        <div class="stat-desc">{{ kpis.matriz_nr1.probabilidade_nivel }}</div>
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Probabilidade</div>
+                        <div class="stat-value text-base">{{ kpis.matriz_nr1.probabilidade }}%</div>
+                        <div class="stat-desc text-xs">{{ kpis.matriz_nr1.probabilidade_nivel }}</div>
                     </div>
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Severidade</div>
-                        <div class="stat-value text-lg">{{ kpis.matriz_nr1.severidade }}</div>
+                    <div class="stat bg-base-200 rounded-lg p-3">
+                        <div class="stat-title text-xs">Severidade</div>
+                        <div class="stat-value text-base">{{ kpis.matriz_nr1.severidade }}</div>
                     </div>
                 </div>
             </div>
@@ -214,102 +231,94 @@
     </div>
 
     <!-- === TABELA DETALHADA === -->
-    <div class="card bg-base-100 shadow-custom">
+    <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <h2 class="card-title text-neutral">
+            <h2 class="card-title text-neutral text-lg">
                 <i class="fas fa-table mr-2 text-accent"></i>
                 Dados Detalhados
             </h2>
 
             <!-- Tabela de Unidades -->
-            <div x-show="filtroTipo === 'unidades'" class="overflow-x-auto mt-4">
+            <div x-show="filtroTipo === 'unidades'" x-cloak class="overflow-x-auto mt-4">
                 <table class="table table-zebra w-full">
                     <thead>
-                        <tr>
+                        <tr class="bg-base-200">
                             <th>Unidade</th>
-                            <th>Respostas</th>
-                            <th>Score Médio</th>
+                            <th class="text-center">Respostas</th>
+                            <th class="text-center">Score Médio</th>
+                            <th class="text-center">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for unidade in dados_unidades.unidades %}
-                        <tr>
-                            <td>{{ unidade.unidade_nome }}</td>
-                            <td>{{ unidade.total_respostas }}</td>
-                            <td>
-                                <span class="badge badge-outline">{{ unidade.score_medio }}</span>
+                        <tr class="hover">
+                            <td class="font-medium">{{ unidade.unidade_nome }}</td>
+                            <td class="text-center"><span class="badge badge-ghost">{{ unidade.total_respostas }}</span></td>
+                            <td class="text-center"><span class="font-bold text-secondary">{{ unidade.score_medio }}</span></td>
+                            <td class="text-center">
+                                <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}" class="btn btn-ghost btn-xs text-primary">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center text-base-content/50">
-                                Nenhum dado disponível
-                            </td>
-                        </tr>
+                        <tr><td colspan="4" class="text-center text-neutral/50 py-8">Nenhum dado disponível</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
 
             <!-- Tabela de Setores -->
-            <div x-show="filtroTipo === 'setores'" class="overflow-x-auto mt-4">
+            <div x-show="filtroTipo === 'setores'" x-cloak class="overflow-x-auto mt-4">
                 <table class="table table-zebra w-full">
                     <thead>
-                        <tr>
+                        <tr class="bg-base-200">
                             <th>Setor</th>
                             <th>Unidade</th>
-                            <th>Respostas</th>
-                            <th>Score Médio</th>
-                            <th>Nível de Risco</th>
+                            <th class="text-center">Respostas</th>
+                            <th class="text-center">Score</th>
+                            <th class="text-center">Risco</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for setor in dados_setores.setores %}
-                        <tr>
-                            <td>{{ setor.setor_nome }}</td>
-                            <td>{{ setor.unidade_nome }}</td>
-                            <td>{{ setor.total_respostas }}</td>
-                            <td><span class="badge badge-outline">{{ setor.score_medio }}</span></td>
-                            <td>
+                        <tr class="hover">
+                            <td class="font-medium">{{ setor.setor_nome }}</td>
+                            <td class="text-neutral/70">{{ setor.unidade_nome }}</td>
+                            <td class="text-center"><span class="badge badge-ghost">{{ setor.total_respostas }}</span></td>
+                            <td class="text-center"><span class="font-bold text-secondary">{{ setor.score_medio }}</span></td>
+                            <td class="text-center">
                                 <span class="badge {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}badge-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %}">
                                     {{ setor.nivel_risco_nr1 }}
                                 </span>
                             </td>
                         </tr>
                         {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-base-content/50">
-                                Nenhum dado disponível
-                            </td>
-                        </tr>
+                        <tr><td colspan="5" class="text-center text-neutral/50 py-8">Nenhum dado disponível</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
 
             <!-- Tabela de Dimensões -->
-            <div x-show="filtroTipo === 'dimensoes'" class="overflow-x-auto mt-4">
+            <div x-show="filtroTipo === 'dimensoes'" x-cloak class="overflow-x-auto mt-4">
                 {% if dados_dimensoes.pode_visualizar %}
                 <table class="table table-zebra w-full">
                     <thead>
-                        <tr>
+                        <tr class="bg-base-200">
                             <th>Dimensão</th>
-                            <th>Score Médio</th>
-                            <th>Polaridade</th>
-                            <th>Nível de Risco</th>
+                            <th class="text-center">Score Médio</th>
+                            <th class="text-center">Polaridade</th>
+                            <th class="text-center">Nível de Risco</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for dimensao in dados_dimensoes.dimensoes %}
-                        <tr>
+                        <tr class="hover">
                             <td class="font-semibold">{{ dimensao.dimensao }}</td>
-                            <td><span class="badge badge-outline">{{ dimensao.score_medio }}</span></td>
-                            <td>
-                                <span class="badge badge-ghost">
-                                    {{ dimensao.polaridade }}
-                                </span>
-                            </td>
-                            <td>
+                            <td class="text-center"><span class="font-bold text-secondary">{{ dimensao.score_medio }}</span></td>
+                            <td class="text-center"><span class="badge badge-ghost">{{ dimensao.polaridade }}</span></td>
+                            <td class="text-center">
                                 <span class="badge {% if dimensao.nivel_risco == 'CRÍTICO' %}badge-error{% elif dimensao.nivel_risco == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %}">
                                     {{ dimensao.nivel_risco }}
                                 </span>
@@ -319,7 +328,7 @@
                     </tbody>
                 </table>
                 {% else %}
-                <div class="alert alert-info">
+                <div class="alert alert-info mt-4">
                     <i class="fas fa-info-circle"></i>
                     <span>{{ dados_dimensoes.mensagem }}</span>
                 </div>
@@ -328,19 +337,19 @@
 
             <!-- Visão Geral -->
             <div x-show="filtroTipo === 'geral'" class="mt-4">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Crítico</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="stat bg-error/10 rounded-xl">
+                        <div class="stat-title text-error">Crítico</div>
                         <div class="stat-value text-error">{{ kpis.distribuicao_risco.critico }}</div>
                         <progress class="progress progress-error" value="{{ kpis.distribuicao_risco.critico }}" max="{{ kpis.respostas_concluidas }}"></progress>
                     </div>
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Atenção</div>
+                    <div class="stat bg-warning/10 rounded-xl">
+                        <div class="stat-title text-warning">Atenção</div>
                         <div class="stat-value text-warning">{{ kpis.distribuicao_risco.atencao }}</div>
                         <progress class="progress progress-warning" value="{{ kpis.distribuicao_risco.atencao }}" max="{{ kpis.respostas_concluidas }}"></progress>
                     </div>
-                    <div class="stat bg-base-200 rounded-lg">
-                        <div class="stat-title">Satisfatório</div>
+                    <div class="stat bg-success/10 rounded-xl">
+                        <div class="stat-title text-success">Satisfatório</div>
                         <div class="stat-value text-success">{{ kpis.distribuicao_risco.satisfatorio }}</div>
                         <progress class="progress progress-success" value="{{ kpis.distribuicao_risco.satisfatorio }}" max="{{ kpis.respostas_concluidas }}"></progress>
                     </div>
@@ -349,21 +358,21 @@
         </div>
     </div>
 
-    <!-- === AÇÃO === -->
+    <!-- === AÇÃO (apenas RH) === -->
     {% if perfil.is_rh %}
-    <div class="card bg-primary text-primary-content shadow-custom">
+    <div class="card bg-primary text-primary-content shadow-soft">
         <div class="card-body">
             <h2 class="card-title">
                 <i class="fas fa-lightbulb mr-2"></i>
                 Próximas Ações
             </h2>
-            <p>Identifique áreas críticas e planeje intervenções específicas para reduzir riscos psicossociais.</p>
-            <div class="card-actions justify-end mt-4">
-                <a href="{% url 'quiz:gerenciar_links' %}" class="btn btn-ghost">
-                    <i class="fas fa-envelope mr-2"></i>
-                    Enviar Novas Pesquisas
+            <p class="text-sm opacity-90">Identifique áreas críticas e planeje intervenções específicas para reduzir riscos psicossociais.</p>
+            <div class="card-actions justify-end mt-4 flex-wrap gap-2">
+                <a href="{% url 'quiz:gerenciar_links' %}" class="btn btn-ghost btn-sm">
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    Enviar Pesquisas
                 </a>
-                <a href="{% url 'importacao:importacao' %}" class="btn bg-base-100 text-primary">
+                <a href="{% url 'importacao:importacao' %}" class="btn bg-white/20 hover:bg-white/30 border-0 btn-sm">
                     <i class="fas fa-file-import mr-2"></i>
                     Importar Colaboradores
                 </a>
@@ -388,7 +397,7 @@ function dashboardApp() {
         chartMain: null,
         chartDistribuicao: null,
 
-        // Dados do backend (convertidos para JSON)
+        // Dados do backend
         dados: {
             kpis: {{ kpis|safe }},
             unidades: {{ dados_unidades.unidades|safe }},
@@ -406,7 +415,6 @@ function dashboardApp() {
         },
 
         atualizarGraficos() {
-            // Atualizar título
             const titulos = {
                 'geral': 'Visão Geral',
                 'unidades': 'Análise por Unidade',
@@ -415,29 +423,28 @@ function dashboardApp() {
             };
             this.tituloGrafico = titulos[this.filtroTipo];
 
-            // Destruir gráfico anterior
             if (this.chartMain) {
                 this.chartMain.destroy();
             }
 
-            // Criar novo gráfico baseado no filtro
             this.criarGraficoPrincipal();
         },
 
         criarGraficoPrincipal() {
             const ctx = document.getElementById('graficoMain');
+            if (!ctx) return;
+
             let labels = [];
             let data = [];
             let backgroundColor = [];
 
-            // Cores do tema (máximo 3 cores)
             const cores = {
                 primary: '#1EEB88',
                 secondary: '#0F3D52',
                 accent: '#6EDBC1',
-                error: '#FF5A5F',
-                warning: '#FFC107',
-                success: '#1EEB88'
+                error: '#EF4444',
+                warning: '#FACC15',
+                success: '#22C55E'
             };
 
             if (this.filtroTipo === 'unidades') {
@@ -465,7 +472,6 @@ function dashboardApp() {
                     return cores.success;
                 });
             } else {
-                // Geral - Distribuição de risco
                 labels = ['Crítico', 'Atenção', 'Satisfatório'];
                 data = [
                     this.dados.kpis.distribuicao_risco.critico,
@@ -489,38 +495,26 @@ function dashboardApp() {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: this.filtroTipo === 'geral' && this.tipoGrafico === 'doughnut',
+                            display: this.tipoGrafico === 'doughnut',
                             position: 'bottom'
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 61, 82, 0.9)',
+                            backgroundColor: '#0F3D52',
                             padding: 12,
-                            borderRadius: 8,
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 }
+                            cornerRadius: 8
                         }
                     },
                     scales: this.tipoGrafico !== 'doughnut' ? {
                         y: {
                             beginAtZero: true,
-                            grid: {
-                                color: 'rgba(228, 231, 235, 0.5)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                font: { size: 12 }
-                            }
+                            grid: { color: 'rgba(229, 236, 233, 0.5)' }
                         },
                         x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: { size: 12 }
-                            }
+                            grid: { display: false },
+                            ticks: { maxRotation: 45, minRotation: 0 }
                         }
                     } : {}
                 }
@@ -529,10 +523,12 @@ function dashboardApp() {
 
         criarGraficoDistribuicao() {
             const ctx = document.getElementById('graficoDistribuicao');
+            if (!ctx) return;
+
             const cores = {
-                error: '#FF5A5F',
-                warning: '#FFC107',
-                success: '#1EEB88'
+                error: '#EF4444',
+                warning: '#FACC15',
+                success: '#22C55E'
             };
 
             this.chartDistribuicao = new Chart(ctx, {
@@ -551,19 +547,17 @@ function dashboardApp() {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
                     plugins: {
                         legend: {
                             position: 'bottom',
-                            labels: {
-                                padding: 15,
-                                font: { size: 12 }
-                            }
+                            labels: { padding: 15, font: { size: 12 } }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 61, 82, 0.9)',
+                            backgroundColor: '#0F3D52',
                             padding: 12,
-                            borderRadius: 8
+                            cornerRadius: 8
                         }
                     }
                 }

@@ -1,93 +1,88 @@
-<!-- Sidebar Menu Component -->
-<nav class="menu p-4 space-y-1">
+<!-- Sidebar Menu Component - Mobile First Design -->
+<nav class="flex-1 p-4 space-y-2 overflow-y-auto">
 
-    <!-- Dashboard -->
-    <li class="menu-title">
-        <span class="text-xs uppercase text-accent">Principal</span>
-    </li>
+    <!-- Principal -->
+    <div class="mb-6">
+        <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Principal</p>
 
-    <li>
-        <a href="{% url 'account:dashboard' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-home text-primary w-5"></i>
-            <span class="text-neutral">Início</span>
+        <a href="{% url 'account:dashboard' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-home text-primary w-5 text-center"></i>
+            <span class="text-white/90 font-medium">Início</span>
         </a>
-    </li>
+    </div>
 
     {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
-    <!-- Dashboards -->
-    <li class="menu-title mt-4">
-        <span class="text-xs uppercase text-accent">Análises</span>
-    </li>
+    <!-- Análises -->
+    <div class="mb-6">
+        <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Análises</p>
 
-    <li>
-        <a href="{% url 'dashboard:principal' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-chart-line text-primary w-5"></i>
-            <span class="text-neutral">Dashboard</span>
+        <a href="{% url 'dashboard:principal' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-chart-line text-primary w-5 text-center"></i>
+            <span class="text-white/90 font-medium">Dashboard</span>
         </a>
-    </li>
 
-    <li>
-        <a href="{% url 'dashboard:unidades' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-building text-accent w-5"></i>
-            <span class="text-neutral">Unidades</span>
+        {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
+        <a href="{% url 'dashboard:unidades' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-building text-accent w-5 text-center"></i>
+            <span class="text-white/90">Unidades</span>
         </a>
-    </li>
+        {% endif %}
 
-    <li>
-        <a href="{% url 'dashboard:setores' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-sitemap text-accent w-5"></i>
-            <span class="text-neutral">Setores</span>
+        <a href="{% url 'dashboard:setores' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-sitemap text-accent w-5 text-center"></i>
+            <span class="text-white/90">Setores</span>
         </a>
-    </li>
 
-    <li>
-        <a href="{% url 'dashboard:dimensoes' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-brain text-accent w-5"></i>
-            <span class="text-neutral">Dimensões</span>
+        <a href="{% url 'dashboard:dimensoes' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-brain text-accent w-5 text-center"></i>
+            <span class="text-white/90">Dimensões</span>
         </a>
-    </li>
+    </div>
     {% endif %}
 
     {% if user.perfil_acesso.is_rh %}
     <!-- Gestão (apenas RH) -->
-    <li class="menu-title mt-4">
-        <span class="text-xs uppercase text-accent">Gestão</span>
-    </li>
+    <div class="mb-6">
+        <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Gestão</p>
 
-    <li>
-        <a href="{% url 'importacao:importacao' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-file-import text-primary w-5"></i>
-            <span class="text-neutral">Importação</span>
+        <a href="{% url 'importacao:importacao' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-file-import text-primary w-5 text-center"></i>
+            <span class="text-white/90 font-medium">Importação</span>
+            <span class="badge badge-primary badge-xs">RH</span>
         </a>
-    </li>
 
-    <li>
-        <a href="{% url 'quiz:gerenciar_links' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-envelope text-primary w-5"></i>
-            <span class="text-neutral">Enviar Pesquisas</span>
+        <a href="{% url 'quiz:gerenciar_links' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 border-l-3 border-primary{% endif %}">
+            <i class="fas fa-paper-plane text-primary w-5 text-center"></i>
+            <span class="text-white/90 font-medium">Enviar Pesquisas</span>
+            <span class="badge badge-primary badge-xs">RH</span>
         </a>
-    </li>
+    </div>
     {% endif %}
 
-    <!-- Configurações -->
-    <li class="menu-title mt-4">
-        <span class="text-xs uppercase text-accent">Sistema</span>
-    </li>
+    <!-- Sistema -->
+    <div class="mb-6">
+        <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Sistema</p>
 
-    {% if user.is_superuser %}
-    <li>
-        <a href="/admin/" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200">
-            <i class="fas fa-cog text-secondary w-5"></i>
-            <span class="text-neutral">Administração</span>
+        {% if user.is_superuser %}
+        <a href="/admin/"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10">
+            <i class="fas fa-cog text-white/70 w-5 text-center"></i>
+            <span class="text-white/90">Administração</span>
         </a>
-    </li>
-    {% endif %}
+        {% endif %}
 
-    <li>
-        <a href="{% url 'account:logout' %}" class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-base-200 text-error">
-            <i class="fas fa-sign-out-alt w-5"></i>
-            <span>Sair</span>
+        <a href="{% url 'account:logout' %}"
+           class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-error/20 group">
+            <i class="fas fa-sign-out-alt text-white/70 w-5 text-center group-hover:text-error"></i>
+            <span class="text-white/90 group-hover:text-error">Sair</span>
         </a>
-    </li>
+    </div>
 
 </nav>

@@ -1,9 +1,7 @@
-from django.shortcuts import render
-
-# Create your views here.
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.contrib import messages
 from core.models import Empresa, Unidade
 from dashboard.services.dashboard_service import DashboardService
 from core.services.audit_service import AuditService
@@ -11,7 +9,10 @@ from core.services.audit_service import AuditService
 
 @login_required
 def dashboard_principal_view(request):
-    """Dashboard principal consolidado com visão geral e análises detalhadas"""
+    """
+    Dashboard principal consolidado com visão geral e análises detalhadas
+    Suporta múltiplas empresas no perfil de acesso
+    """
 
     # Verificar perfil de acesso
     if not hasattr(request.user, 'perfil_acesso'):
@@ -23,12 +24,23 @@ def dashboard_principal_view(request):
     if not (perfil.tem_acesso_completo_dashboards() or perfil.tem_acesso_limitado()):
         return render(request, 'dashboard/sem_permissao.html')
 
-    if not perfil.empresa:
+    # Obter empresas do usuário
+    empresas = perfil.get_empresas()
+    if not empresas.exists():
         return render(request, 'dashboard/sem_empresa.html')
 
-    # Buscar todos os dados necessários
+    # Empresa selecionada (pode ser filtrada via GET)
+    empresa_id_selecionada = request.GET.get('empresa')
+    if empresa_id_selecionada:
+        empresa_selecionada = empresas.filter(id=empresa_id_selecionada).first()
+        if not empresa_selecionada:
+            empresa_selecionada = empresas.first()
+    else:
+        empresa_selecionada = empresas.first()
+
+    # Buscar todos os dados necessários para a empresa selecionada
     dashboard_service = DashboardService()
-    empresa_id = str(perfil.empresa.id)
+    empresa_id = str(empresa_selecionada.id)
 
     kpis = dashboard_service.get_kpis_empresa(empresa_id)
     dados_unidades = dashboard_service.get_dados_por_unidade(empresa_id)
@@ -44,12 +56,19 @@ def dashboard_principal_view(request):
                 u for u in dados_unidades['unidades']
                 if u['unidade_id'] in [str(uid) for uid in unidades_permitidas]
             ]
+            # Filtrar setores também
+            dados_setores['setores'] = [
+                s for s in dados_setores['setores']
+                if any(str(uid) in s.get('unidade_id', '') for uid in unidades_permitidas)
+            ]
         elif perfil.nivel_acesso == 'SETOR':
             setores_permitidos = perfil.setores.values_list('id', flat=True)
             dados_setores['setores'] = [
                 s for s in dados_setores['setores']
                 if s['setor_id'] in [str(sid) for sid in setores_permitidos]
             ]
+            # Limpar unidades se nível é setor
+            dados_unidades['unidades'] = []
 
     # Auditoria
     AuditService.log(
@@ -60,8 +79,10 @@ def dashboard_principal_view(request):
         user_agent=AuditService.get_user_agent(request),
         metadata={
             'empresa_id': empresa_id,
+            'empresa_nome': empresa_selecionada.nome,
             'grupo': perfil.get_grupo_principal(),
-            'nivel_acesso': perfil.nivel_acesso
+            'nivel_acesso': perfil.nivel_acesso,
+            'total_empresas_acesso': empresas.count()
         }
     )
 
@@ -70,7 +91,10 @@ def dashboard_principal_view(request):
         'dados_unidades': dados_unidades,
         'dados_setores': dados_setores,
         'dados_dimensoes': dados_dimensoes,
-        'empresa': perfil.empresa,
+        'empresa': empresa_selecionada,
+        'empresas': empresas,
+        'empresa_selecionada_id': str(empresa_selecionada.id),
+        'tem_multiplas_empresas': empresas.count() > 1,
         'perfil': perfil
     }
 
@@ -80,75 +104,143 @@ def dashboard_principal_view(request):
 @login_required
 def dashboard_unidades_view(request):
     """Dashboard com dados por unidade"""
-    
+
     if not hasattr(request.user, 'perfil_acesso'):
         return render(request, 'dashboard/sem_acesso.html')
-    
+
     perfil = request.user.perfil_acesso
-    
-    if perfil.nivel_acesso not in ['EMPRESA', 'UNIDADE']:
-        return render(request, 'dashboard/sem_permissao.html')
-    
+
+    # Verificar permissão de nível de acesso
+    if perfil.nivel_acesso == 'SETOR':
+        messages.warning(request, 'Seu nível de acesso não permite visualizar dados por unidade.')
+        return redirect('dashboard:principal')
+
+    empresas = perfil.get_empresas()
+    if not empresas.exists():
+        return render(request, 'dashboard/sem_empresa.html')
+
+    # Empresa selecionada
+    empresa_id_selecionada = request.GET.get('empresa')
+    if empresa_id_selecionada:
+        empresa_selecionada = empresas.filter(id=empresa_id_selecionada).first()
+        if not empresa_selecionada:
+            empresa_selecionada = empresas.first()
+    else:
+        empresa_selecionada = empresas.first()
+
     dashboard_service = DashboardService()
-    dados = dashboard_service.get_dados_por_unidade(str(perfil.empresa.id))
-    
+    dados = dashboard_service.get_dados_por_unidade(str(empresa_selecionada.id))
+
+    # Filtrar unidades se nível é UNIDADE
+    if perfil.nivel_acesso == 'UNIDADE':
+        unidades_permitidas = perfil.unidades.values_list('id', flat=True)
+        dados['unidades'] = [
+            u for u in dados['unidades']
+            if u['unidade_id'] in [str(uid) for uid in unidades_permitidas]
+        ]
+        dados['total_unidades_visiveis'] = len(dados['unidades'])
+
     context = {
         'dados': dados,
-        'empresa': perfil.empresa
+        'empresa': empresa_selecionada,
+        'empresas': empresas,
+        'tem_multiplas_empresas': empresas.count() > 1,
     }
-    
+
     return render(request, 'dashboard/unidades.html', context)
 
 
 @login_required
 def dashboard_setores_view(request):
     """Dashboard com dados por setor"""
-    
+
     if not hasattr(request.user, 'perfil_acesso'):
         return render(request, 'dashboard/sem_acesso.html')
-    
+
     perfil = request.user.perfil_acesso
     unidade_id = request.GET.get('unidade')
-    
+
+    empresas = perfil.get_empresas()
+    if not empresas.exists():
+        return render(request, 'dashboard/sem_empresa.html')
+
+    # Empresa selecionada
+    empresa_id_selecionada = request.GET.get('empresa')
+    if empresa_id_selecionada:
+        empresa_selecionada = empresas.filter(id=empresa_id_selecionada).first()
+        if not empresa_selecionada:
+            empresa_selecionada = empresas.first()
+    else:
+        empresa_selecionada = empresas.first()
+
     dashboard_service = DashboardService()
     dados = dashboard_service.get_dados_por_setor(
-        str(perfil.empresa.id),
+        str(empresa_selecionada.id),
         unidade_id
     )
-    
+
     # Filtrar setores permitidos se necessário
-    if perfil.nivel_acesso == 'SETOR':
+    if perfil.nivel_acesso == 'UNIDADE':
+        unidades_permitidas = perfil.unidades.values_list('id', flat=True)
+        # Filtrar por unidades permitidas
+        setores_filtrados = []
+        for s in dados['setores']:
+            # Verificar se o setor pertence a uma unidade permitida
+            setor_unidade_id = s.get('unidade_id')
+            if setor_unidade_id and any(str(uid) == setor_unidade_id for uid in unidades_permitidas):
+                setores_filtrados.append(s)
+        dados['setores'] = setores_filtrados
+        dados['total_setores_visiveis'] = len(dados['setores'])
+
+    elif perfil.nivel_acesso == 'SETOR':
         setores_permitidos = perfil.setores.values_list('id', flat=True)
         dados['setores'] = [
             s for s in dados['setores']
             if s['setor_id'] in [str(sid) for sid in setores_permitidos]
         ]
         dados['total_setores_visiveis'] = len(dados['setores'])
-    
+
     context = {
         'dados': dados,
-        'empresa': perfil.empresa,
+        'empresa': empresa_selecionada,
+        'empresas': empresas,
+        'tem_multiplas_empresas': empresas.count() > 1,
         'unidade_id': unidade_id
     }
-    
+
     return render(request, 'dashboard/setores.html', context)
 
 
 @login_required
 def dashboard_dimensoes_view(request):
     """Dashboard com análise de dimensões"""
-    
+
     if not hasattr(request.user, 'perfil_acesso'):
         return render(request, 'dashboard/sem_acesso.html')
-    
+
     perfil = request.user.perfil_acesso
-    
+
+    empresas = perfil.get_empresas()
+    if not empresas.exists():
+        return render(request, 'dashboard/sem_empresa.html')
+
+    # Empresa selecionada
+    empresa_id_selecionada = request.GET.get('empresa')
+    if empresa_id_selecionada:
+        empresa_selecionada = empresas.filter(id=empresa_id_selecionada).first()
+        if not empresa_selecionada:
+            empresa_selecionada = empresas.first()
+    else:
+        empresa_selecionada = empresas.first()
+
     dashboard_service = DashboardService()
-    dados = dashboard_service.get_dimensoes_criticas(str(perfil.empresa.id))
-    
+    dados = dashboard_service.get_dimensoes_criticas(str(empresa_selecionada.id))
+
     context = {
         'dados': dados,
-        'empresa': perfil.empresa
+        'empresa': empresa_selecionada,
+        'empresas': empresas,
+        'tem_multiplas_empresas': empresas.count() > 1,
     }
-    
+
     return render(request, 'dashboard/dimensoes.html', context)
