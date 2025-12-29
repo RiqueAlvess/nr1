@@ -79,6 +79,13 @@
 
         * {
             -webkit-tap-highlight-color: transparent;
+            max-width: 100%;
+        }
+
+        /* Prevenção de scroll horizontal em mobile */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
         }
 
         body {
@@ -87,6 +94,12 @@
             -moz-osx-font-smoothing: grayscale;
             background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
             min-height: 100vh;
+        }
+
+        /* Garantir que containers não extrapolem */
+        .container, .card, .question-card {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Header gradiente */
