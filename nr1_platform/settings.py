@@ -96,8 +96,8 @@ API_RESEND = config('API_RESEND')
 # Magic Link
 MAGIC_LINK_EXPIRATION_HOURS = config('MAGIC_LINK_EXPIRATION_HOURS', default=48, cast=int)
 
-# K-Anonymity
-MIN_GROUP_SIZE = config('MIN_GROUP_SIZE', default=5, cast=int)
+# K-Anonymity - Mínimo de respondentes para exibir dados (1 = sempre exibir)
+MIN_GROUP_SIZE = config('MIN_GROUP_SIZE', default=1, cast=int)
 
 # Sistema
 SYSTEM_NAME = config('SYSTEM_NAME', default='Plataforma NR-1')

@@ -42,7 +42,7 @@ class PerfilAcessoAdmin(admin.ModelAdmin):
         empresas = obj.get_empresas()
         count = empresas.count()
         if count == 0:
-            return format_html('<span style="color: #EF4444;">Nenhuma</span>')
+            return format_html('<span style="color: {};">Nenhuma</span>', '#EF4444')
         elif count == 1:
             return empresas.first().nome
         else:
@@ -68,7 +68,7 @@ class PerfilAcessoAdmin(admin.ModelAdmin):
                 '<span style="background-color: {}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">{}</span>',
                 cor, grupo
             )
-        return format_html('<span style="color: #9CA3AF;">Sem grupo</span>')
+        return format_html('<span style="color: {};">Sem grupo</span>', '#9CA3AF')
     get_grupo_display.short_description = 'Grupo'
 
     def get_resumo_acesso_display(self, obj):
