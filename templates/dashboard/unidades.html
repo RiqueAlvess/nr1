@@ -31,7 +31,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="unidadesApp()">
+<div class="space-y-6" x-data="unidadesApp">
 
     {% if dados.unidades %}
     <!-- Resumo -->
@@ -194,10 +194,24 @@
 
 {% block extra_js %}
 <script>
-function unidadesApp() {
-    return {
+// Dados do Django preparados ANTES do Alpine
+const unidadesData = [
+    {% for unidade in dados.unidades %}
+    {
+        nome: "{{ unidade.unidade_nome }}",
+        score: {{ unidade.score_medio }},
+        respostas: {{ unidade.total_respostas }}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+// Registrar componente ANTES da inicialização do Alpine
+document.addEventListener('alpine:init', () => {
+    Alpine.data('unidadesApp', () => ({
         init() {
-            this.criarGrafico();
+            this.$nextTick(() => {
+                this.criarGrafico();
+            });
         },
 
         criarGrafico() {
@@ -205,18 +219,16 @@ function unidadesApp() {
             const loadingEl = document.getElementById('chart-unidades-loading');
             const containerEl = document.getElementById('chart-unidades-container');
 
-            if (!ctx) return;
+            if (!ctx) {
+                console.error('Canvas não encontrado');
+                return;
+            }
 
-            // Dados do Django
-            const dados = [
-                {% for unidade in dados.unidades %}
-                {
-                    nome: "{{ unidade.unidade_nome }}",
-                    score: {{ unidade.score_medio }},
-                    respostas: {{ unidade.total_respostas }}
-                }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            ];
+            const contextCanvas = ctx.getContext('2d');
+            if (!contextCanvas) {
+                console.error('Contexto 2D não disponível');
+                return;
+            }
 
             const cores = {
                 primary: '#1EEB88',
@@ -225,13 +237,13 @@ function unidadesApp() {
             };
 
             try {
-                new Chart(ctx, {
+                new Chart(contextCanvas, {
                     type: 'bar',
                     data: {
-                        labels: dados.map(d => d.nome),
+                        labels: unidadesData.map(d => d.nome),
                         datasets: [{
                             label: 'Score Médio',
-                            data: dados.map(d => d.score),
+                            data: unidadesData.map(d => d.score),
                             backgroundColor: cores.primary,
                             borderRadius: 8,
                             borderSkipped: false,
@@ -253,7 +265,7 @@ function unidadesApp() {
                                 callbacks: {
                                     afterLabel: function(context) {
                                         const idx = context.dataIndex;
-                                        return `Respostas: ${dados[idx].respostas}`;
+                                        return `Respostas: ${unidadesData[idx].respostas}`;
                                     }
                                 }
                             }
@@ -293,14 +305,7 @@ function unidadesApp() {
                 if (loadingEl) loadingEl.classList.add('hidden');
             }
         }
-    }
-}
-
-// Inicializar gráfico após carregamento
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof unidadesApp === 'function') {
-        unidadesApp().init();
-    }
+    }));
 });
 </script>
 {% endblock %}

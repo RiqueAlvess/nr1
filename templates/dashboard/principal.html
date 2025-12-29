@@ -48,7 +48,7 @@
 {% endblock %}
 
 {% block content %}
-<div x-data="dashboardApp()" x-init="init()" class="space-y-6">
+<div x-data="dashboardApp" class="space-y-6">
 
     {% if not kpis.pode_visualizar %}
     <!-- Bloqueio por K-Anonymity -->
@@ -394,15 +394,9 @@
 
 {% block extra_js %}
 <script>
-function dashboardApp() {
-    // DEBUG: Verificar dados recebidos do backend
-    console.log('Dashboard App Inicializando...');
-    console.log('KPIs:', {{ kpis_json|safe }});
-    console.log('Unidades:', {{ dados_unidades_json|safe }});
-    console.log('Setores:', {{ dados_setores_json|safe }});
-    console.log('Dimensões:', {{ dados_dimensoes_json|safe }});
-
-    return {
+// Registrar componente ANTES da inicialização do Alpine
+document.addEventListener('alpine:init', () => {
+    Alpine.data('dashboardApp', () => ({
         filtroTipo: 'geral',
         filtroUnidade: '',
         tipoGrafico: 'bar',
@@ -644,7 +638,7 @@ function dashboardApp() {
                 if (loadingEl) loadingEl.classList.add('hidden');
             }
         }
-    }
-}
+    }));
+});
 </script>
 {% endblock %}
