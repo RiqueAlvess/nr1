@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from core.models import Empresa, Unidade, Setor, Cargo
 from importacao.models import Colaborador
 from account.models import PerfilAcesso
-from quiz.models import Dimensao, Pergunta, MagicLink, Resposta
+from quiz.models import Pergunta, MagicLink, Resposta
 from core.services.audit_service import AuditService
 
 
@@ -83,24 +83,21 @@ class Command(BaseCommand):
                 perfil.save()
             self.stdout.write(self.style.SUCCESS("Perfil de acesso EMPRESA vinculado a 'tester'"))
 
-        # 4) Criar Dimensão e 35 perguntas
-        dimensao, _ = Dimensao.objects.get_or_create(
-            nome="Geral",
-            defaults={"descricao": "Dimensão geral gerada automaticamente", "polaridade": "POSITIVA", "ordem": 1, "ativa": True}
-        )
-        perguntas = []
-        for numero in range(1, 36):  # 1..35
-            p, created = Pergunta.objects.get_or_create(
-                numero=numero,
-                defaults={
-                    "dimensao": dimensao,
-                    "texto": f"Pergunta automática {numero}",
-                    "pontuacao_maxima": 4,
-                    "ativa": True
-                }
-            )
-            perguntas.append(p)
-        self.stdout.write(self.style.SUCCESS(f"{len(perguntas)} perguntas garantidas (1..35)"))
+        # 4) Garantir que as perguntas HSE-IT existam (NÃO criar perguntas genéricas!)
+        from django.core.management import call_command
+        call_command('populate_hseit')
+
+        # Buscar perguntas HSE-IT existentes
+        perguntas = list(Pergunta.objects.filter(ativa=True).order_by('numero'))
+
+        if len(perguntas) < 35:
+            self.stdout.write(self.style.ERROR(
+                f'ERRO: Apenas {len(perguntas)} perguntas HSE-IT encontradas. '
+                'Execute python manage.py populate_hseit primeiro.'
+            ))
+            return
+
+        self.stdout.write(self.style.SUCCESS(f"{len(perguntas)} perguntas HSE-IT carregadas"))
 
         # 5) Para cada colaborador: gerar magic link (somente hash no DB) e gravar/atualizar resposta aleatória
         agora = timezone.now()

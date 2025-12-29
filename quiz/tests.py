@@ -9,7 +9,7 @@ from django.contrib.auth.models import User
 from core.models import Empresa, Unidade, Setor, Cargo
 from importacao.models import Colaborador
 from account.models import PerfilAcesso
-from quiz.models import Dimensao, Pergunta, MagicLink, Resposta
+from quiz.models import Pergunta, MagicLink, Resposta
 
 
 class PopulateAndSubmitQuiz35QuestionsTest(TestCase):
@@ -65,22 +65,15 @@ class PopulateAndSubmitQuiz35QuestionsTest(TestCase):
             ativo=True
         )
 
-        # Criar dimensão (se não existir)
-        self.dimensao, _ = Dimensao.objects.get_or_create(nome="Geral", defaults={"ordem": 1, "descricao": "Dimensão geral", "polaridade": "POSITIVA", "ativa": True})
+        # Garantir que usamos perguntas HSE-IT reais (NÃO criar perguntas genéricas!)
+        from django.core.management import call_command
+        call_command('populate_hseit')
 
-        # Garantir existência de 35 perguntas (números 1..35)
-        self.perguntas = []
-        for i in range(1, 36):  # 1..35 inclusive
-            p, _ = Pergunta.objects.get_or_create(
-                numero=i,
-                defaults={
-                    "dimensao": self.dimensao,
-                    "texto": f"Pergunta de teste {i}",
-                    "pontuacao_maxima": 4,
-                    "ativa": True
-                }
-            )
-            self.perguntas.append(p)
+        # Buscar perguntas HSE-IT existentes
+        self.perguntas = list(Pergunta.objects.filter(ativa=True).order_by('numero'))
+
+        # Validar que temos 35 perguntas HSE-IT
+        self.assertEqual(len(self.perguntas), 35, "Devem existir 35 perguntas HSE-IT")
 
     def test_submit_random_answers_for_35_questions(self):
         client = Client()
