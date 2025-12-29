@@ -125,20 +125,26 @@
             }
         }
 
-        /* Sidebar Desktop - Flexbox layout */
+        /* Sidebar Desktop - Fixed layout para acompanhar scroll */
         .sidebar-desktop {
+            position: fixed;
+            top: 0;
+            left: 0;
             height: 100vh;
             overflow-y: auto;
             overflow-x: hidden;
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             will-change: width;
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
+            z-index: 40;
         }
 
         .sidebar-expanded { width: 16rem; }
-        .sidebar-collapsed { width: 4.5rem; }
+        .sidebar-collapsed { width: 5rem; }
+
+        /* Spacer para compensar sidebar fixed */
+        .sidebar-spacer-expanded { margin-left: 16rem; }
+        .sidebar-spacer-collapsed { margin-left: 5rem; }
 
         /* Mobile styles */
         @media (max-width: 1023px) {
@@ -157,19 +163,26 @@
         .sidebar-menu-item {
             display: flex;
             align-items: center;
-            padding: 0.625rem 0.875rem;
+            padding: 0.75rem 1rem;
             border-radius: 0.5rem;
-            transition: background-color 0.15s ease;
+            transition: background-color 0.15s ease, padding 0.3s ease;
             white-space: nowrap;
             overflow: hidden;
+            min-height: 2.75rem;
+        }
+
+        .sidebar-collapsed .sidebar-menu-item {
+            justify-content: center;
+            padding: 0.75rem;
         }
 
         .sidebar-menu-item:hover { background-color: rgba(255, 255, 255, 0.1); }
         .sidebar-menu-item.active { background-color: rgba(30, 235, 136, 0.15); }
 
         .sidebar-menu-icon {
-            min-width: 1.25rem;
-            width: 1.25rem;
+            min-width: 1.5rem;
+            width: 1.5rem;
+            font-size: 1.125rem;
             text-align: center;
             flex-shrink: 0;
         }
@@ -187,10 +200,6 @@
             overflow: hidden;
         }
 
-        .sidebar-badge {
-            transition: opacity 0.15s ease, transform 0.15s ease;
-        }
-
         .sidebar-user-info {
             transition: opacity 0.2s ease, width 0.2s ease;
             overflow: hidden;
@@ -205,13 +214,6 @@
         .sidebar-collapsed .sidebar-section-title {
             opacity: 0;
             height: 0;
-            margin: 0;
-            padding: 0;
-        }
-        .sidebar-collapsed .sidebar-badge {
-            opacity: 0;
-            transform: scale(0);
-            width: 0;
             margin: 0;
             padding: 0;
         }
@@ -369,7 +371,6 @@
                        title="Importação">
                         <i class="fas fa-file-import sidebar-menu-icon text-primary"></i>
                         <span class="sidebar-menu-text">Importação</span>
-                        <span class="sidebar-badge badge badge-primary badge-xs ml-auto">RH</span>
                     </a>
 
                     <a href="{% url 'quiz:gerenciar_links' %}"
@@ -377,7 +378,6 @@
                        title="Enviar Pesquisas">
                         <i class="fas fa-paper-plane sidebar-menu-icon text-primary"></i>
                         <span class="sidebar-menu-text">Enviar Pesquisas</span>
-                        <span class="sidebar-badge badge badge-primary badge-xs ml-auto">RH</span>
                     </a>
                 </div>
                 {% endif %}
@@ -421,7 +421,8 @@
         </aside>
 
         <!-- Wrapper para Mobile Header + Main Content -->
-        <div class="flex-1 flex flex-col min-w-0">
+        <div class="flex-1 flex flex-col min-w-0 lg:transition-[margin] lg:duration-300"
+             :class="sidebarExpanded ? 'lg:sidebar-spacer-expanded' : 'lg:sidebar-spacer-collapsed'">
             <!-- Mobile Header -->
             <header class="lg:hidden navbar bg-secondary text-white shadow-sm sticky top-0 z-40 h-14">
             <div class="flex-none">

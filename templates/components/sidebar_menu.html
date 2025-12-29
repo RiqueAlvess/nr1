@@ -54,14 +54,12 @@
            class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}bg-white/10 border-l-3 border-primary{% endif %}">
             <i class="fas fa-file-import text-primary w-5 text-center"></i>
             <span class="text-white/90 font-medium">Importação</span>
-            <span class="badge badge-primary badge-xs">RH</span>
         </a>
 
         <a href="{% url 'quiz:gerenciar_links' %}"
            class="flex items-center space-x-3 px-4 py-3 rounded-lg transition-smooth hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 border-l-3 border-primary{% endif %}">
             <i class="fas fa-paper-plane text-primary w-5 text-center"></i>
             <span class="text-white/90 font-medium">Enviar Pesquisas</span>
-            <span class="badge badge-primary badge-xs">RH</span>
         </a>
     </div>
     {% endif %}
