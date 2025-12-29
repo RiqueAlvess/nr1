@@ -5,41 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Plataforma NR-1{% endblock %}</title>
 
-    <!-- DaisyUI + Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-    <!-- Tailwind Custom Config com Paleta Oficial -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        // Paleta oficial do sistema
-                        'primary': '#1EEB88',        // Verde principal (ação, CTA, destaque)
+                        'primary': '#1EEB88',
                         'primary-focus': '#17c972',
                         'primary-content': '#ffffff',
-                        'secondary': '#0F3D52',      // Azul petróleo (brand, header, sidebar)
+                        'secondary': '#0F3D52',
                         'secondary-focus': '#0a2a39',
                         'secondary-content': '#ffffff',
-                        'accent': '#6EDBC1',         // Verde suave (realces, ícones)
+                        'accent': '#6EDBC1',
                         'accent-focus': '#4fd1ab',
                         'accent-content': '#0F3D52',
-                        'neutral': '#1F2933',        // Texto principal escuro
+                        'neutral': '#1F2933',
                         'neutral-focus': '#161d22',
                         'neutral-content': '#ffffff',
-                        'base-100': '#FFFFFF',       // Fundo principal
-                        'base-200': '#F3F7F5',       // Cards / seções
-                        'base-300': '#E5ECE9',       // Divisórias
+                        'base-100': '#FFFFFF',
+                        'base-200': '#F3F7F5',
+                        'base-300': '#E5ECE9',
                         'base-content': '#1F2933',
                         'info': '#3ABFF8',
                         'success': '#22C55E',
@@ -60,28 +54,27 @@
     </script>
 
     <style>
-        /* DaisyUI Theme Override */
         [data-theme="nr1theme"] {
-            --p: 152 87% 52%;          /* primary: #1EEB88 */
-            --pf: 152 75% 44%;         /* primary-focus */
-            --pc: 0 0% 100%;           /* primary-content */
-            --s: 199 69% 19%;          /* secondary: #0F3D52 */
-            --sf: 199 69% 13%;         /* secondary-focus */
-            --sc: 0 0% 100%;           /* secondary-content */
-            --a: 162 58% 64%;          /* accent: #6EDBC1 */
-            --af: 162 58% 55%;         /* accent-focus */
-            --ac: 199 69% 19%;         /* accent-content */
-            --n: 207 24% 16%;          /* neutral: #1F2933 */
-            --nf: 207 24% 11%;         /* neutral-focus */
-            --nc: 0 0% 100%;           /* neutral-content */
-            --b1: 0 0% 100%;           /* base-100 */
-            --b2: 140 20% 97%;         /* base-200: #F3F7F5 */
-            --b3: 150 15% 91%;         /* base-300: #E5ECE9 */
-            --bc: 207 24% 16%;         /* base-content */
-            --in: 198 93% 60%;         /* info */
-            --su: 142 71% 45%;         /* success */
-            --wa: 48 96% 53%;          /* warning */
-            --er: 0 84% 60%;           /* error */
+            --p: 152 87% 52%;
+            --pf: 152 75% 44%;
+            --pc: 0 0% 100%;
+            --s: 199 69% 19%;
+            --sf: 199 69% 13%;
+            --sc: 0 0% 100%;
+            --a: 162 58% 64%;
+            --af: 162 58% 55%;
+            --ac: 199 69% 19%;
+            --n: 207 24% 16%;
+            --nf: 207 24% 11%;
+            --nc: 0 0% 100%;
+            --b1: 0 0% 100%;
+            --b2: 140 20% 97%;
+            --b3: 150 15% 91%;
+            --bc: 207 24% 16%;
+            --in: 198 93% 60%;
+            --su: 142 71% 45%;
+            --wa: 48 96% 53%;
+            --er: 0 84% 60%;
             --rounded-box: 0.75rem;
             --rounded-btn: 0.5rem;
             --rounded-badge: 1.9rem;
@@ -93,14 +86,12 @@
             --tab-radius: 0.5rem;
         }
 
-        /* Base styles */
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Toast Container */
         .toast-container {
             position: fixed;
             top: 1rem;
@@ -118,21 +109,10 @@
             }
         }
 
-        /* Sombra suave corporativa */
-        .shadow-soft {
-            box-shadow: 0 2px 8px rgba(15, 61, 82, 0.08);
-        }
+        .shadow-soft { box-shadow: 0 2px 8px rgba(15, 61, 82, 0.08); }
+        .shadow-card { box-shadow: 0 1px 3px rgba(15, 61, 82, 0.06), 0 1px 2px rgba(15, 61, 82, 0.04); }
+        .transition-smooth { transition: all 0.2s ease-out; }
 
-        .shadow-card {
-            box-shadow: 0 1px 3px rgba(15, 61, 82, 0.06), 0 1px 2px rgba(15, 61, 82, 0.04);
-        }
-
-        /* Transições suaves */
-        .transition-smooth {
-            transition: all 0.2s ease-out;
-        }
-
-        /* Sidebar fixa no desktop */
         @media (min-width: 1024px) {
             .sidebar-desktop {
                 position: fixed;
@@ -143,13 +123,9 @@
                 overflow-y: auto;
                 z-index: 40;
             }
-
-            .main-content-desktop {
-                margin-left: 16rem;
-            }
+            .main-content-desktop { margin-left: 16rem; }
         }
 
-        /* Bottom Navigation fixo no mobile */
         @media (max-width: 1023px) {
             .bottom-nav {
                 position: fixed;
@@ -159,71 +135,26 @@
                 z-index: 50;
                 height: 4rem;
             }
-
-            .main-content-mobile {
-                padding-bottom: 5rem;
-            }
+            .main-content-mobile { padding-bottom: 5rem; }
         }
 
-        /* Chart.js customization */
-        canvas {
-            max-width: 100%;
-            height: auto !important;
-        }
+        canvas { max-width: 100%; height: auto !important; }
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #F3F7F5; }
+        ::-webkit-scrollbar-thumb { background: #E5ECE9; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6EDBC1; }
 
-        ::-webkit-scrollbar-track {
-            background: #F3F7F5;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #E5ECE9;
-            border-radius: 3px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6EDBC1;
-        }
-
-        /* Card hover effect */
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(15, 61, 82, 0.12);
-        }
-
-        /* Menu item active state */
-        .menu-item-active {
-            background-color: rgba(30, 235, 136, 0.1);
-            border-left: 3px solid #1EEB88;
-        }
-
-        /* Stat card improvements */
-        .stat-card {
-            background: linear-gradient(135deg, #ffffff 0%, #F3F7F5 100%);
-        }
-
-        /* Loading skeleton */
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(15, 61, 82, 0.12); }
+        .menu-item-active { background-color: rgba(30, 235, 136, 0.1); border-left: 3px solid #1EEB88; }
+        .stat-card { background: linear-gradient(135deg, #ffffff 0%, #F3F7F5 100%); }
         .skeleton-loading {
             background: linear-gradient(90deg, #F3F7F5 25%, #E5ECE9 50%, #F3F7F5 75%);
             background-size: 200% 100%;
             animation: loading 1.5s infinite;
         }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* Focus ring customization */
-        .btn:focus-visible, .input:focus-visible, .select:focus-visible {
-            outline: 2px solid #1EEB88;
-            outline-offset: 2px;
-        }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        .btn:focus-visible, .input:focus-visible, .select:focus-visible { outline: 2px solid #1EEB88; outline-offset: 2px; }
     </style>
 
     {% block extra_head %}{% endblock %}
@@ -231,208 +162,199 @@
 <body class="bg-base-200 min-h-screen" x-data="{ sidebarOpen: false }">
 
     {% if user.is_authenticated %}
-
-    <!-- Mobile Header (< lg) -->
-    <header class="lg:hidden navbar bg-secondary text-white shadow-soft sticky top-0 z-40 h-14">
-        <div class="flex-none">
-            <button @click="sidebarOpen = !sidebarOpen" class="btn btn-ghost btn-circle text-white hover:bg-secondary-focus" aria-label="Menu">
-                <i class="fas fa-bars text-lg"></i>
-            </button>
-        </div>
-        <div class="flex-1">
-            <a href="{% url 'account:dashboard' %}" class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-white text-sm"></i>
-                </div>
-                <span class="font-semibold text-lg">NR-1</span>
-            </a>
-        </div>
-        <div class="flex-none">
-            <div class="dropdown dropdown-end">
-                <label tabindex="0" class="btn btn-ghost btn-circle avatar placeholder">
-                    <div class="bg-primary text-white rounded-full w-9 h-9 flex items-center justify-center">
-                        <span class="text-sm font-medium">{{ user.username|first|upper }}</span>
-                    </div>
-                </label>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow-soft bg-base-100 rounded-xl w-52 mt-3 border border-base-300">
-                    <li class="menu-title px-4 py-2">
-                        <div class="flex flex-col">
-                            <span class="font-medium text-neutral">{{ user.username }}</span>
-                            {% if user.perfil_acesso %}
-                            <span class="text-xs text-accent font-normal">{{ user.perfil_acesso.get_grupo_principal }}</span>
-                            {% endif %}
-                        </div>
-                    </li>
-                    <div class="divider my-0"></div>
-                    {% if user.is_superuser %}
-                    <li><a href="/admin/" class="text-neutral"><i class="fas fa-cog mr-2 text-secondary"></i>Administração</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'account:logout' %}" class="text-error"><i class="fas fa-sign-out-alt mr-2"></i>Sair</a></li>
-                </ul>
+        <header class="lg:hidden navbar bg-secondary text-white shadow-soft sticky top-0 z-40 h-14">
+            <div class="flex-none">
+                <button @click="sidebarOpen = !sidebarOpen" class="btn btn-ghost btn-circle text-white hover:bg-secondary-focus" aria-label="Menu">
+                    <i class="fas fa-bars text-lg"></i>
+                </button>
             </div>
-        </div>
-    </header>
-
-    <!-- Mobile Drawer Overlay -->
-    <div class="lg:hidden">
-        <div x-show="sidebarOpen"
-             @click="sidebarOpen = false"
-             x-transition:enter="transition-opacity ease-out duration-200"
-             x-transition:enter-start="opacity-0"
-             x-transition:enter-end="opacity-100"
-             x-transition:leave="transition-opacity ease-in duration-200"
-             x-transition:leave-start="opacity-100"
-             x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-neutral/50 backdrop-blur-sm z-50"
-             style="display: none;">
-        </div>
-
-        <!-- Mobile Drawer -->
-        <aside x-show="sidebarOpen"
-             x-transition:enter="transition ease-out duration-300 transform"
-             x-transition:enter-start="-translate-x-full"
-             x-transition:enter-end="translate-x-0"
-             x-transition:leave="transition ease-in duration-200 transform"
-             x-transition:leave-start="translate-x-0"
-             x-transition:leave-end="-translate-x-full"
-             class="fixed inset-y-0 left-0 w-72 bg-base-100 shadow-xl z-50 overflow-y-auto"
-             style="display: none;">
-
-            <div class="p-4 bg-secondary text-white">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                            <i class="fas fa-shield-alt text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h1 class="font-bold">Plataforma NR-1</h1>
-                            <p class="text-xs text-accent">Riscos Psicossociais</p>
-                        </div>
+            <div class="flex-1">
+                <a href="{% url 'account:dashboard' %}" class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-sm"></i>
                     </div>
-                    <button @click="sidebarOpen = false" class="btn btn-ghost btn-sm btn-circle text-white hover:bg-secondary-focus">
-                        <i class="fas fa-times"></i>
-                    </button>
+                    <span class="font-semibold text-lg">NR-1</span>
+                </a>
+            </div>
+            <div class="flex-none">
+                <div class="dropdown dropdown-end">
+                    <label tabindex="0" class="btn btn-ghost btn-circle avatar placeholder">
+                        <div class="bg-primary text-white rounded-full w-9 h-9 flex items-center justify-center">
+                            <span class="text-sm font-medium">{{ user.username|first|upper }}</span>
+                        </div>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-soft bg-base-100 rounded-xl w-52 mt-3 border border-base-300">
+                        <li class="menu-title px-4 py-2">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-neutral">{{ user.username }}</span>
+                                {% if user.perfil_acesso %}
+                                <span class="text-xs text-accent font-normal">{{ user.perfil_acesso.get_grupo_principal }}</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        <div class="divider my-0"></div>
+                        {% if user.is_superuser %}
+                        <li><a href="/admin/" class="text-neutral"><i class="fas fa-cog mr-2 text-secondary"></i>Administração</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'account:logout' %}" class="text-error"><i class="fas fa-sign-out-alt mr-2"></i>Sair</a></li>
+                    </ul>
                 </div>
+            </div>
+        </header>
+
+        <div class="lg:hidden">
+            <div x-show="sidebarOpen"
+                 @click="sidebarOpen = false"
+                 x-transition:enter="transition-opacity ease-out duration-200"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition-opacity ease-in duration-200"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 bg-neutral/50 backdrop-blur-sm z-50"
+                 style="display: none;">
+            </div>
+
+            <aside x-show="sidebarOpen"
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="-translate-x-full"
+                 x-transition:enter-end="translate-x-0"
+                 x-transition:leave="transition ease-in duration-200 transform"
+                 x-transition:leave-start="translate-x-0"
+                 x-transition:leave-end="-translate-x-full"
+                 class="fixed inset-y-0 left-0 w-72 bg-base-100 shadow-xl z-50 overflow-y-auto"
+                 style="display: none;">
+
+                <div class="p-4 bg-secondary text-white">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h1 class="font-bold">Plataforma NR-1</h1>
+                                <p class="text-xs text-accent">Riscos Psicossociais</p>
+                            </div>
+                        </div>
+                        <button @click="sidebarOpen = false" class="btn btn-ghost btn-sm btn-circle text-white hover:bg-secondary-focus">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {% include 'components/sidebar_menu.html' %}
+            </aside>
+        </div>
+
+        <aside class="hidden lg:flex lg:flex-col sidebar-desktop bg-secondary text-white">
+            <div class="p-5 border-b border-white/10">
+                <a href="{% url 'account:dashboard' %}" class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-soft">
+                        <i class="fas fa-shield-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-white">Plataforma NR-1</h1>
+                        <p class="text-xs text-accent">Riscos Psicossociais</p>
+                    </div>
+                </a>
             </div>
 
             {% include 'components/sidebar_menu.html' %}
-        </aside>
-    </div>
 
-    <!-- Desktop Sidebar (>= lg) -->
-    <aside class="hidden lg:flex lg:flex-col sidebar-desktop bg-secondary text-white">
-        <div class="p-5 border-b border-white/10">
-            <a href="{% url 'account:dashboard' %}" class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-soft">
-                    <i class="fas fa-shield-alt text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="font-bold text-white">Plataforma NR-1</h1>
-                    <p class="text-xs text-accent">Riscos Psicossociais</p>
-                </div>
-            </a>
-        </div>
-
-        {% include 'components/sidebar_menu.html' %}
-
-        <div class="mt-auto p-4 border-t border-white/10">
-            <div class="flex items-center space-x-3">
-                <div class="avatar placeholder">
-                    <div class="bg-primary text-white rounded-full w-10 h-10 flex items-center justify-center">
-                        <span class="font-medium">{{ user.username|first|upper }}</span>
+            <div class="mt-auto p-4 border-t border-white/10">
+                <div class="flex items-center space-x-3">
+                    <div class="avatar placeholder">
+                        <div class="bg-primary text-white rounded-full w-10 h-10 flex items-center justify-center">
+                            <span class="font-medium">{{ user.username|first|upper }}</span>
+                        </div>
                     </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-white truncate">{{ user.username }}</p>
+                        {% if user.perfil_acesso %}
+                        <p class="text-xs text-accent truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                        {% endif %}
+                    </div>
+                    <a href="{% url 'account:logout' %}" class="btn btn-ghost btn-sm btn-circle text-white/70 hover:text-error hover:bg-white/10" title="Sair">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
                 </div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium text-white truncate">{{ user.username }}</p>
-                    {% if user.perfil_acesso %}
-                    <p class="text-xs text-accent truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
-                    {% endif %}
-                </div>
-                <a href="{% url 'account:logout' %}" class="btn btn-ghost btn-sm btn-circle text-white/70 hover:text-error hover:bg-white/10" title="Sair">
-                    <i class="fas fa-sign-out-alt"></i>
-                </a>
             </div>
-        </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="lg:main-content-desktop main-content-mobile min-h-screen">
-        <div class="container mx-auto p-4 lg:p-6 max-w-7xl">
-            <!-- Breadcrumb -->
-            {% block breadcrumb %}{% endblock %}
-
-            <!-- Page Header -->
-            {% block page_header %}{% endblock %}
-
-            <!-- Content -->
-            {% block content %}{% endblock %}
-        </div>
-    </main>
-
-    <!-- Bottom Navigation Mobile (< lg) -->
-    <nav class="lg:hidden bottom-nav bg-base-100 border-t border-base-300 shadow-soft">
-        <div class="flex justify-around items-center h-full max-w-lg mx-auto">
-            <a href="{% url 'account:dashboard' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-smooth hover:bg-base-200 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-primary{% else %}text-neutral/60{% endif %}">
-                <i class="fas fa-home text-lg mb-0.5"></i>
-                <span class="text-xs font-medium">Início</span>
-            </a>
-
-            {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
-            <a href="{% url 'dashboard:principal' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-smooth hover:bg-base-200 {% if request.resolver_match.app_name == 'dashboard' %}text-primary{% else %}text-neutral/60{% endif %}">
-                <i class="fas fa-chart-line text-lg mb-0.5"></i>
-                <span class="text-xs font-medium">Dashboard</span>
-            </a>
-            {% endif %}
-
-            {% if user.perfil_acesso.is_rh %}
-            <a href="{% url 'quiz:gerenciar_links' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-smooth hover:bg-base-200 {% if request.resolver_match.app_name == 'quiz' %}text-primary{% else %}text-neutral/60{% endif %}">
-                <i class="fas fa-paper-plane text-lg mb-0.5"></i>
-                <span class="text-xs font-medium">Enviar</span>
-            </a>
-            {% endif %}
-
-            <div class="dropdown dropdown-top dropdown-end flex flex-col items-center justify-center flex-1 h-full">
-                <label tabindex="0" class="flex flex-col items-center justify-center cursor-pointer text-neutral/60 hover:text-primary transition-smooth">
-                    <i class="fas fa-ellipsis-h text-lg mb-0.5"></i>
-                    <span class="text-xs font-medium">Mais</span>
-                </label>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow-soft bg-base-100 rounded-xl w-52 mb-2 border border-base-300">
-                    {% if user.perfil_acesso.is_rh %}
-                    <li><a href="{% url 'importacao:importacao' %}"><i class="fas fa-file-import mr-2 text-primary"></i>Importação</a></li>
-                    {% endif %}
-                    {% if user.is_superuser %}
-                    <li><a href="/admin/"><i class="fas fa-cog mr-2 text-secondary"></i>Admin</a></li>
-                    {% endif %}
-                    <li><a href="{% url 'account:logout' %}" class="text-error"><i class="fas fa-sign-out-alt mr-2"></i>Sair</a></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+        </aside>
 
     {% else %}
-
-    <!-- Not Authenticated - Clean Header -->
-    <header class="navbar bg-secondary text-white shadow-soft">
-        <div class="flex-1">
-            <a href="/" class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-white text-lg"></i>
-                </div>
-                <div>
-                    <span class="text-lg font-bold">Plataforma NR-1</span>
-                    <span class="hidden sm:inline text-sm text-accent ml-2">Riscos Psicossociais</span>
-                </div>
-            </a>
-        </div>
-    </header>
-
-    <main class="min-h-screen">
-        {% block content %}{% endblock %}
-    </main>
-
+        <header class="navbar bg-secondary text-white shadow-soft">
+            <div class="flex-1">
+                <a href="/" class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <span class="text-lg font-bold">Plataforma NR-1</span>
+                        <span class="hidden sm:inline text-sm text-accent ml-2">Riscos Psicossociais</span>
+                    </div>
+                </a>
+            </div>
+        </header>
     {% endif %}
 
-    <!-- Toast Messages -->
+    <main class="{% if user.is_authenticated %}lg:main-content-desktop main-content-mobile{% endif %} min-h-screen">
+        
+        {% if user.is_authenticated %}
+            <div class="container mx-auto p-4 lg:p-6 max-w-7xl">
+                {% block breadcrumb %}{% endblock %}
+
+                {% block page_header %}{% endblock %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+
+        {% if user.is_authenticated %}
+            </div>
+        {% endif %}
+
+    </main>
+
+    {% if user.is_authenticated %}
+        <nav class="lg:hidden bottom-nav bg-base-100 border-t border-base-300 shadow-soft">
+            <div class="flex justify-around items-center h-full max-w-lg mx-auto">
+                <a href="{% url 'account:dashboard' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-smooth hover:bg-base-200 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-primary{% else %}text-neutral/60{% endif %}">
+                    <i class="fas fa-home text-lg mb-0.5"></i>
+                    <span class="text-xs font-medium">Início</span>
+                </a>
+
+                {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
+                <a href="{% url 'dashboard:principal' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-smooth hover:bg-base-200 {% if request.resolver_match.app_name == 'dashboard' %}text-primary{% else %}text-neutral/60{% endif %}">
+                    <i class="fas fa-chart-line text-lg mb-0.5"></i>
+                    <span class="text-xs font-medium">Dashboard</span>
+                </a>
+                {% endif %}
+
+                {% if user.perfil_acesso.is_rh %}
+                <a href="{% url 'quiz:gerenciar_links' %}" class="flex flex-col items-center justify-center flex-1 h-full transition-smooth hover:bg-base-200 {% if request.resolver_match.app_name == 'quiz' %}text-primary{% else %}text-neutral/60{% endif %}">
+                    <i class="fas fa-paper-plane text-lg mb-0.5"></i>
+                    <span class="text-xs font-medium">Enviar</span>
+                </a>
+                {% endif %}
+
+                <div class="dropdown dropdown-top dropdown-end flex flex-col items-center justify-center flex-1 h-full">
+                    <label tabindex="0" class="flex flex-col items-center justify-center cursor-pointer text-neutral/60 hover:text-primary transition-smooth">
+                        <i class="fas fa-ellipsis-h text-lg mb-0.5"></i>
+                        <span class="text-xs font-medium">Mais</span>
+                    </label>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-soft bg-base-100 rounded-xl w-52 mb-2 border border-base-300">
+                        {% if user.perfil_acesso.is_rh %}
+                        <li><a href="{% url 'importacao:importacao' %}"><i class="fas fa-file-import mr-2 text-primary"></i>Importação</a></li>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                        <li><a href="/admin/"><i class="fas fa-cog mr-2 text-secondary"></i>Admin</a></li>
+                        {% endif %}
+                        <li><a href="{% url 'account:logout' %}" class="text-error"><i class="fas fa-sign-out-alt mr-2"></i>Sair</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    {% endif %}
+
     <div class="toast-container" x-data="{ messages: [] }" x-init="
         {% if messages %}
             messages = [
@@ -474,7 +396,6 @@
         </template>
     </div>
 
-    <!-- Fallback for browsers without Alpine.js -->
     <noscript>
         {% if messages %}
         <div class="toast-container">
