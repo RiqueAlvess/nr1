@@ -179,7 +179,10 @@
                 <i class="fas fa-chart-line mr-2 text-primary"></i>
                 <span x-text="tituloGrafico"></span>
             </h2>
-            <div class="mt-4" style="height: 320px;">
+            <div id="chart-main-loading" class="flex items-center justify-center h-80">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+            <div id="chart-main-container" class="hidden mt-4" style="height: 320px;">
                 <canvas id="graficoMain"></canvas>
             </div>
         </div>
@@ -194,7 +197,10 @@
                     <i class="fas fa-chart-pie mr-2 text-accent"></i>
                     Distribuição de Risco
                 </h2>
-                <div class="mt-4 flex justify-center" style="height: 250px;">
+                <div id="chart-dist-loading" class="flex items-center justify-center h-64">
+                    <span class="loading loading-spinner loading-lg text-accent"></span>
+                </div>
+                <div id="chart-dist-container" class="hidden mt-4 flex justify-center" style="height: 250px;">
                     <canvas id="graficoDistribuicao"></canvas>
                 </div>
             </div>
@@ -437,6 +443,9 @@ function dashboardApp() {
 
         criarGraficoPrincipal() {
             const ctx = document.getElementById('graficoMain');
+            const loadingEl = document.getElementById('chart-main-loading');
+            const containerEl = document.getElementById('chart-main-container');
+
             if (!ctx) {
                 console.error('Canvas graficoMain não encontrado');
                 return;
@@ -551,13 +560,22 @@ function dashboardApp() {
                         } : {}
                     }
                 });
+
+                // Esconder loading e mostrar gráfico
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (containerEl) containerEl.classList.remove('hidden');
             } catch (error) {
                 console.error('Erro ao criar gráfico principal:', error);
+                // Em caso de erro, esconder loading mesmo assim
+                if (loadingEl) loadingEl.classList.add('hidden');
             }
         },
 
         criarGraficoDistribuicao() {
             const ctx = document.getElementById('graficoDistribuicao');
+            const loadingEl = document.getElementById('chart-dist-loading');
+            const containerEl = document.getElementById('chart-dist-container');
+
             if (!ctx) {
                 console.error('Canvas graficoDistribuicao não encontrado');
                 return;
@@ -613,8 +631,14 @@ function dashboardApp() {
                         }
                     }
                 });
+
+                // Esconder loading e mostrar gráfico
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (containerEl) containerEl.classList.remove('hidden');
             } catch (error) {
                 console.error('Erro ao criar gráfico de distribuição:', error);
+                // Em caso de erro, esconder loading mesmo assim
+                if (loadingEl) loadingEl.classList.add('hidden');
             }
         }
     }

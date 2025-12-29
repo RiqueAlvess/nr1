@@ -70,7 +70,10 @@
                 <i class="fas fa-chart-bar text-primary mr-2"></i>
                 Comparativo de Score por Unidade
             </h2>
-            <div class="mt-4" style="height: 300px;">
+            <div id="chart-unidades-loading" class="flex items-center justify-center h-72">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+            <div id="chart-unidades-container" class="hidden mt-4" style="height: 300px;">
                 <canvas id="graficoUnidades"></canvas>
             </div>
         </div>
@@ -199,6 +202,9 @@ function unidadesApp() {
 
         criarGrafico() {
             const ctx = document.getElementById('graficoUnidades');
+            const loadingEl = document.getElementById('chart-unidades-loading');
+            const containerEl = document.getElementById('chart-unidades-container');
+
             if (!ctx) return;
 
             // Dados do Django
@@ -218,64 +224,74 @@ function unidadesApp() {
                 accent: '#6EDBC1'
             };
 
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: dados.map(d => d.nome),
-                    datasets: [{
-                        label: 'Score Médio',
-                        data: dados.map(d => d.score),
-                        backgroundColor: cores.primary,
-                        borderRadius: 8,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
+            try {
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: dados.map(d => d.nome),
+                        datasets: [{
+                            label: 'Score Médio',
+                            data: dados.map(d => d.score),
+                            backgroundColor: cores.primary,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: cores.secondary,
+                                padding: 12,
+                                cornerRadius: 8,
+                                titleFont: { size: 14, weight: 'bold' },
+                                bodyFont: { size: 13 },
+                                callbacks: {
+                                    afterLabel: function(context) {
+                                        const idx = context.dataIndex;
+                                        return `Respostas: ${dados[idx].respostas}`;
+                                    }
+                                }
+                            }
                         },
-                        tooltip: {
-                            backgroundColor: cores.secondary,
-                            padding: 12,
-                            cornerRadius: 8,
-                            titleFont: { size: 14, weight: 'bold' },
-                            bodyFont: { size: 13 },
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    const idx = context.dataIndex;
-                                    return `Respostas: ${dados[idx].respostas}`;
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 140,
+                                grid: {
+                                    color: 'rgba(229, 236, 233, 0.5)',
+                                    drawBorder: false
+                                },
+                                ticks: {
+                                    font: { size: 12 },
+                                    color: '#1F2933'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: { size: 12 },
+                                    color: '#1F2933'
                                 }
                             }
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 140,
-                            grid: {
-                                color: 'rgba(229, 236, 233, 0.5)',
-                                drawBorder: false
-                            },
-                            ticks: {
-                                font: { size: 12 },
-                                color: '#1F2933'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: { size: 12 },
-                                color: '#1F2933'
-                            }
-                        }
                     }
-                }
-            });
+                });
+
+                // Esconder loading e mostrar gráfico
+                if (loadingEl) loadingEl.classList.add('hidden');
+                if (containerEl) containerEl.classList.remove('hidden');
+            } catch (error) {
+                console.error('Erro ao criar gráfico de unidades:', error);
+                // Em caso de erro, esconder loading mesmo assim
+                if (loadingEl) loadingEl.classList.add('hidden');
+            }
         }
     }
 }
