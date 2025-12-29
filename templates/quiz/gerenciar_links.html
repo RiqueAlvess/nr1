@@ -24,6 +24,53 @@
 {% endblock %}
 
 {% block content %}
+<style>
+    /* Estilos para checkboxes com visual de seleção */
+    .colaborador-checkbox {
+        width: 1.25rem;
+        height: 1.25rem;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        border: 2px solid #d1d5db;
+        border-radius: 0.25rem;
+        background-color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .colaborador-checkbox:checked {
+        background-color: #1EEB88 !important;
+        border-color: #1EEB88 !important;
+    }
+
+    .colaborador-checkbox:checked::after {
+        content: '✓';
+        color: white;
+        font-weight: bold;
+        font-size: 0.75rem;
+    }
+
+    .colaborador-checkbox:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .colaborador-checkbox:hover:not(:disabled) {
+        border-color: #1EEB88;
+    }
+
+    tr.selected {
+        background-color: rgba(30, 235, 136, 0.1) !important;
+    }
+
+    tr.selected:hover {
+        background-color: rgba(30, 235, 136, 0.15) !important;
+    }
+</style>
+
 <div class="space-y-6">
 
     <!-- Estatísticas -->
@@ -220,23 +267,53 @@
 
     if (selectAll) {
         selectAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            const isChecked = this.checked;
+            checkboxes.forEach(cb => {
+                cb.checked = isChecked;
+                const row = cb.closest('tr');
+                if (row) {
+                    if (isChecked) {
+                        row.classList.add('selected');
+                    } else {
+                        row.classList.remove('selected');
+                    }
+                }
+            });
             updateButtonState();
         });
     }
 
     checkboxes.forEach(cb => {
-        cb.addEventListener('change', updateButtonState);
+        cb.addEventListener('change', function() {
+            updateButtonState();
+            // Adicionar feedback visual na linha
+            const row = this.closest('tr');
+            if (row) {
+                if (this.checked) {
+                    row.classList.add('selected');
+                } else {
+                    row.classList.remove('selected');
+                }
+            }
+        });
     });
 
     function selecionarTodos() {
-        checkboxes.forEach(cb => cb.checked = true);
+        checkboxes.forEach(cb => {
+            cb.checked = true;
+            const row = cb.closest('tr');
+            if (row) row.classList.add('selected');
+        });
         if (selectAll) selectAll.checked = true;
         updateButtonState();
     }
 
     function limparSelecao() {
-        checkboxes.forEach(cb => cb.checked = false);
+        checkboxes.forEach(cb => {
+            cb.checked = false;
+            const row = cb.closest('tr');
+            if (row) row.classList.remove('selected');
+        });
         if (selectAll) selectAll.checked = false;
         updateButtonState();
     }
