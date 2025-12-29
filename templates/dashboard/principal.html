@@ -395,6 +395,13 @@
 {% block extra_js %}
 <script>
 function dashboardApp() {
+    // DEBUG: Verificar dados recebidos do backend
+    console.log('Dashboard App Inicializando...');
+    console.log('KPIs:', {{ kpis_json|safe }});
+    console.log('Unidades:', {{ dados_unidades_json|safe }});
+    console.log('Setores:', {{ dados_setores_json|safe }});
+    console.log('Dimensões:', {{ dados_dimensoes_json|safe }});
+
     return {
         filtroTipo: 'geral',
         filtroUnidade: '',
@@ -403,16 +410,12 @@ function dashboardApp() {
         chartMain: null,
         chartDistribuicao: null,
 
-        // Dados do backend
+        // Dados do backend (corretamente serializados como JSON)
         dados: {
-            kpis: {{ kpis|safe }},
-            unidades: {{ dados_unidades.unidades|safe }},
-            setores: {{ dados_setores.setores|safe }},
-            {% if dados_dimensoes.pode_visualizar %}
-            dimensoes: {{ dados_dimensoes.dimensoes|safe }}
-            {% else %}
-            dimensoes: []
-            {% endif %}
+            kpis: {{ kpis_json|safe }},
+            unidades: ({{ dados_unidades_json|safe }}).unidades || [],
+            setores: ({{ dados_setores_json|safe }}).setores || [],
+            dimensoes: ({{ dados_dimensoes_json|safe }}).dimensoes || []
         },
 
         init() {
