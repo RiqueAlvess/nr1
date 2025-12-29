@@ -1,179 +1,575 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Dashboard Principal - Plataforma NR-1{% endblock %}
+{% block title %}Dashboard - Plataforma NR-1{% endblock %}
 
-{% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="bg-base-100 rounded-lg shadow-lg p-6">
-        <h1 class="text-3xl font-bold">
-            <i class="fas fa-chart-line text-primary mr-2"></i>
-            Dashboard de Riscos Psicossociais
-        </h1>
-        <p class="text-base-content/70 mt-2">
-            {{ empresa.nome }}
-        </p>
+{% block breadcrumb %}
+<div class="text-sm breadcrumbs">
+    <ul>
+        <li><a href="{% url 'account:dashboard' %}">Início</a></li>
+        <li>Dashboard</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-neutral">Dashboard de Riscos Psicossociais</h1>
+        <p class="text-sm text-accent mt-1">{{ empresa.nome }}</p>
     </div>
-    
-    {% if not kpis.pode_visualizar %}
-    <!-- Bloqueio por K-Anonymity -->
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle"></i>
-        <div>
-            <h3 class="font-bold">Dados Insuficientes</h3>
-            <div class="text-sm">{{ kpis.mensagem }}</div>
+    <div class="mt-4 lg:mt-0">
+        <div class="badge badge-lg badge-outline">
+            <i class="fas fa-user-tag mr-2"></i>
+            {{ perfil.get_grupo_principal }}
         </div>
     </div>
-    {% else %}
-    
-    <!-- KPIs Principais -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <!-- Taxa de Adesão -->
-        <div class="stat bg-base-100 shadow-lg rounded-lg">
+</div>
+{% endblock %}
+
+{% block content %}
+<div x-data="dashboardApp()" x-init="init()" class="space-y-6">
+
+    {% if not kpis.pode_visualizar %}
+    <!-- Bloqueio por K-Anonymity -->
+    <div class="alert alert-warning shadow-custom">
+        <div>
+            <i class="fas fa-exclamation-triangle text-xl"></i>
+        </div>
+        <div>
+            <h3 class="font-bold">Dados Insuficientes para Garantir Anonimato</h3>
+            <p class="text-sm">{{ kpis.mensagem }}</p>
+        </div>
+    </div>
+
+    <!-- KPIs Básicos (mesmo sem dados suficientes) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="stat bg-base-100 shadow-custom rounded-lg">
             <div class="stat-figure text-primary">
+                <i class="fas fa-users text-3xl"></i>
+            </div>
+            <div class="stat-title">Colaboradores Convidados</div>
+            <div class="stat-value text-primary">{{ kpis.total_colaboradores }}</div>
+            <div class="stat-desc">Total de convites enviados</div>
+        </div>
+
+        <div class="stat bg-base-100 shadow-custom rounded-lg">
+            <div class="stat-figure text-accent">
                 <i class="fas fa-percentage text-3xl"></i>
             </div>
             <div class="stat-title">Taxa de Adesão</div>
-            <div class="stat-value text-primary">{{ kpis.taxa_adesao }}%</div>
-            <div class="stat-desc">{{ kpis.respostas_concluidas }} de {{ kpis.total_colaboradores }} responderam</div>
-        </div>
-        
-        <!-- IGRP -->
-        <div class="stat bg-base-100 shadow-lg rounded-lg">
-            <div class="stat-figure text-secondary">
-                <i class="fas fa-heartbeat text-3xl"></i>
-            </div>
-            <div class="stat-title">IGRP</div>
-            <div class="stat-value text-secondary">{{ kpis.igrp }}</div>
-            <div class="stat-desc">Índice Geral de Risco Psicossocial</div>
-        </div>
-        
-        <!-- Score Médio -->
-        <div class="stat bg-base-100 shadow-lg rounded-lg">
-            <div class="stat-figure text-accent">
-                <i class="fas fa-chart-bar text-3xl"></i>
-            </div>
-            <div class="stat-title">Score Médio Global</div>
-            <div class="stat-value text-accent">{{ kpis.score_medio_global }}</div>
-            <div class="stat-desc">de 140 pontos possíveis</div>
-        </div>
-        
-        <!-- Percentual Alto Risco -->
-        <div class="stat bg-base-100 shadow-lg rounded-lg">
-            <div class="stat-figure text-error">
-                <i class="fas fa-exclamation-triangle text-3xl"></i>
-            </div>
-            <div class="stat-title">Em Risco Crítico</div>
-            <div class="stat-value text-error">{{ kpis.percentual_alto_risco }}%</div>
-            <div class="stat-desc">Requerem atenção imediata</div>
+            <div class="stat-value text-accent">{{ kpis.taxa_adesao }}%</div>
+            <div class="stat-desc">{{ kpis.respostas_concluidas }} respostas recebidas</div>
         </div>
     </div>
-    
-    <!-- Distribuição de Risco -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="card bg-base-100 shadow-xl">
-            <div class="card-body">
-                <h2 class="card-title">
-                    <i class="fas fa-chart-pie mr-2"></i>
-                    Distribuição por Nível de Risco
-                </h2>
-                <div class="space-y-3 mt-4">
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="badge badge-error">Crítico</span>
-                            <span class="font-bold">{{ kpis.distribuicao_risco.critico }}</span>
-                        </div>
-                        <progress class="progress progress-error w-full" value="{{ kpis.distribuicao_risco.critico }}" max="{{ kpis.respostas_concluidas }}"></progress>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="badge badge-warning">Atenção</span>
-                            <span class="font-bold">{{ kpis.distribuicao_risco.atencao }}</span>
-                        </div>
-                        <progress class="progress progress-warning w-full" value="{{ kpis.distribuicao_risco.atencao }}" max="{{ kpis.respostas_concluidas }}"></progress>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between mb-1">
-                            <span class="badge badge-success">Satisfatório</span>
-                            <span class="font-bold">{{ kpis.distribuicao_risco.satisfatorio }}</span>
-                        </div>
-                        <progress class="progress progress-success w-full" value="{{ kpis.distribuicao_risco.satisfatorio }}" max="{{ kpis.respostas_concluidas }}"></progress>
-                    </div>
+
+    {% else %}
+
+    <!-- === RESUMO: KPIs Principais === -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Taxa de Adesão -->
+        <div class="stat bg-base-100 shadow-custom rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-percentage text-2xl"></i>
+            </div>
+            <div class="stat-title text-neutral">Taxa de Adesão</div>
+            <div class="stat-value text-primary">{{ kpis.taxa_adesao }}%</div>
+            <div class="stat-desc">{{ kpis.respostas_concluidas }}/{{ kpis.total_colaboradores }} respostas</div>
+        </div>
+
+        <!-- IGRP -->
+        <div class="stat bg-base-100 shadow-custom rounded-lg">
+            <div class="stat-figure text-secondary">
+                <i class="fas fa-heartbeat text-2xl"></i>
+            </div>
+            <div class="stat-title text-neutral">IGRP</div>
+            <div class="stat-value text-secondary">{{ kpis.igrp }}</div>
+            <div class="stat-desc">Índice Geral de Risco</div>
+        </div>
+
+        <!-- Score Médio -->
+        <div class="stat bg-base-100 shadow-custom rounded-lg">
+            <div class="stat-figure text-accent">
+                <i class="fas fa-chart-bar text-2xl"></i>
+            </div>
+            <div class="stat-title text-neutral">Score Médio</div>
+            <div class="stat-value text-accent">{{ kpis.score_medio_global }}</div>
+            <div class="stat-desc">de 140 pontos</div>
+        </div>
+
+        <!-- Alto Risco -->
+        <div class="stat bg-base-100 shadow-custom rounded-lg">
+            <div class="stat-figure text-error">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <div class="stat-title text-neutral">Risco Crítico</div>
+            <div class="stat-value text-error">{{ kpis.percentual_alto_risco }}%</div>
+            <div class="stat-desc">Requer atenção</div>
+        </div>
+    </div>
+
+    <!-- === FILTROS === -->
+    <div class="card bg-base-100 shadow-custom">
+        <div class="card-body">
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-filter mr-2 text-primary"></i>
+                Filtros de Visualização
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <!-- Filtro de Visualização -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Visualizar por</span>
+                    </label>
+                    <select x-model="filtroTipo" @change="atualizarGraficos()" class="select select-bordered w-full">
+                        <option value="geral">Visão Geral</option>
+                        <option value="unidades">Por Unidade</option>
+                        <option value="setores">Por Setor</option>
+                        <option value="dimensoes">Por Dimensão</option>
+                    </select>
+                </div>
+
+                <!-- Filtro de Unidade (condicional) -->
+                <div class="form-control" x-show="filtroTipo === 'setores'">
+                    <label class="label">
+                        <span class="label-text font-semibold">Unidade</span>
+                    </label>
+                    <select x-model="filtroUnidade" @change="atualizarGraficos()" class="select select-bordered w-full">
+                        <option value="">Todas</option>
+                        {% for unidade in dados_unidades.unidades %}
+                        <option value="{{ unidade.unidade_id }}">{{ unidade.unidade_nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Tipo de Gráfico -->
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Tipo de Gráfico</span>
+                    </label>
+                    <select x-model="tipoGrafico" @change="atualizarGraficos()" class="select select-bordered w-full">
+                        <option value="bar">Barras</option>
+                        <option value="line">Linhas</option>
+                        <option value="doughnut">Rosca</option>
+                    </select>
                 </div>
             </div>
         </div>
-        
-        <!-- Matriz NR-1 -->
-        <div class="card bg-base-100 shadow-xl">
+    </div>
+
+    <!-- === GRÁFICO PRINCIPAL === -->
+    <div class="card bg-base-100 shadow-custom">
+        <div class="card-body">
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-chart-line mr-2 text-primary"></i>
+                <span x-text="tituloGrafico"></span>
+            </h2>
+            <div class="mt-4">
+                <canvas id="graficoMain" class="w-full" style="max-height: 400px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- === GRÁFICO SECUNDÁRIO: Distribuição de Risco === -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card bg-base-100 shadow-custom">
             <div class="card-body">
-                <h2 class="card-title">
-                    <i class="fas fa-table mr-2"></i>
+                <h2 class="card-title text-neutral">
+                    <i class="fas fa-chart-pie mr-2 text-accent"></i>
+                    Distribuição de Risco
+                </h2>
+                <div class="mt-4">
+                    <canvas id="graficoDistribuicao"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matriz NR-1 -->
+        <div class="card bg-base-100 shadow-custom">
+            <div class="card-body">
+                <h2 class="card-title text-neutral">
+                    <i class="fas fa-table mr-2 text-secondary"></i>
                     Matriz de Risco NR-1
                 </h2>
-                <div class="stats stats-vertical shadow mt-4">
-                    <div class="stat">
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="stat bg-base-200 rounded-lg">
                         <div class="stat-title">Classificação</div>
                         <div class="stat-value text-sm">{{ kpis.matriz_nr1.classificacao }}</div>
                     </div>
-                    <div class="stat">
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Nível de Risco</div>
+                        <div class="stat-value text-lg">{{ kpis.matriz_nr1.nivel_risco }}</div>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg">
                         <div class="stat-title">Probabilidade</div>
-                        <div class="stat-value text-2xl">{{ kpis.matriz_nr1.probabilidade }}%</div>
-                        <div class="stat-desc">Nível {{ kpis.matriz_nr1.probabilidade_nivel }}</div>
+                        <div class="stat-value text-lg">{{ kpis.matriz_nr1.probabilidade }}%</div>
+                        <div class="stat-desc">{{ kpis.matriz_nr1.probabilidade_nivel }}</div>
                     </div>
-                    <div class="stat">
+                    <div class="stat bg-base-200 rounded-lg">
                         <div class="stat-title">Severidade</div>
-                        <div class="stat-value text-2xl">{{ kpis.matriz_nr1.severidade }}</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-title">Nível de Risco (NR)</div>
-                        <div class="stat-value text-2xl">{{ kpis.matriz_nr1.nivel_risco }}</div>
+                        <div class="stat-value text-lg">{{ kpis.matriz_nr1.severidade }}</div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Links para análises detalhadas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a href="{% url 'dashboard:unidades' %}" class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
-            <div class="card-body">
-                <h3 class="card-title text-primary">
-                    <i class="fas fa-building mr-2"></i>
-                    Análise por Unidades
-                </h3>
-                <p class="text-sm text-base-content/70">
-                    Visualize dados agregados por unidade organizacional
-                </p>
+
+    <!-- === TABELA DETALHADA === -->
+    <div class="card bg-base-100 shadow-custom">
+        <div class="card-body">
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-table mr-2 text-accent"></i>
+                Dados Detalhados
+            </h2>
+
+            <!-- Tabela de Unidades -->
+            <div x-show="filtroTipo === 'unidades'" class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Unidade</th>
+                            <th>Respostas</th>
+                            <th>Score Médio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for unidade in dados_unidades.unidades %}
+                        <tr>
+                            <td>{{ unidade.unidade_nome }}</td>
+                            <td>{{ unidade.total_respostas }}</td>
+                            <td>
+                                <span class="badge badge-outline">{{ unidade.score_medio }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-base-content/50">
+                                Nenhum dado disponível
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </a>
-        
-        <a href="{% url 'dashboard:setores' %}" class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
-            <div class="card-body">
-                <h3 class="card-title text-secondary">
-                    <i class="fas fa-sitemap mr-2"></i>
-                    Análise por Setores
-                </h3>
-                <p class="text-sm text-base-content/70">
-                    Identifique setores com maior criticidade
-                </p>
+
+            <!-- Tabela de Setores -->
+            <div x-show="filtroTipo === 'setores'" class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Setor</th>
+                            <th>Unidade</th>
+                            <th>Respostas</th>
+                            <th>Score Médio</th>
+                            <th>Nível de Risco</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for setor in dados_setores.setores %}
+                        <tr>
+                            <td>{{ setor.setor_nome }}</td>
+                            <td>{{ setor.unidade_nome }}</td>
+                            <td>{{ setor.total_respostas }}</td>
+                            <td><span class="badge badge-outline">{{ setor.score_medio }}</span></td>
+                            <td>
+                                <span class="badge {% if setor.nivel_risco_nr1 == 'CRÍTICO' %}badge-error{% elif setor.nivel_risco_nr1 == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %}">
+                                    {{ setor.nivel_risco_nr1 }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-base-content/50">
+                                Nenhum dado disponível
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-        </a>
-        
-        <a href="{% url 'dashboard:dimensoes' %}" class="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
-            <div class="card-body">
-                <h3 class="card-title text-accent">
-                    <i class="fas fa-layer-group mr-2"></i>
-                    Dimensões Psicossociais
-                </h3>
-                <p class="text-sm text-base-content/70">
-                    Analise fatores de risco específicos
-                </p>
+
+            <!-- Tabela de Dimensões -->
+            <div x-show="filtroTipo === 'dimensoes'" class="overflow-x-auto mt-4">
+                {% if dados_dimensoes.pode_visualizar %}
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr>
+                            <th>Dimensão</th>
+                            <th>Score Médio</th>
+                            <th>Polaridade</th>
+                            <th>Nível de Risco</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dimensao in dados_dimensoes.dimensoes %}
+                        <tr>
+                            <td class="font-semibold">{{ dimensao.dimensao }}</td>
+                            <td><span class="badge badge-outline">{{ dimensao.score_medio }}</span></td>
+                            <td>
+                                <span class="badge badge-ghost">
+                                    {{ dimensao.polaridade }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if dimensao.nivel_risco == 'CRÍTICO' %}badge-error{% elif dimensao.nivel_risco == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %}">
+                                    {{ dimensao.nivel_risco }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>{{ dados_dimensoes.mensagem }}</span>
+                </div>
+                {% endif %}
             </div>
-        </a>
+
+            <!-- Visão Geral -->
+            <div x-show="filtroTipo === 'geral'" class="mt-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Crítico</div>
+                        <div class="stat-value text-error">{{ kpis.distribuicao_risco.critico }}</div>
+                        <progress class="progress progress-error" value="{{ kpis.distribuicao_risco.critico }}" max="{{ kpis.respostas_concluidas }}"></progress>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Atenção</div>
+                        <div class="stat-value text-warning">{{ kpis.distribuicao_risco.atencao }}</div>
+                        <progress class="progress progress-warning" value="{{ kpis.distribuicao_risco.atencao }}" max="{{ kpis.respostas_concluidas }}"></progress>
+                    </div>
+                    <div class="stat bg-base-200 rounded-lg">
+                        <div class="stat-title">Satisfatório</div>
+                        <div class="stat-value text-success">{{ kpis.distribuicao_risco.satisfatorio }}</div>
+                        <progress class="progress progress-success" value="{{ kpis.distribuicao_risco.satisfatorio }}" max="{{ kpis.respostas_concluidas }}"></progress>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
+
+    <!-- === AÇÃO === -->
+    {% if perfil.is_rh %}
+    <div class="card bg-primary text-primary-content shadow-custom">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-lightbulb mr-2"></i>
+                Próximas Ações
+            </h2>
+            <p>Identifique áreas críticas e planeje intervenções específicas para reduzir riscos psicossociais.</p>
+            <div class="card-actions justify-end mt-4">
+                <a href="{% url 'quiz:gerenciar_links' %}" class="btn btn-ghost">
+                    <i class="fas fa-envelope mr-2"></i>
+                    Enviar Novas Pesquisas
+                </a>
+                <a href="{% url 'importacao:importacao' %}" class="btn bg-base-100 text-primary">
+                    <i class="fas fa-file-import mr-2"></i>
+                    Importar Colaboradores
+                </a>
+            </div>
+        </div>
+    </div>
     {% endif %}
+
+    {% endif %}
+
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function dashboardApp() {
+    return {
+        filtroTipo: 'geral',
+        filtroUnidade: '',
+        tipoGrafico: 'bar',
+        tituloGrafico: 'Visão Geral',
+        chartMain: null,
+        chartDistribuicao: null,
+
+        // Dados do backend (convertidos para JSON)
+        dados: {
+            kpis: {{ kpis|safe }},
+            unidades: {{ dados_unidades.unidades|safe }},
+            setores: {{ dados_setores.setores|safe }},
+            {% if dados_dimensoes.pode_visualizar %}
+            dimensoes: {{ dados_dimensoes.dimensoes|safe }}
+            {% else %}
+            dimensoes: []
+            {% endif %}
+        },
+
+        init() {
+            this.criarGraficoDistribuicao();
+            this.atualizarGraficos();
+        },
+
+        atualizarGraficos() {
+            // Atualizar título
+            const titulos = {
+                'geral': 'Visão Geral',
+                'unidades': 'Análise por Unidade',
+                'setores': 'Análise por Setor',
+                'dimensoes': 'Análise por Dimensão'
+            };
+            this.tituloGrafico = titulos[this.filtroTipo];
+
+            // Destruir gráfico anterior
+            if (this.chartMain) {
+                this.chartMain.destroy();
+            }
+
+            // Criar novo gráfico baseado no filtro
+            this.criarGraficoPrincipal();
+        },
+
+        criarGraficoPrincipal() {
+            const ctx = document.getElementById('graficoMain');
+            let labels = [];
+            let data = [];
+            let backgroundColor = [];
+
+            // Cores do tema (máximo 3 cores)
+            const cores = {
+                primary: '#1EEB88',
+                secondary: '#0F3D52',
+                accent: '#6EDBC1',
+                error: '#FF5A5F',
+                warning: '#FFC107',
+                success: '#1EEB88'
+            };
+
+            if (this.filtroTipo === 'unidades') {
+                labels = this.dados.unidades.map(u => u.unidade_nome);
+                data = this.dados.unidades.map(u => u.score_medio);
+                backgroundColor = Array(data.length).fill(cores.primary);
+            } else if (this.filtroTipo === 'setores') {
+                let setores = this.dados.setores;
+                if (this.filtroUnidade) {
+                    setores = setores.filter(s => s.unidade_id === this.filtroUnidade);
+                }
+                labels = setores.map(s => s.setor_nome);
+                data = setores.map(s => s.score_medio);
+                backgroundColor = setores.map(s => {
+                    if (s.nivel_risco_nr1 === 'CRÍTICO') return cores.error;
+                    if (s.nivel_risco_nr1 === 'ATENÇÃO') return cores.warning;
+                    return cores.success;
+                });
+            } else if (this.filtroTipo === 'dimensoes') {
+                labels = this.dados.dimensoes.map(d => d.dimensao);
+                data = this.dados.dimensoes.map(d => d.score_medio);
+                backgroundColor = this.dados.dimensoes.map(d => {
+                    if (d.nivel_risco === 'CRÍTICO') return cores.error;
+                    if (d.nivel_risco === 'ATENÇÃO') return cores.warning;
+                    return cores.success;
+                });
+            } else {
+                // Geral - Distribuição de risco
+                labels = ['Crítico', 'Atenção', 'Satisfatório'];
+                data = [
+                    this.dados.kpis.distribuicao_risco.critico,
+                    this.dados.kpis.distribuicao_risco.atencao,
+                    this.dados.kpis.distribuicao_risco.satisfatorio
+                ];
+                backgroundColor = [cores.error, cores.warning, cores.success];
+            }
+
+            this.chartMain = new Chart(ctx, {
+                type: this.tipoGrafico,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score',
+                        data: data,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 0,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: this.filtroTipo === 'geral' && this.tipoGrafico === 'doughnut',
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 61, 82, 0.9)',
+                            padding: 12,
+                            borderRadius: 8,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 }
+                        }
+                    },
+                    scales: this.tipoGrafico !== 'doughnut' ? {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(228, 231, 235, 0.5)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 12 }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: { size: 12 }
+                            }
+                        }
+                    } : {}
+                }
+            });
+        },
+
+        criarGraficoDistribuicao() {
+            const ctx = document.getElementById('graficoDistribuicao');
+            const cores = {
+                error: '#FF5A5F',
+                warning: '#FFC107',
+                success: '#1EEB88'
+            };
+
+            this.chartDistribuicao = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Crítico', 'Atenção', 'Satisfatório'],
+                    datasets: [{
+                        data: [
+                            this.dados.kpis.distribuicao_risco.critico,
+                            this.dados.kpis.distribuicao_risco.atencao,
+                            this.dados.kpis.distribuicao_risco.satisfatorio
+                        ],
+                        backgroundColor: [cores.error, cores.warning, cores.success],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 61, 82, 0.9)',
+                            padding: 12,
+                            borderRadius: 8
+                        }
+                    }
+                }
+            });
+        }
+    }
+}
+</script>
 {% endblock %}

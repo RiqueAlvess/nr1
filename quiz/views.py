@@ -12,26 +12,44 @@ from importacao.models import Colaborador
 @login_required
 @require_http_methods(["GET"])
 def gerenciar_links_view(request):
-    """View para gerenciar envio de magic links"""
+    """View para gerenciar envio de magic links - Apenas RH"""
+
+    # Verificar permissão
+    if not hasattr(request.user, 'perfil_acesso') or not request.user.perfil_acesso.pode_visualizar_emails():
+        messages.error(
+            request,
+            'Acesso restrito ao RH. Apenas usuários do grupo RH podem gerenciar pesquisas.'
+        )
+        return redirect('account:dashboard')
+
     colaboradores = Colaborador.objects.filter(ativo=True).select_related(
         'cargo__setor__unidade__empresa'
     ).prefetch_related('magic_link')
-    
+
     context = {
         'colaboradores': colaboradores,
         'total': colaboradores.count(),
         'com_link': sum(1 for c in colaboradores if hasattr(c, 'magic_link')),
     }
-    
+
     return render(request, 'quiz/gerenciar_links.html', context)
 
 
 @login_required
 @require_http_methods(["POST"])
 def enviar_links_view(request):
-    """View para enviar magic links em massa"""
+    """View para enviar magic links em massa - Apenas RH"""
+
+    # Verificar permissão
+    if not hasattr(request.user, 'perfil_acesso') or not request.user.perfil_acesso.pode_visualizar_emails():
+        messages.error(
+            request,
+            'Acesso restrito ao RH. Apenas usuários do grupo RH podem enviar pesquisas.'
+        )
+        return redirect('account:dashboard')
+
     colaboradores_ids = request.POST.getlist('colaboradores')
-    
+
     if not colaboradores_ids:
         messages.error(request, 'Selecione pelo menos um colaborador.')
         return redirect('quiz:gerenciar_links')

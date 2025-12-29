@@ -6,23 +6,23 @@ from importacao.services.import_service import ImportService
 from importacao.models import ProcessoImportacao
 
 
-def user_tem_acesso_empresa(user):
-    """Verifica se o usuário tem acesso nível EMPRESA"""
+def user_tem_acesso_importacao(user):
+    """Verifica se o usuário pode acessar importação (apenas RH)"""
     if not hasattr(user, 'perfil_acesso'):
         return False
-    return user.perfil_acesso.nivel_acesso == 'EMPRESA'
+    return user.perfil_acesso.pode_acessar_importacao()
 
 
 @login_required
 @require_http_methods(["GET"])
 def importacao_view(request):
-    """View principal de importação - Apenas usuários com acesso EMPRESA"""
-    
+    """View principal de importação - Apenas usuários do grupo RH"""
+
     # Verificar permissão
-    if not user_tem_acesso_empresa(request.user):
+    if not user_tem_acesso_importacao(request.user):
         messages.error(
-            request, 
-            'Apenas usuários com acesso total (EMPRESA) podem importar dados.'
+            request,
+            'Acesso restrito ao RH. Apenas usuários do grupo RH podem importar dados.'
         )
         return redirect('account:dashboard')
     
@@ -40,13 +40,13 @@ def importacao_view(request):
 @login_required
 @require_http_methods(["POST"])
 def upload_csv_view(request):
-    """View para upload de CSV - Apenas usuários com acesso EMPRESA"""
-    
+    """View para upload de CSV - Apenas usuários do grupo RH"""
+
     # Verificar permissão
-    if not user_tem_acesso_empresa(request.user):
+    if not user_tem_acesso_importacao(request.user):
         messages.error(
-            request, 
-            'Apenas usuários com acesso total (EMPRESA) podem importar dados.'
+            request,
+            'Acesso restrito ao RH. Apenas usuários do grupo RH podem importar dados.'
         )
         return redirect('account:dashboard')
     
@@ -93,11 +93,11 @@ def upload_csv_view(request):
 
 @login_required
 def processo_detalhe_view(request, processo_id):
-    """View de detalhes do processo de importação"""
-    
+    """View de detalhes do processo de importação - Apenas RH"""
+
     # Verificar permissão
-    if not user_tem_acesso_empresa(request.user):
-        messages.error(request, 'Acesso negado.')
+    if not user_tem_acesso_importacao(request.user):
+        messages.error(request, 'Acesso restrito ao RH.')
         return redirect('account:dashboard')
     
     processo = ProcessoImportacao.objects.get(id=processo_id, usuario=request.user)
