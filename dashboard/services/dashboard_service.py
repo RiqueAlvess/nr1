@@ -49,13 +49,30 @@ class DashboardService:
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         )
         
-        if respostas.count() < settings.MIN_GROUP_SIZE:
+        # Se não houver respostas, retornar dados zerados mas ainda visualizáveis
+        if respostas.count() == 0:
             return {
                 'total_colaboradores': total_colaboradores,
-                'respostas_concluidas': respostas_concluidas,
-                'taxa_adesao': round(taxa_adesao, 2),
-                'pode_visualizar': False,
-                'mensagem': f'Dados insuficientes para garantir anonimato. Mínimo: {settings.MIN_GROUP_SIZE} respostas.'
+                'respostas_concluidas': 0,
+                'taxa_adesao': 0,
+                'pode_visualizar': True,
+                'score_medio_global': 0,
+                'igrp': 0,
+                'distribuicao_risco': {
+                    'critico': 0,
+                    'atencao': 0,
+                    'satisfatorio': 0,
+                },
+                'percentual_alto_risco': 0,
+                'matriz_nr1': {
+                    'probabilidade': 0,
+                    'probabilidade_nivel': 0,
+                    'severidade': 0,
+                    'nivel_risco': 0,
+                    'classificacao': 'SEM DADOS',
+                    'total_respondentes': 0,
+                    'respondentes_criticos': 0
+                }
             }
         
         # Score médio global
@@ -112,13 +129,10 @@ class DashboardService:
             )
             
             count = respostas.count()
-            
-            # Verificar k-anonymity
-            if not self.anonymity_checker.check_group_size(count):
-                continue
-            
-            score_medio = respostas.aggregate(Avg('score_global'))['score_global__avg']
-            
+
+            # Incluir todas as unidades, mesmo sem respostas
+            score_medio = respostas.aggregate(Avg('score_global'))['score_global__avg'] if count > 0 else None
+
             dados_unidades.append({
                 'unidade_id': str(unidade.id),
                 'unidade_nome': unidade.nome,
@@ -160,16 +174,13 @@ class DashboardService:
             )
             
             count = respostas.count()
-            
-            # Verificar k-anonymity
-            if not self.anonymity_checker.check_group_size(count):
-                continue
-            
-            score_medio = respostas.aggregate(Avg('score_global'))['score_global__avg']
-            
+
+            # Incluir todos os setores, mesmo sem respostas
+            score_medio = respostas.aggregate(Avg('score_global'))['score_global__avg'] if count > 0 else None
+
             # Calcular matriz de risco para o setor
             matriz_risco = self.calc_service.calcular_matriz_risco_nr1(respostas)
-            
+
             dados_setores.append({
                 'setor_id': str(setor.id),
                 'setor_nome': setor.nome,
@@ -199,10 +210,11 @@ class DashboardService:
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         )
         
-        if respostas.count() < settings.MIN_GROUP_SIZE:
+        if respostas.count() == 0:
             return {
-                'pode_visualizar': False,
-                'mensagem': 'Dados insuficientes'
+                'pode_visualizar': True,
+                'dimensoes': [],
+                'total_respostas': 0
             }
         
         # Agregar scores por dimensão
@@ -240,5 +252,6 @@ class DashboardService:
         
         return {
             'pode_visualizar': True,
-            'dimensoes': dimensoes_lista
+            'dimensoes': dimensoes_lista,
+            'total_respostas': respostas.count()
         }
