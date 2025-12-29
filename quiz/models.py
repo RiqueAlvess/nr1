@@ -111,22 +111,40 @@ class MagicLink(TimeStampedModel):
     
     def marcar_acessado(self):
         """Marca o link como acessado"""
+        now = timezone.now()
+        update_fields = {'status': 'ACCESSED', 'updated_at': now}
         if not self.first_accessed_at:
-            self.first_accessed_at = timezone.now()
+            update_fields['first_accessed_at'] = now
+            self.first_accessed_at = now
+        # Usar update() diretamente para garantir persistência
+        MagicLink.objects.filter(id=self.id).update(**update_fields)
+        # Atualizar também a instância em memória
         self.status = 'ACCESSED'
-        self.save()
     
     def marcar_iniciado(self):
         """Marca questionário como iniciado"""
         if not self.started_at:
-            self.started_at = timezone.now()
-        self.save()
+            now = timezone.now()
+            # Usar update() diretamente para garantir persistência
+            MagicLink.objects.filter(id=self.id).update(
+                started_at=now,
+                updated_at=now
+            )
+            # Atualizar também a instância em memória
+            self.started_at = now
     
     def marcar_concluido(self):
         """Marca questionário como concluído"""
-        self.completed_at = timezone.now()
+        now = timezone.now()
+        # Usar update() diretamente para garantir persistência
+        MagicLink.objects.filter(id=self.id).update(
+            completed_at=now,
+            status='COMPLETED',
+            updated_at=now
+        )
+        # Atualizar também a instância em memória
+        self.completed_at = now
         self.status = 'COMPLETED'
-        self.save()
 
 
 class Resposta(TimeStampedModel):
