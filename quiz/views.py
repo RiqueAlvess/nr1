@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.db import transaction, IntegrityError
 from quiz.models import Pergunta, Resposta, MagicLink
 from quiz.services.magic_link_service import MagicLinkService
 from core.services.audit_service import AuditService
@@ -111,20 +112,24 @@ def responder_view(request, token):
 @require_http_methods(["POST"])
 def submeter_respostas_view(request, token):
     """View para submeter respostas do questionário"""
-    
+
     # Validar token
     magic_link = MagicLinkService.validar_token(token)
-    
+
     if not magic_link:
         return render(request, 'quiz/link_invalido.html', status=403)
-    
+
     if magic_link.status == 'COMPLETED':
         return render(request, 'quiz/ja_respondido.html')
-    
+
+    # Verificar se já existe uma resposta para este magic_link (proteção contra dupla submissão)
+    if Resposta.objects.filter(magic_link=magic_link).exists():
+        return render(request, 'quiz/ja_respondido.html')
+
     # Marcar como iniciado (se ainda não foi)
     if not magic_link.started_at:
         magic_link.marcar_iniciado()
-        
+
         AuditService.log(
             action='QUIZ_STARTED',
             description=f'Questionário iniciado: {str(magic_link.id)[:8]}',
@@ -132,39 +137,48 @@ def submeter_respostas_view(request, token):
             ip_address=AuditService.get_client_ip(request),
             user_agent=AuditService.get_user_agent(request)
         )
-    
+
     # Coletar respostas
     perguntas = Pergunta.objects.filter(ativa=True)
     respostas_dict = {}
-    
+
     for pergunta in perguntas:
         valor = request.POST.get(f'pergunta_{pergunta.numero}')
         if valor:
             respostas_dict[str(pergunta.numero)] = int(valor)
-    
+
     # Validar que todas as perguntas foram respondidas
     if len(respostas_dict) != perguntas.count():
         messages.error(request, 'Por favor, responda todas as perguntas.')
         return redirect('quiz:responder', token=token)
-    
+
     # Calcular tempo total
     tempo_total = None
     if magic_link.started_at:
         tempo_total = (timezone.now() - magic_link.started_at).total_seconds()
-    
-    # Criar resposta
-    resposta = Resposta.objects.create(
-        magic_link=magic_link,
-        respostas=respostas_dict,
-        tempo_total_segundos=int(tempo_total) if tempo_total else None
-    )
-    
-    # Calcular scores
-    resposta.calcular_scores()
-    
-    # Marcar como concluído
-    magic_link.marcar_concluido()
-    
+
+    # Criar resposta usando transação atômica para evitar condições de corrida
+    try:
+        with transaction.atomic():
+            # Verificar novamente dentro da transação
+            if Resposta.objects.filter(magic_link=magic_link).exists():
+                return render(request, 'quiz/ja_respondido.html')
+
+            resposta = Resposta.objects.create(
+                magic_link=magic_link,
+                respostas=respostas_dict,
+                tempo_total_segundos=int(tempo_total) if tempo_total else None
+            )
+
+            # Calcular scores
+            resposta.calcular_scores()
+
+            # Marcar como concluído
+            magic_link.marcar_concluido()
+    except IntegrityError:
+        # Outra requisição já criou a resposta (duplo clique ou condição de corrida)
+        return render(request, 'quiz/ja_respondido.html')
+
     # Auditoria
     AuditService.log(
         action='QUIZ_COMPLETED',
@@ -178,5 +192,5 @@ def submeter_respostas_view(request, token):
         ip_address=AuditService.get_client_ip(request),
         user_agent=AuditService.get_user_agent(request)
     )
-    
+
     return render(request, 'quiz/obrigado.html')
