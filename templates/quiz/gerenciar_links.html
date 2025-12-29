@@ -1,139 +1,177 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Gerenciar Magic Links - Plataforma NR-1{% endblock %}
+{% block title %}Gerenciar Pesquisas - Plataforma NR-1{% endblock %}
+
+{% block breadcrumb %}
+<div class="text-sm breadcrumbs mb-4">
+    <ul>
+        <li><a href="{% url 'account:dashboard' %}" class="text-accent hover:text-primary"><i class="fas fa-home mr-1"></i>Início</a></li>
+        <li class="text-neutral font-medium">Gerenciar Pesquisas</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-neutral">
+            <i class="fas fa-paper-plane text-primary mr-2"></i>
+            Gerenciar Magic Links
+        </h1>
+        <p class="text-sm text-neutral/60 mt-1">Envie questionários anônimos para colaboradores</p>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="bg-base-100 rounded-lg shadow-lg p-6">
-        <h1 class="text-3xl font-bold">
-            <i class="fas fa-envelope text-primary mr-2"></i>
-            Gerenciar Magic Links
-        </h1>
-        <p class="text-base-content/70 mt-2">
-            Envie questionários anônimos para colaboradores
-        </p>
-    </div>
-    
+
     <!-- Estatísticas -->
-    <div class="stats stats-vertical lg:stats-horizontal shadow w-full">
+    <div class="stats stats-vertical sm:stats-horizontal shadow-soft bg-base-100 w-full">
         <div class="stat">
-            <div class="stat-figure text-primary">
+            <div class="stat-figure text-primary hidden sm:block">
                 <i class="fas fa-users text-3xl"></i>
             </div>
             <div class="stat-title">Total de Colaboradores</div>
             <div class="stat-value text-primary">{{ total }}</div>
+            <div class="stat-desc">Cadastrados no sistema</div>
         </div>
-        
+
         <div class="stat">
-            <div class="stat-figure text-secondary">
+            <div class="stat-figure text-secondary hidden sm:block">
                 <i class="fas fa-link text-3xl"></i>
             </div>
             <div class="stat-title">Com Magic Link</div>
             <div class="stat-value text-secondary">{{ com_link }}</div>
+            <div class="stat-desc">Links enviados</div>
         </div>
-        
+
         <div class="stat">
-            <div class="stat-figure text-accent">
+            <div class="stat-figure text-accent hidden sm:block">
                 <i class="fas fa-clock text-3xl"></i>
             </div>
             <div class="stat-title">Pendentes</div>
-            <div class="stat-value text-accent">{{ total|add:"-com_link" }}</div>
+            <div class="stat-value text-accent">{{ total|add:"-"|add:com_link }}</div>
+            <div class="stat-desc">Aguardando envio</div>
         </div>
     </div>
-    
+
     <!-- Form para Enviar -->
     <form method="post" action="{% url 'quiz:enviar_links' %}" id="enviar-form">
         {% csrf_token %}
-        
-        <div class="card bg-base-100 shadow-xl">
+
+        <div class="card bg-base-100 shadow-soft">
             <div class="card-body">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="card-title">
-                        <i class="fas fa-list mr-2"></i>
-                        Colaboradores
+                <!-- Header com ações -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <h2 class="card-title text-neutral">
+                        <i class="fas fa-list mr-2 text-primary"></i>
+                        Lista de Colaboradores
                     </h2>
-                    <div class="space-x-2">
+                    <div class="flex flex-wrap gap-2">
                         <button type="button" class="btn btn-sm btn-ghost" onclick="selecionarTodos()">
                             <i class="fas fa-check-square mr-1"></i>
-                            Selecionar Todos
+                            <span class="hidden sm:inline">Selecionar Todos</span>
+                            <span class="sm:hidden">Todos</span>
                         </button>
                         <button type="button" class="btn btn-sm btn-ghost" onclick="limparSelecao()">
                             <i class="fas fa-square mr-1"></i>
-                            Limpar Seleção
+                            <span class="hidden sm:inline">Limpar</span>
                         </button>
-                        <button type="submit" class="btn btn-sm btn-primary" id="btn-enviar">
+                        <button type="submit" class="btn btn-sm btn-primary" id="btn-enviar" disabled>
                             <i class="fas fa-paper-plane mr-1"></i>
-                            Enviar Selecionados
+                            <span class="hidden sm:inline">Enviar Selecionados</span>
+                            <span class="sm:hidden">Enviar</span>
                         </button>
                     </div>
                 </div>
-                
+
+                <!-- Tabela -->
                 <div class="overflow-x-auto">
-                    <table class="table table-zebra">
+                    <table class="table table-zebra w-full">
                         <thead>
-                            <tr>
+                            <tr class="bg-base-200">
                                 <th>
                                     <label>
-                                        <input type="checkbox" class="checkbox checkbox-primary" id="select-all" />
+                                        <input type="checkbox" class="checkbox checkbox-primary checkbox-sm" id="select-all" />
                                     </label>
                                 </th>
-                                <th>Email</th>
-                                <th>Empresa</th>
-                                <th>Unidade</th>
-                                <th>Setor</th>
-                                <th>Cargo</th>
-                                <th>Status</th>
+                                <th class="font-semibold">Email</th>
+                                <th class="font-semibold hidden lg:table-cell">Empresa</th>
+                                <th class="font-semibold hidden md:table-cell">Unidade</th>
+                                <th class="font-semibold hidden sm:table-cell">Setor</th>
+                                <th class="font-semibold hidden xl:table-cell">Cargo</th>
+                                <th class="font-semibold text-center">Status</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for colaborador in colaboradores %}
-                            <tr>
+                            <tr class="hover">
                                 <td>
                                     <label>
-                                        <input 
-                                            type="checkbox" 
-                                            name="colaboradores" 
-                                            value="{{ colaborador.id }}" 
-                                            class="checkbox checkbox-primary colaborador-checkbox"
+                                        <input
+                                            type="checkbox"
+                                            name="colaboradores"
+                                            value="{{ colaborador.id }}"
+                                            class="checkbox checkbox-primary checkbox-sm colaborador-checkbox"
                                             {% if colaborador.magic_link.status == 'COMPLETED' %}disabled{% endif %}
                                         />
                                     </label>
                                 </td>
-                                <td>{{ colaborador.email }}</td>
-                                <td>{{ colaborador.cargo.setor.unidade.empresa.nome }}</td>
-                                <td>{{ colaborador.cargo.setor.unidade.nome }}</td>
-                                <td>{{ colaborador.cargo.setor.nome }}</td>
-                                <td>{{ colaborador.cargo.nome }}</td>
                                 <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="avatar placeholder hidden sm:flex">
+                                            <div class="bg-primary/10 text-primary rounded-full w-8 h-8 flex items-center justify-center">
+                                                <span class="text-xs">{{ colaborador.email|first|upper }}</span>
+                                            </div>
+                                        </div>
+                                        <span class="font-medium text-sm">{{ colaborador.email }}</span>
+                                    </div>
+                                </td>
+                                <td class="hidden lg:table-cell text-sm text-neutral/70">{{ colaborador.cargo.setor.unidade.empresa.nome }}</td>
+                                <td class="hidden md:table-cell text-sm text-neutral/70">{{ colaborador.cargo.setor.unidade.nome }}</td>
+                                <td class="hidden sm:table-cell text-sm text-neutral/70">{{ colaborador.cargo.setor.nome }}</td>
+                                <td class="hidden xl:table-cell text-sm text-neutral/70">{{ colaborador.cargo.nome }}</td>
+                                <td class="text-center">
                                     {% if colaborador.magic_link %}
                                         {% if colaborador.magic_link.status == 'COMPLETED' %}
-                                        <span class="badge badge-success">
-                                            <i class="fas fa-check mr-1"></i>
-                                            Respondido
+                                        <span class="badge badge-success badge-sm gap-1">
+                                            <i class="fas fa-check text-xs"></i>
+                                            <span class="hidden sm:inline">Respondido</span>
                                         </span>
                                         {% elif colaborador.magic_link.status == 'EXPIRED' %}
-                                        <span class="badge badge-error">
-                                            <i class="fas fa-times mr-1"></i>
-                                            Expirado
+                                        <span class="badge badge-error badge-sm gap-1">
+                                            <i class="fas fa-times text-xs"></i>
+                                            <span class="hidden sm:inline">Expirado</span>
                                         </span>
                                         {% elif colaborador.magic_link.status == 'ACCESSED' %}
-                                        <span class="badge badge-warning">
-                                            <i class="fas fa-eye mr-1"></i>
-                                            Acessado
+                                        <span class="badge badge-warning badge-sm gap-1">
+                                            <i class="fas fa-eye text-xs"></i>
+                                            <span class="hidden sm:inline">Acessado</span>
                                         </span>
                                         {% else %}
-                                        <span class="badge badge-info">
-                                            <i class="fas fa-envelope mr-1"></i>
-                                            Enviado
+                                        <span class="badge badge-info badge-sm gap-1">
+                                            <i class="fas fa-envelope text-xs"></i>
+                                            <span class="hidden sm:inline">Enviado</span>
                                         </span>
                                         {% endif %}
                                     {% else %}
-                                    <span class="badge badge-ghost">
-                                        <i class="fas fa-minus mr-1"></i>
-                                        Sem Link
+                                    <span class="badge badge-ghost badge-sm gap-1">
+                                        <i class="fas fa-minus text-xs"></i>
+                                        <span class="hidden sm:inline">Sem Link</span>
                                     </span>
                                     {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-8 text-neutral/50">
+                                    <i class="fas fa-inbox text-3xl mb-2"></i>
+                                    <p>Nenhum colaborador cadastrado</p>
+                                    <a href="{% url 'importacao:importacao' %}" class="btn btn-primary btn-sm mt-4">
+                                        <i class="fas fa-file-import mr-2"></i>
+                                        Importar Dados
+                                    </a>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -143,46 +181,78 @@
             </div>
         </div>
     </form>
+
+    <!-- Legenda -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body py-4">
+            <h3 class="font-semibold text-neutral mb-3">Legenda de Status</h3>
+            <div class="flex flex-wrap gap-4 text-sm">
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-ghost badge-sm">Sem Link</span>
+                    <span class="text-neutral/60">Aguardando envio</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-info badge-sm">Enviado</span>
+                    <span class="text-neutral/60">Link disponível</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-warning badge-sm">Acessado</span>
+                    <span class="text-neutral/60">Link foi acessado</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-success badge-sm">Respondido</span>
+                    <span class="text-neutral/60">Questionário concluído</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="badge badge-error badge-sm">Expirado</span>
+                    <span class="text-neutral/60">Link vencido</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
     const selectAll = document.getElementById('select-all');
     const checkboxes = document.querySelectorAll('.colaborador-checkbox:not([disabled])');
     const btnEnviar = document.getElementById('btn-enviar');
-    
-    selectAll.addEventListener('change', function() {
-        checkboxes.forEach(cb => cb.checked = this.checked);
-        updateButtonState();
-    });
-    
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateButtonState();
+        });
+    }
+
     checkboxes.forEach(cb => {
         cb.addEventListener('change', updateButtonState);
     });
-    
+
     function selecionarTodos() {
         checkboxes.forEach(cb => cb.checked = true);
-        selectAll.checked = true;
+        if (selectAll) selectAll.checked = true;
         updateButtonState();
     }
-    
+
     function limparSelecao() {
         checkboxes.forEach(cb => cb.checked = false);
-        selectAll.checked = false;
+        if (selectAll) selectAll.checked = false;
         updateButtonState();
     }
-    
+
     function updateButtonState() {
         const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
         btnEnviar.disabled = !anyChecked;
     }
-    
+
     document.getElementById('enviar-form').addEventListener('submit', function(e) {
         const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
         if (!confirm(`Deseja enviar magic links para ${checkedCount} colaborador(es)?`)) {
             e.preventDefault();
         }
     });
-    
+
     updateButtonState();
 </script>
 {% endblock %}

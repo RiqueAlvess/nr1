@@ -1,0 +1,290 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Análise por Unidades - Plataforma NR-1{% endblock %}
+
+{% block breadcrumb %}
+<div class="text-sm breadcrumbs mb-4">
+    <ul>
+        <li><a href="{% url 'account:dashboard' %}" class="text-accent hover:text-primary"><i class="fas fa-home mr-1"></i>Início</a></li>
+        <li><a href="{% url 'dashboard:principal' %}" class="text-accent hover:text-primary">Dashboard</a></li>
+        <li class="text-neutral font-medium">Unidades</li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block page_header %}
+<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+    <div>
+        <h1 class="text-2xl lg:text-3xl font-bold text-neutral">
+            <i class="fas fa-building text-primary mr-2"></i>
+            Análise por Unidades
+        </h1>
+        <p class="text-sm text-neutral/60 mt-1">{{ empresa.nome }}</p>
+    </div>
+    <div class="mt-4 lg:mt-0 flex items-center gap-2">
+        <a href="{% url 'dashboard:principal' %}" class="btn btn-outline btn-sm">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Voltar
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="unidadesApp()">
+
+    {% if dados.unidades %}
+    <!-- Resumo -->
+    <div class="stats stats-vertical sm:stats-horizontal shadow-soft bg-base-100 w-full">
+        <div class="stat">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-building text-3xl"></i>
+            </div>
+            <div class="stat-title">Total de Unidades</div>
+            <div class="stat-value text-primary">{{ dados.total_unidades_visiveis }}</div>
+            <div class="stat-desc">Com dados suficientes</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-figure text-accent">
+                <i class="fas fa-users text-3xl"></i>
+            </div>
+            <div class="stat-title">Respostas Totais</div>
+            <div class="stat-value text-accent">
+                {% widthratio 0 1 0 as total_respostas %}
+                {% for unidade in dados.unidades %}
+                    {% with unidade.total_respostas as resp %}
+                        {{ resp|add:total_respostas }}
+                    {% endwith %}
+                {% endfor %}
+                {% for unidade in dados.unidades %}{{ unidade.total_respostas }}{% if not forloop.last %}+{% endif %}{% endfor %}
+            </div>
+            <div class="stat-desc">Questionários concluídos</div>
+        </div>
+    </div>
+
+    <!-- Gráfico de Comparação -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-chart-bar text-primary mr-2"></i>
+                Comparativo de Score por Unidade
+            </h2>
+            <div class="mt-4" style="height: 300px;">
+                <canvas id="graficoUnidades"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Unidades -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for unidade in dados.unidades %}
+        <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
+            <div class="card-body">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <i class="fas fa-building text-primary text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-neutral">{{ unidade.unidade_nome }}</h3>
+                            <p class="text-sm text-neutral/60">{{ unidade.total_respostas }} respostas</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider my-3"></div>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-neutral/60">Score Médio</p>
+                        <p class="text-2xl font-bold text-secondary">{{ unidade.score_medio }}</p>
+                    </div>
+                    <div class="radial-progress text-primary" style="--value:{{ unidade.score_medio|floatformat:0 }}; --size:3.5rem; --thickness: 4px;" role="progressbar">
+                        <span class="text-xs font-medium">{{ unidade.score_medio|floatformat:0 }}%</span>
+                    </div>
+                </div>
+
+                <div class="card-actions justify-end mt-4">
+                    <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}" class="btn btn-outline btn-sm btn-primary">
+                        <i class="fas fa-sitemap mr-1"></i>
+                        Ver Setores
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Tabela Detalhada -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-table text-accent mr-2"></i>
+                Dados Detalhados
+            </h2>
+
+            <div class="overflow-x-auto mt-4">
+                <table class="table table-zebra w-full">
+                    <thead>
+                        <tr class="bg-base-200">
+                            <th class="font-semibold">Unidade</th>
+                            <th class="font-semibold text-center">Respostas</th>
+                            <th class="font-semibold text-center">Score Médio</th>
+                            <th class="font-semibold text-center">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for unidade in dados.unidades %}
+                        <tr class="hover">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                        <i class="fas fa-building text-primary"></i>
+                                    </div>
+                                    <span class="font-medium">{{ unidade.unidade_nome }}</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-ghost">{{ unidade.total_respostas }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="font-bold text-secondary">{{ unidade.score_medio }}</span>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}" class="btn btn-ghost btn-xs text-primary">
+                                    <i class="fas fa-arrow-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Estado Vazio -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body items-center text-center py-12">
+            <div class="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mb-4">
+                <i class="fas fa-building text-warning text-3xl"></i>
+            </div>
+            <h2 class="card-title text-neutral">Nenhuma Unidade Disponível</h2>
+            <p class="text-neutral/60 max-w-md">
+                Não há unidades com dados suficientes para garantir o anonimato dos respondentes.
+                É necessário um mínimo de 5 respostas por unidade.
+            </p>
+            <div class="card-actions mt-6">
+                <a href="{% url 'dashboard:principal' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Voltar ao Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function unidadesApp() {
+    return {
+        init() {
+            this.criarGrafico();
+        },
+
+        criarGrafico() {
+            const ctx = document.getElementById('graficoUnidades');
+            if (!ctx) return;
+
+            // Dados do Django
+            const dados = [
+                {% for unidade in dados.unidades %}
+                {
+                    nome: "{{ unidade.unidade_nome }}",
+                    score: {{ unidade.score_medio }},
+                    respostas: {{ unidade.total_respostas }}
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ];
+
+            const cores = {
+                primary: '#1EEB88',
+                secondary: '#0F3D52',
+                accent: '#6EDBC1'
+            };
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dados.map(d => d.nome),
+                    datasets: [{
+                        label: 'Score Médio',
+                        data: dados.map(d => d.score),
+                        backgroundColor: cores.primary,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: cores.secondary,
+                            padding: 12,
+                            cornerRadius: 8,
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    const idx = context.dataIndex;
+                                    return `Respostas: ${dados[idx].respostas}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 140,
+                            grid: {
+                                color: 'rgba(229, 236, 233, 0.5)',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#1F2933'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: { size: 12 },
+                                color: '#1F2933'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+}
+
+// Inicializar gráfico após carregamento
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof unidadesApp === 'function') {
+        unidadesApp().init();
+    }
+});
+</script>
+{% endblock %}
