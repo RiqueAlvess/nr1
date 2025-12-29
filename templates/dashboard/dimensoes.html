@@ -226,14 +226,8 @@
 {% block extra_js %}
 {% if dados.pode_visualizar %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const ctx = document.getElementById('graficoDimensoes');
-    const loadingEl = document.getElementById('chart-dimensoes-loading');
-    const containerEl = document.getElementById('chart-dimensoes-container');
-
-    if (!ctx) return;
-
-    const dimensoes = [
+// Dados do Django preparados ANTES
+const dimensoesData = [
         {% for dimensao in dados.dimensoes %}
         {
             nome: "{{ dimensao.dimensao }}",
@@ -243,6 +237,22 @@ document.addEventListener('DOMContentLoaded', function() {
         {% endfor %}
     ];
 
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('graficoDimensoes');
+    const loadingEl = document.getElementById('chart-dimensoes-loading');
+    const containerEl = document.getElementById('chart-dimensoes-container');
+
+    if (!ctx) {
+        console.error('Canvas não encontrado');
+        return;
+    }
+
+    const contextCanvas = ctx.getContext('2d');
+    if (!contextCanvas) {
+        console.error('Contexto 2D não disponível');
+        return;
+    }
+
     const cores = {
         primary: '#1EEB88',
         error: '#EF4444',
@@ -250,26 +260,26 @@ document.addEventListener('DOMContentLoaded', function() {
         success: '#22C55E'
     };
 
-    const backgroundColor = dimensoes.map(d => {
+    const backgroundColor = dimensoesData.map(d => {
         if (d.risco === 'CRÍTICO') return 'rgba(239, 68, 68, 0.2)';
         if (d.risco === 'ATENÇÃO') return 'rgba(250, 204, 21, 0.2)';
         return 'rgba(34, 197, 94, 0.2)';
     });
 
-    const borderColor = dimensoes.map(d => {
+    const borderColor = dimensoesData.map(d => {
         if (d.risco === 'CRÍTICO') return cores.error;
         if (d.risco === 'ATENÇÃO') return cores.warning;
         return cores.success;
     });
 
     try {
-        new Chart(ctx, {
+        new Chart(contextCanvas, {
             type: 'radar',
             data: {
-                labels: dimensoes.map(d => d.nome),
+                labels: dimensoesData.map(d => d.nome),
                 datasets: [{
                     label: 'Score Médio',
-                    data: dimensoes.map(d => d.score),
+                    data: dimensoesData.map(d => d.score),
                     backgroundColor: 'rgba(30, 235, 136, 0.2)',
                     borderColor: cores.primary,
                     borderWidth: 2,

@@ -34,7 +34,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="setoresApp()">
+<div class="space-y-6" x-data="setoresApp">
 
     {% if dados.setores %}
     <!-- Resumo -->
@@ -244,21 +244,22 @@
 
 {% block extra_js %}
 <script>
-function setoresApp() {
-    // Dados do Django
-    const setoresData = [
-        {% for setor in dados.setores %}
-        {
-            nome: "{{ setor.setor_nome }}",
-            unidade: "{{ setor.unidade_nome }}",
-            score: {{ setor.score_medio }},
-            respostas: {{ setor.total_respostas }},
-            risco: "{{ setor.nivel_risco_nr1 }}"
-        }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
+// Dados do Django preparados ANTES do Alpine
+const setoresData = [
+    {% for setor in dados.setores %}
+    {
+        nome: "{{ setor.setor_nome }}",
+        unidade: "{{ setor.unidade_nome }}",
+        score: {{ setor.score_medio }},
+        respostas: {{ setor.total_respostas }},
+        risco: "{{ setor.nivel_risco_nr1 }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
 
-    return {
+// Registrar componente ANTES da inicialização do Alpine
+document.addEventListener('alpine:init', () => {
+    Alpine.data('setoresApp', () => ({
         filtroRisco: '',
         ordenacao: 'risco',
 
@@ -271,7 +272,9 @@ function setoresApp() {
         },
 
         init() {
-            this.criarGrafico();
+            this.$nextTick(() => {
+                this.criarGrafico();
+            });
         },
 
         criarGrafico() {
@@ -279,7 +282,16 @@ function setoresApp() {
             const loadingEl = document.getElementById('chart-setores-loading');
             const containerEl = document.getElementById('chart-setores-container');
 
-            if (!ctx) return;
+            if (!ctx) {
+                console.error('Canvas não encontrado');
+                return;
+            }
+
+            const contextCanvas = ctx.getContext('2d');
+            if (!contextCanvas) {
+                console.error('Contexto 2D não disponível');
+                return;
+            }
 
             const cores = {
                 error: '#EF4444',
@@ -295,7 +307,7 @@ function setoresApp() {
             });
 
             try {
-                new Chart(ctx, {
+                new Chart(contextCanvas, {
                     type: 'bar',
                     data: {
                         labels: setoresData.map(s => s.nome),
@@ -369,13 +381,7 @@ function setoresApp() {
                 if (loadingEl) loadingEl.classList.add('hidden');
             }
         }
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof setoresApp === 'function') {
-        setoresApp().init();
-    }
+    }));
 });
 </script>
 {% endblock %}
