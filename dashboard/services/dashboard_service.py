@@ -8,17 +8,19 @@ from quiz.models import Resposta, MagicLink
 from core.models import Setor, Unidade
 from core.utils.anonymity import AnonymityChecker
 from quiz.services.calculation_service import CalculationService
-from importacao.models import Colaborador
+from quiz.services.statistics_service import StatisticsService
+from importacao.models import Colaborador, Cargo
 
 logger = logging.getLogger('nr1')
 
 
 class DashboardService:
     """Serviço de agregação de dados para dashboard"""
-    
+
     def __init__(self):
         self.calc_service = CalculationService()
         self.anonymity_checker = AnonymityChecker()
+        self.stats_service = StatisticsService()
     
     def get_kpis_empresa(self, empresa_id: str) -> Dict[str, Any]:
         """
@@ -60,6 +62,7 @@ class DashboardService:
                 'taxa_adesao': 0,
                 'pode_visualizar': True,
                 'score_medio_global': 0,
+                'mediana_score': 0,
                 'igrp': 0,
                 'distribuicao_risco': {
                     'critico': 0,
@@ -75,7 +78,14 @@ class DashboardService:
                     'classificacao': 'SEM DADOS',
                     'total_respondentes': 0,
                     'respondentes_criticos': 0
-                }
+                },
+                # Novos KPIs estatísticos - valores zerados
+                'tempo_medio_minutos': 0,
+                'cv_percent': 0,
+                'desvio_padrao': 0,
+                'score_minimo': 0,
+                'score_maximo': 0,
+                'quartis': {'Q1': 0, 'Q2': 0, 'Q3': 0},
             }
         
         # Score médio global
@@ -98,7 +108,16 @@ class DashboardService:
 
         # Matriz de risco NR-1
         matriz_risco = self.calc_service.calcular_matriz_risco_nr1(respostas)
-        
+
+        # Estatísticas avançadas usando StatisticsService
+        estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+        # Tempo médio de resposta
+        tempos = [r.tempo_total_segundos for r in respostas if r.tempo_total_segundos]
+        tempo_medio_minutos = round(
+            self.stats_service.calcular_media(tempos) / 60, 2
+        ) if tempos else 0
+
         return {
             'total_colaboradores': total_colaboradores,
             'respostas_concluidas': respostas_concluidas,
@@ -116,7 +135,14 @@ class DashboardService:
                 (criticos / respostas_concluidas * 100) if respostas_concluidas > 0 else 0,
                 2
             ),
-            'matriz_nr1': matriz_risco
+            'matriz_nr1': matriz_risco,
+            # Novos KPIs estatísticos
+            'tempo_medio_minutos': tempo_medio_minutos,
+            'cv_percent': estatisticas['cv_percent'],
+            'desvio_padrao': estatisticas['desvio_padrao'],
+            'score_minimo': estatisticas['minimo'],
+            'score_maximo': estatisticas['maximo'],
+            'quartis': estatisticas['quartis'],
         }
     
     def get_dados_por_unidade(self, empresa_id: str) -> Dict[str, Any]:
@@ -720,3 +746,564 @@ class DashboardService:
             'dimensoes': sorted(list(todas_dimensoes)),
             'por_genero': dict(resultado)
         }
+
+    # ========================================================================
+    # NOVOS MÉTODOS - Evolução do Dashboard NR-1
+    # ========================================================================
+
+    def get_distribuicao_respostas_completa(
+        self,
+        empresa_id: str,
+        unidade_id: Optional[str] = None,
+        setor_id: Optional[str] = None,
+        cargo_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Retorna distribuição completa de respostas (0-4) por pergunta
+        com suporte a filtros hierárquicos para drill-down.
+
+        Args:
+            empresa_id: UUID da empresa
+            unidade_id: UUID da unidade (opcional)
+            setor_id: UUID do setor (opcional)
+            cargo_id: UUID do cargo (opcional)
+
+        Returns:
+            Dict com distribuição por pergunta e metadados das perguntas
+        """
+        from quiz.models import Pergunta
+
+        # Query base com filtros hierárquicos
+        respostas_query = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        )
+
+        if unidade_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+            )
+        if setor_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor_id=setor_id
+            )
+        if cargo_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo_id=cargo_id
+            )
+
+        respostas = respostas_query.all()
+
+        if not respostas.exists():
+            return {
+                'distribuicao': {},
+                'perguntas_info': [],
+                'total_respostas': 0,
+                'filtros_aplicados': {
+                    'unidade_id': unidade_id,
+                    'setor_id': setor_id,
+                    'cargo_id': cargo_id
+                }
+            }
+
+        # Agregar distribuição por pergunta
+        distribuicao = {}
+
+        for resposta in respostas:
+            for perg_num, valor in resposta.respostas.items():
+                if perg_num not in distribuicao:
+                    distribuicao[perg_num] = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+
+                if valor in [0, 1, 2, 3, 4]:
+                    distribuicao[perg_num][valor] += 1
+
+        # Obter metadados das perguntas
+        perguntas_info = []
+        for perg_num in sorted(distribuicao.keys(), key=int):
+            try:
+                pergunta = Pergunta.objects.select_related('dimensao').get(
+                    numero=int(perg_num)
+                )
+                total = sum(distribuicao[perg_num].values())
+                valores = [
+                    v * distribuicao[perg_num][v]
+                    for v in range(5)
+                ]
+                media = sum(valores) / total if total > 0 else 0
+
+                perguntas_info.append({
+                    'numero': int(perg_num),
+                    'texto': pergunta.texto,
+                    'dimensao': pergunta.dimensao.nome,
+                    'polaridade': pergunta.dimensao.polaridade,
+                    'distribuicao': [
+                        distribuicao[perg_num][i] for i in range(5)
+                    ],
+                    'total': total,
+                    'media': round(media, 2),
+                    'nivel_risco': self.calc_service._interpretar_dimensao(
+                        media, pergunta.dimensao.polaridade
+                    )
+                })
+            except Pergunta.DoesNotExist:
+                continue
+
+        return {
+            'distribuicao': distribuicao,
+            'perguntas_info': perguntas_info,
+            'total_respostas': respostas.count(),
+            'filtros_aplicados': {
+                'unidade_id': unidade_id,
+                'setor_id': setor_id,
+                'cargo_id': cargo_id
+            }
+        }
+
+    def get_dimensoes_por_polaridade(self, empresa_id: str) -> Dict[str, Any]:
+        """
+        Retorna dimensões agrupadas por polaridade (Positiva vs Negativa)
+        para gráfico de barras comparativo.
+
+        Args:
+            empresa_id: UUID da empresa
+
+        Returns:
+            Dict com dimensões separadas por polaridade e estatísticas
+        """
+        respostas = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        )
+
+        if not respostas.exists():
+            return {
+                'positivas': [],
+                'negativas': [],
+                'resumo': {
+                    'media_positivas': 0,
+                    'media_negativas': 0,
+                    'total_positivas': 0,
+                    'total_negativas': 0
+                }
+            }
+
+        # Agregar por dimensão e polaridade
+        dimensoes_data = defaultdict(lambda: {'scores': [], 'polaridade': None})
+
+        for resposta in respostas:
+            for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                dimensoes_data[dimensao_nome]['scores'].append(dados['score'])
+                dimensoes_data[dimensao_nome]['polaridade'] = dados['polaridade']
+
+        # Separar e calcular estatísticas
+        positivas = []
+        negativas = []
+
+        for dimensao_nome, dados in dimensoes_data.items():
+            score_medio = self.stats_service.calcular_media(dados['scores'])
+            desvio = self.stats_service.calcular_desvio_padrao_populacional(dados['scores'])
+            nivel_risco = self.calc_service._interpretar_dimensao(
+                score_medio, dados['polaridade']
+            )
+
+            item = {
+                'dimensao': dimensao_nome,
+                'score_medio': round(score_medio, 2),
+                'desvio_padrao': round(desvio, 2),
+                'nivel_risco': nivel_risco,
+                'total_respostas': len(dados['scores'])
+            }
+
+            if dados['polaridade'] == 'POSITIVA':
+                positivas.append(item)
+            else:
+                negativas.append(item)
+
+        # Ordenar por criticidade
+        ordem_risco = {'CRÍTICO': 0, 'ATENÇÃO': 1, 'SATISFATÓRIO': 2}
+        positivas.sort(key=lambda x: ordem_risco[x['nivel_risco']])
+        negativas.sort(key=lambda x: ordem_risco[x['nivel_risco']])
+
+        # Calcular médias gerais
+        media_positivas = self.stats_service.calcular_media(
+            [d['score_medio'] for d in positivas]
+        ) if positivas else 0
+        media_negativas = self.stats_service.calcular_media(
+            [d['score_medio'] for d in negativas]
+        ) if negativas else 0
+
+        return {
+            'positivas': positivas,
+            'negativas': negativas,
+            'resumo': {
+                'media_positivas': round(media_positivas, 2),
+                'media_negativas': round(media_negativas, 2),
+                'total_positivas': len(positivas),
+                'total_negativas': len(negativas)
+            }
+        }
+
+    def get_radar_multinivel(
+        self,
+        empresa_id: str,
+        unidade_id: Optional[str] = None,
+        setor_id: Optional[str] = None,
+        cargo_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Retorna dados para gráfico radar com suporte a múltiplos níveis
+        (Empresa, Unidade, Setor, Cargo).
+
+        Args:
+            empresa_id: UUID da empresa
+            unidade_id: UUID da unidade (opcional)
+            setor_id: UUID do setor (opcional)
+            cargo_id: UUID do cargo (opcional)
+
+        Returns:
+            Dict com scores por dimensão para o nível selecionado
+        """
+        # Query base
+        respostas_query = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        )
+
+        # Aplicar filtros hierárquicos
+        nivel = 'empresa'
+        nivel_nome = None
+
+        if cargo_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo_id=cargo_id
+            )
+            nivel = 'cargo'
+            try:
+                cargo = Cargo.objects.get(id=cargo_id)
+                nivel_nome = cargo.nome
+            except Cargo.DoesNotExist:
+                nivel_nome = 'Cargo não encontrado'
+        elif setor_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor_id=setor_id
+            )
+            nivel = 'setor'
+            try:
+                setor = Setor.objects.get(id=setor_id)
+                nivel_nome = setor.nome
+            except Setor.DoesNotExist:
+                nivel_nome = 'Setor não encontrado'
+        elif unidade_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+            )
+            nivel = 'unidade'
+            try:
+                unidade = Unidade.objects.get(id=unidade_id)
+                nivel_nome = unidade.nome
+            except Unidade.DoesNotExist:
+                nivel_nome = 'Unidade não encontrada'
+
+        respostas = respostas_query.all()
+
+        if not respostas.exists():
+            return {
+                'labels': [],
+                'scores': [],
+                'niveis_risco': [],
+                'polaridades': [],
+                'nivel': nivel,
+                'nivel_nome': nivel_nome,
+                'total_respostas': 0
+            }
+
+        # Agregar por dimensão
+        dimensoes_scores = defaultdict(list)
+        polaridades = {}
+
+        for resposta in respostas:
+            for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                dimensoes_scores[dimensao_nome].append(dados['score'])
+                polaridades[dimensao_nome] = dados['polaridade']
+
+        # Calcular médias e riscos
+        labels = []
+        scores = []
+        niveis_risco = []
+        pols = []
+
+        for dimensao_nome in sorted(dimensoes_scores.keys()):
+            score_medio = self.stats_service.calcular_media(
+                dimensoes_scores[dimensao_nome]
+            )
+            pol = polaridades[dimensao_nome]
+            nivel_risco = self.calc_service._interpretar_dimensao(score_medio, pol)
+
+            labels.append(dimensao_nome)
+            scores.append(round(score_medio, 2))
+            niveis_risco.append(nivel_risco)
+            pols.append(pol)
+
+        return {
+            'labels': labels,
+            'scores': scores,
+            'niveis_risco': niveis_risco,
+            'polaridades': pols,
+            'nivel': nivel,
+            'nivel_nome': nivel_nome,
+            'total_respostas': respostas.count()
+        }
+
+    def get_consistencia_interna(self, empresa_id: str) -> Dict[str, Any]:
+        """
+        Calcula métricas de consistência interna (desvio padrão, variância)
+        por dimensão e por pergunta.
+
+        Args:
+            empresa_id: UUID da empresa
+
+        Returns:
+            Dict com métricas de consistência por dimensão e pergunta
+        """
+        from quiz.models import Pergunta
+
+        respostas = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        )
+
+        if not respostas.exists():
+            return {
+                'por_dimensao': [],
+                'por_pergunta': [],
+                'consistencia_geral': {
+                    'cv_percent': 0,
+                    'classificacao': 'SEM DADOS'
+                }
+            }
+
+        # Consistência por dimensão
+        dimensoes_scores = defaultdict(list)
+
+        for resposta in respostas:
+            for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                dimensoes_scores[dimensao_nome].append(dados['score'])
+
+        por_dimensao = []
+        for dimensao_nome in sorted(dimensoes_scores.keys()):
+            scores = dimensoes_scores[dimensao_nome]
+            estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+            por_dimensao.append({
+                'dimensao': dimensao_nome,
+                'media': estatisticas['media'],
+                'desvio_padrao': estatisticas['desvio_padrao'],
+                'variancia': estatisticas['variancia'],
+                'cv_percent': estatisticas['cv_percent'],
+                'classificacao_cv': self.stats_service.interpretar_cv(
+                    estatisticas['cv_percent']
+                ),
+                'n': estatisticas['n']
+            })
+
+        # Consistência por pergunta
+        perguntas_valores = defaultdict(list)
+
+        for resposta in respostas:
+            for perg_num, valor in resposta.respostas.items():
+                perguntas_valores[perg_num].append(valor)
+
+        por_pergunta = []
+        for perg_num in sorted(perguntas_valores.keys(), key=int):
+            valores = perguntas_valores[perg_num]
+            estatisticas = self.stats_service.calcular_estatisticas_completas(
+                [float(v) for v in valores]
+            )
+
+            try:
+                pergunta = Pergunta.objects.select_related('dimensao').get(
+                    numero=int(perg_num)
+                )
+                dimensao = pergunta.dimensao.nome
+            except Pergunta.DoesNotExist:
+                dimensao = 'Desconhecida'
+
+            por_pergunta.append({
+                'numero': int(perg_num),
+                'dimensao': dimensao,
+                'media': estatisticas['media'],
+                'desvio_padrao': estatisticas['desvio_padrao'],
+                'variancia': estatisticas['variancia'],
+                'cv_percent': estatisticas['cv_percent'],
+                'classificacao_cv': self.stats_service.interpretar_cv(
+                    estatisticas['cv_percent']
+                ),
+                'n': estatisticas['n']
+            })
+
+        # Consistência geral (usando scores globais)
+        scores_globais = [
+            r.score_global for r in respostas if r.score_global is not None
+        ]
+        cv_geral = self.stats_service.calcular_coeficiente_variacao(scores_globais)
+
+        return {
+            'por_dimensao': por_dimensao,
+            'por_pergunta': por_pergunta,
+            'consistencia_geral': {
+                'cv_percent': round(cv_geral, 2),
+                'classificacao': self.stats_service.interpretar_cv(cv_geral)
+            }
+        }
+
+    def get_scores_por_agrupamento(
+        self,
+        empresa_id: str,
+        agrupamento: str = 'unidade'
+    ) -> Dict[str, Any]:
+        """
+        Retorna scores médios por agrupamento para comparação.
+
+        Args:
+            empresa_id: UUID da empresa
+            agrupamento: 'unidade', 'setor' ou 'cargo'
+
+        Returns:
+            Dict com scores por agrupamento selecionado
+        """
+        respostas = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        ).select_related(
+            'magic_link__colaborador__cargo__setor__unidade'
+        )
+
+        if not respostas.exists():
+            return {'grupos': [], 'agrupamento': agrupamento}
+
+        grupos_scores = defaultdict(list)
+
+        for resposta in respostas:
+            if resposta.score_global is None:
+                continue
+
+            colaborador = resposta.magic_link.colaborador
+
+            if agrupamento == 'unidade':
+                grupo_nome = colaborador.cargo.setor.unidade.nome
+                grupo_id = str(colaborador.cargo.setor.unidade.id)
+            elif agrupamento == 'setor':
+                grupo_nome = colaborador.cargo.setor.nome
+                grupo_id = str(colaborador.cargo.setor.id)
+            elif agrupamento == 'cargo':
+                grupo_nome = colaborador.cargo.nome
+                grupo_id = str(colaborador.cargo.id)
+            else:
+                continue
+
+            grupos_scores[grupo_nome].append({
+                'id': grupo_id,
+                'score': resposta.score_global
+            })
+
+        grupos = []
+        for grupo_nome, dados in grupos_scores.items():
+            scores = [d['score'] for d in dados]
+            estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+            grupos.append({
+                'nome': grupo_nome,
+                'id': dados[0]['id'],
+                'score_medio': estatisticas['media'],
+                'mediana': estatisticas['mediana'],
+                'desvio_padrao': estatisticas['desvio_padrao'],
+                'cv_percent': estatisticas['cv_percent'],
+                'total_respostas': estatisticas['n'],
+                'score_minimo': estatisticas['minimo'],
+                'score_maximo': estatisticas['maximo']
+            })
+
+        # Ordenar por score médio (menor = maior risco)
+        grupos.sort(key=lambda x: x['score_medio'])
+
+        return {
+            'grupos': grupos,
+            'agrupamento': agrupamento
+        }
+
+    def get_histograma_scores(
+        self,
+        empresa_id: str,
+        num_bins: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Retorna dados para histograma de distribuição dos scores globais
+        com quartis sobrepostos.
+
+        Args:
+            empresa_id: UUID da empresa
+            num_bins: Número de intervalos
+
+        Returns:
+            Dict com dados do histograma e quartis
+        """
+        respostas = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        )
+
+        scores = [
+            r.score_global for r in respostas if r.score_global is not None
+        ]
+
+        if not scores:
+            return {
+                'labels': [],
+                'counts': [],
+                'total': 0,
+                'quartis': {'Q1': 0, 'Q2': 0, 'Q3': 0},
+                'estatisticas': {}
+            }
+
+        # Gerar histograma com range fixo (0-140)
+        histograma = self.stats_service.gerar_histograma(
+            scores,
+            num_bins=num_bins,
+            min_valor=0,
+            max_valor=140
+        )
+
+        # Calcular estatísticas e quartis
+        estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+        return {
+            'labels': histograma['labels'],
+            'counts': histograma['counts'],
+            'total': histograma['total'],
+            'quartis': estatisticas['quartis'],
+            'estatisticas': {
+                'media': estatisticas['media'],
+                'mediana': estatisticas['mediana'],
+                'desvio_padrao': estatisticas['desvio_padrao'],
+                'cv_percent': estatisticas['cv_percent']
+            }
+        }
+
+    def get_cargos_disponiveis(self, empresa_id: str) -> List[Dict[str, Any]]:
+        """
+        Retorna lista de cargos disponíveis para filtros.
+
+        Args:
+            empresa_id: UUID da empresa
+
+        Returns:
+            Lista de cargos com id e nome
+        """
+        cargos = Cargo.objects.filter(
+            setor__unidade__empresa_id=empresa_id,
+            ativo=True
+        ).values('id', 'nome', 'setor__nome', 'setor__unidade__nome')
+
+        return [
+            {
+                'id': str(c['id']),
+                'nome': c['nome'],
+                'setor': c['setor__nome'],
+                'unidade': c['setor__unidade__nome']
+            }
+            for c in cargos
+        ]

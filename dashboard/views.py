@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
 from django.core.serializers.json import DjangoJSONEncoder
+from django.views.decorators.http import require_GET
 from core.models import Empresa, Unidade
 from dashboard.services.dashboard_service import DashboardService
 from core.services.audit_service import AuditService
@@ -98,6 +99,14 @@ def dashboard_principal_view(request):
     piramide_etaria = dashboard_service.get_piramide_etaria_com_risco(empresa_id)
     dimensoes_por_genero = dashboard_service.get_dimensoes_por_genero(empresa_id)
 
+    # Novos dados para análises avançadas
+    distribuicao_respostas = dashboard_service.get_distribuicao_respostas_completa(empresa_id)
+    dimensoes_polaridade = dashboard_service.get_dimensoes_por_polaridade(empresa_id)
+    radar_multinivel = dashboard_service.get_radar_multinivel(empresa_id)
+    consistencia_interna = dashboard_service.get_consistencia_interna(empresa_id)
+    histograma_scores = dashboard_service.get_histograma_scores(empresa_id)
+    cargos_disponiveis = dashboard_service.get_cargos_disponiveis(empresa_id)
+
     context = {
         # Dados originais para uso no template HTML
         'kpis': kpis,
@@ -119,6 +128,16 @@ def dashboard_principal_view(request):
         'analise_faixa_etaria_json': json.dumps(analise_faixa_etaria, cls=DjangoJSONEncoder),
         'piramide_etaria_json': json.dumps(piramide_etaria, cls=DjangoJSONEncoder),
         'dimensoes_por_genero_json': json.dumps(dimensoes_por_genero, cls=DjangoJSONEncoder),
+        # Novos dados para análises avançadas
+        'distribuicao_respostas': distribuicao_respostas,
+        'distribuicao_respostas_json': json.dumps(distribuicao_respostas, cls=DjangoJSONEncoder),
+        'dimensoes_polaridade': dimensoes_polaridade,
+        'dimensoes_polaridade_json': json.dumps(dimensoes_polaridade, cls=DjangoJSONEncoder),
+        'radar_multinivel_json': json.dumps(radar_multinivel, cls=DjangoJSONEncoder),
+        'consistencia_interna': consistencia_interna,
+        'consistencia_interna_json': json.dumps(consistencia_interna, cls=DjangoJSONEncoder),
+        'histograma_scores_json': json.dumps(histograma_scores, cls=DjangoJSONEncoder),
+        'cargos_disponiveis_json': json.dumps(cargos_disponiveis, cls=DjangoJSONEncoder),
         # Outros dados do contexto
         'empresa': empresa_selecionada,
         'empresas': empresas,
@@ -273,3 +292,149 @@ def dashboard_dimensoes_view(request):
     }
 
     return render(request, 'dashboard/dimensoes.html', context)
+
+
+# ============================================================================
+# APIs para Filtros Dinâmicos - Análises Avançadas
+# ============================================================================
+
+@login_required
+@require_GET
+def api_radar_multinivel(request):
+    """
+    API para obter dados do radar com filtros dinâmicos.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        unidade: UUID da unidade (opcional)
+        setor: UUID do setor (opcional)
+        cargo: UUID do cargo (opcional)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    # Verificar acesso à empresa
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    unidade_id = request.GET.get('unidade')
+    setor_id = request.GET.get('setor')
+    cargo_id = request.GET.get('cargo')
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_radar_multinivel(
+        empresa_id,
+        unidade_id=unidade_id,
+        setor_id=setor_id,
+        cargo_id=cargo_id
+    )
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_distribuicao_respostas(request):
+    """
+    API para obter distribuição de respostas com filtros dinâmicos.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        unidade: UUID da unidade (opcional)
+        setor: UUID do setor (opcional)
+        cargo: UUID do cargo (opcional)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    unidade_id = request.GET.get('unidade')
+    setor_id = request.GET.get('setor')
+    cargo_id = request.GET.get('cargo')
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_distribuicao_respostas_completa(
+        empresa_id,
+        unidade_id=unidade_id,
+        setor_id=setor_id,
+        cargo_id=cargo_id
+    )
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_scores_agrupamento(request):
+    """
+    API para obter scores por agrupamento.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        agrupamento: 'unidade', 'setor' ou 'cargo' (default: 'unidade')
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    agrupamento = request.GET.get('agrupamento', 'unidade')
+    if agrupamento not in ['unidade', 'setor', 'cargo']:
+        agrupamento = 'unidade'
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_scores_por_agrupamento(empresa_id, agrupamento)
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_cargos_disponiveis(request):
+    """
+    API para obter lista de cargos disponíveis para filtros.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    dashboard_service = DashboardService()
+    cargos = dashboard_service.get_cargos_disponiveis(empresa_id)
+
+    return JsonResponse({'cargos': cargos}, encoder=DjangoJSONEncoder)
