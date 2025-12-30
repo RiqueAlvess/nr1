@@ -1,8 +1,9 @@
 import csv
 import io
 import logging
+from datetime import datetime
 from django.db import transaction
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from core.models import Empresa, Unidade, Setor, Cargo
 from importacao.models import Colaborador, ProcessoImportacao
 from core.services.audit_service import AuditService
@@ -22,6 +23,88 @@ class ImportService:
     def validar_email(email: str) -> bool:
         """Validação básica de email"""
         return '@' in email and '.' in email.split('@')[1]
+
+    @staticmethod
+    def processar_data_nascimento(data_str: str) -> Optional[datetime]:
+        """
+        Processa string de data de nascimento e retorna objeto date
+
+        Formatos aceitos:
+        - DD/MM/YYYY
+        - DD-MM-YYYY
+        - YYYY-MM-DD
+
+        Args:
+            data_str: String com a data de nascimento
+
+        Returns:
+            date object ou None se inválido
+        """
+        if not data_str or not data_str.strip():
+            return None
+
+        data_str = data_str.strip()
+
+        # Tentar diferentes formatos
+        formatos = [
+            '%d/%m/%Y',  # DD/MM/YYYY
+            '%d-%m-%Y',  # DD-MM-YYYY
+            '%Y-%m-%d',  # YYYY-MM-DD
+            '%d/%m/%y',  # DD/MM/YY
+            '%d-%m-%y',  # DD-MM-YY
+        ]
+
+        for formato in formatos:
+            try:
+                data = datetime.strptime(data_str, formato).date()
+                # Validar idade razoável (entre 14 e 100 anos)
+                from datetime import date
+                hoje = date.today()
+                idade = hoje.year - data.year - ((hoje.month, hoje.day) < (data.month, data.day))
+                if 14 <= idade <= 100:
+                    return data
+            except ValueError:
+                continue
+
+        logger.warning(f"Formato de data não reconhecido: {data_str}")
+        return None
+
+    @staticmethod
+    def processar_sexo(sexo_str: str) -> str:
+        """
+        Processa string de sexo e retorna código padronizado
+
+        Valores aceitos:
+        - M/Masculino/Masc/Homem -> 'M'
+        - F/Feminino/Fem/Mulher -> 'F'
+        - O/Outro -> 'O'
+        - Qualquer outro valor -> 'N' (Não informado)
+
+        Args:
+            sexo_str: String com o sexo
+
+        Returns:
+            Código do sexo: 'M', 'F', 'O' ou 'N'
+        """
+        if not sexo_str or not sexo_str.strip():
+            return 'N'
+
+        sexo_normalizado = sexo_str.strip().upper()
+
+        # Masculino
+        if sexo_normalizado in ['M', 'MASCULINO', 'MASC', 'HOMEM', 'H']:
+            return 'M'
+
+        # Feminino
+        if sexo_normalizado in ['F', 'FEMININO', 'FEM', 'MULHER']:
+            return 'F'
+
+        # Outro
+        if sexo_normalizado in ['O', 'OUTRO', 'OUTROS']:
+            return 'O'
+
+        # Não informado
+        return 'N'
     
     @staticmethod
     def processar_csv(
@@ -31,15 +114,18 @@ class ImportService:
     ) -> ProcessoImportacao:
         """
         Processa arquivo CSV de importação
-        
-        Formato esperado:
+
+        Formato esperado (campos obrigatórios):
         unidade,setor,cargo,email
-        
+
+        Campos opcionais:
+        data_nascimento,sexo
+
         Args:
             arquivo: Arquivo CSV enviado
             usuario: Usuário que iniciou a importação
             empresa_nome: Nome da empresa
-        
+
         Returns:
             ProcessoImportacao: Registro do processo
         """
@@ -118,16 +204,34 @@ class ImportService:
                             setor=setor,
                             nome=cargo_nome
                         )
-                        
-                        # Criar ou atualizar colaborador (apenas com cargo)
+
+                        # Processar campos opcionais
+                        data_nascimento = None
+                        if 'data_nascimento' in linha and linha['data_nascimento']:
+                            data_nascimento = ImportService.processar_data_nascimento(
+                                linha['data_nascimento']
+                            )
+
+                        sexo = 'N'  # Padrão: Não informado
+                        if 'sexo' in linha and linha['sexo']:
+                            sexo = ImportService.processar_sexo(linha['sexo'])
+
+                        # Criar ou atualizar colaborador
+                        defaults = {
+                            'cargo': cargo,
+                            'ativo': True,
+                            'sexo': sexo,
+                        }
+
+                        # Adicionar data_nascimento apenas se foi fornecida
+                        if data_nascimento:
+                            defaults['data_nascimento'] = data_nascimento
+
                         colaborador, created = Colaborador.objects.update_or_create(
                             email=email,
-                            defaults={
-                                'cargo': cargo,
-                                'ativo': True
-                            }
+                            defaults=defaults
                         )
-                        
+
                         processadas += 1
                         
                     except Exception as e:
