@@ -104,7 +104,7 @@ MAGIC_LINK_EXPIRATION_HOURS = config('MAGIC_LINK_EXPIRATION_HOURS', default=48, 
 MIN_GROUP_SIZE = config('MIN_GROUP_SIZE', default=1, cast=int)
 
 # Sistema
-SYSTEM_NAME = config('SYSTEM_NAME', default='Plataforma NR-1')
+SYSTEM_NAME = config('SYSTEM_NAME', default='Vivamente360')
 COMPANY_NAME = config('COMPANY_NAME', default='3S Dev')
 
 # Logging
