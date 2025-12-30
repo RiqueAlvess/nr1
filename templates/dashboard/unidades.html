@@ -31,7 +31,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="unidadesApp">
+<div class="space-y-6">
 
     {% if dados.unidades %}
     <!-- Resumo -->
@@ -51,11 +51,9 @@
             </div>
             <div class="stat-title">Respostas Totais</div>
             <div class="stat-value text-accent">
-                {% comment %} Soma simples das respostas por unidade {% endcomment %}
                 {% with total=0 %}
                     {% for unidade in dados.unidades %}
-                        {% with total=total|add:unidade.total_respostas %}
-                        {% endwith %}
+                        {% with total=total|add:unidade.total_respostas %}{% endwith %}
                     {% endfor %}
                     {{ total }}
                 {% endwith %}
@@ -89,7 +87,7 @@
         </div>
     </div>
 
-    <!-- Cards de Unidades -->
+    <!-- Cards de Unidades (renderizado no servidor) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for unidade in dados.unidades %}
         <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
@@ -194,100 +192,72 @@
 {% endblock %}
 
 {% block extra_js %}
-  {# Inserir JSON de forma segura com json_script (Django builtin) #}
+  {# Passar dados de forma segura com json_script #}
   {% if dados %}
     {{ dados|json_script:"dados-unidades-json" }}
   {% endif %}
 
   <script>
-    (function registerUnidades() {
-      const defineComponent = () => {
-        Alpine.data('unidadesApp', () => ({
-          unidadesData: (function() {
-            try {
-              const el = document.getElementById('dados-unidades-json');
-              return el ? JSON.parse(el.textContent).unidades || [] : [];
-            } catch (err) {
-              console.error('Falha ao parsear dados-unidades-json:', err);
-              return [];
-            }
-          })(),
+    document.addEventListener('DOMContentLoaded', function () {
+      // parse seguro dos dados
+      let unidadesData = [];
+      try {
+        const el = document.getElementById('dados-unidades-json');
+        unidadesData = el ? (JSON.parse(el.textContent).unidades || []) : [];
+      } catch (err) {
+        console.error('Erro ao parsear dados-unidades-json:', err);
+        unidadesData = [];
+      }
 
-          init() {
-            this.$nextTick(() => {
-              if (this.unidadesData.length > 0) {
-                this.criarGrafico();
-              } else {
-                const loadingEl = document.getElementById('chart-unidades-loading');
-                if (loadingEl) loadingEl.classList.add('hidden');
-              }
-            });
+      const loadingEl = document.getElementById('chart-unidades-loading');
+      const containerEl = document.getElementById('chart-unidades-container');
+      const canvas = document.getElementById('graficoUnidades');
+
+      if (!unidadesData || unidadesData.length === 0) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        return;
+      }
+
+      if (!canvas || typeof Chart === 'undefined') {
+        console.error('Chart.js não encontrado ou canvas ausente');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      try {
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: unidadesData.map(d => d.unidade_nome || 'Sem nome'),
+            datasets: [{
+              label: 'Score Médio',
+              data: unidadesData.map(d => d.score_medio || 0),
+              backgroundColor: unidadesData.map(() => '#1EEB88'),
+              borderRadius: 8,
+              borderSkipped: false
+            }]
           },
-
-          criarGrafico() {
-            const ctx = document.getElementById('graficoUnidades');
-            const loadingEl = document.getElementById('chart-unidades-loading');
-            const containerEl = document.getElementById('chart-unidades-container');
-
-            if (!ctx || !window.Chart) {
-              console.error('Canvas ou Chart.js não encontrado');
-              if (loadingEl) loadingEl.classList.add('hidden');
-              return;
-            }
-
-            const contextCanvas = ctx.getContext('2d');
-            if (!contextCanvas) {
-              if (loadingEl) loadingEl.classList.add('hidden');
-              return;
-            }
-
-            const cores = { primary: '#1EEB88', secondary: '#0F3D52', accent: '#6EDBC1' };
-
-            try {
-              new Chart(contextCanvas, {
-                type: 'bar',
-                data: {
-                  labels: this.unidadesData.map(d => d.unidade_nome || 'Sem nome'),
-                  datasets: [{
-                    label: 'Score Médio',
-                    data: this.unidadesData.map(d => d.score_medio || 0),
-                    backgroundColor: Array(this.unidadesData.length).fill(cores.primary),
-                    borderRadius: 8,
-                    borderSkipped: false,
-                  }]
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: { legend: { display: false } },
-                  scales: {
-                    x: { grid: { display: false } },
-                    y: { beginAtZero: true }
-                  }
-                }
-              });
-
-              if (loadingEl) loadingEl.classList.add('hidden');
-              if (containerEl) containerEl.classList.remove('hidden');
-            } catch (err) {
-              console.error('Erro ao criar gráfico:', err);
-              if (loadingEl) loadingEl.classList.add('hidden');
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { padding: 8 }
+            },
+            scales: {
+              x: { grid: { display: false } },
+              y: { beginAtZero: true }
             }
           }
-        }));
-      };
+        });
 
-      if (window.Alpine && window.Alpine.data) {
-        defineComponent();
-      } else {
-        document.addEventListener('alpine:init', defineComponent);
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (containerEl) containerEl.classList.remove('hidden');
+      } catch (err) {
+        console.error('Erro ao criar Chart.js (unidades):', err);
+        if (loadingEl) loadingEl.classList.add('hidden');
       }
-    })();
+    });
   </script>
 {% endblock %}
-
-
-
-
-
-

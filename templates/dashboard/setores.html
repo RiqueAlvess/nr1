@@ -30,70 +30,58 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="setoresApp">
+<div class="space-y-6">
 
     {% if dados.setores %}
-    <!-- Resumo / filtros -->
+    <!-- Resumo -->
     <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <i class="fas fa-sitemap text-primary text-xl"></i>
-                    </div>
-                    <div>
-                        <div class="font-medium text-lg">Setores</div>
-                        <div class="text-sm text-neutral/60">Análise e comparativo por setor</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <select x-model="filtroRisco" class="select select-bordered w-full max-w-xs">
-                        <option value="">Todos</option>
-                        <option value="CRÍTICO">CRÍTICO</option>
-                        <option value="ATENÇÃO">ATENÇÃO</option>
-                        <option value="SATISFATÓRIO">SATISFATÓRIO</option>
-                    </select>
-                    <select x-model="ordenacao" class="select select-bordered w-full max-w-xs">
-                        <option value="risco">Ordenar por risco</option>
-                        <option value="score">Ordenar por score</option>
-                    </select>
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-medium text-lg">Setores</div>
+                    <div class="text-sm text-neutral/60">Análise por setor</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Cards -->
+    <!-- Gráfico (Score Médio por Setor) -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral">
+                <i class="fas fa-chart-bar text-primary mr-2"></i>
+                Comparativo de Score por Setor
+            </h2>
+            <div id="chart-setores-loading" class="flex items-center justify-center h-56">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
+            </div>
+            <div id="chart-setores-container" class="hidden mt-4" style="height: 320px;">
+                <canvas id="graficoSetores"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cards de Setores (renderizado via Django) -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <template x-for="setor in (ordenados || [])" :key="setor.setor_id">
-            <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
-                <div class="card-body">
-                    <div class="flex items-start justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <i class="fas fa-users text-primary text-xl"></i>
-                            </div>
-                            <div>
-                                <div class="font-medium" x-text="setor.setor_nome"></div>
-                                <div class="text-sm text-neutral/60" x-text="setor.unidade_nome"></div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-sm text-neutral/60">Score Médio</div>
-                            <div class="font-bold text-secondary" x-text="setor.score_medio"></div>
-                        </div>
+        {% for setor in dados.setores %}
+        <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
+            <div class="card-body">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="font-medium">{{ setor.setor_nome }}</div>
+                        <div class="text-sm text-neutral/60">{{ setor.unidade_nome }}</div>
                     </div>
-                    <div class="card-actions justify-end mt-4">
-                        <a :href="`{% url 'dashboard:setores' %}?unidade=${setor.unidade_id}`" class="btn btn-outline btn-sm btn-primary">
-                            <i class="fas fa-arrow-right mr-1"></i>
-                            Ver
-                        </a>
+                    <div class="text-right">
+                        <div class="text-sm text-neutral/60">Score Médio</div>
+                        <div class="font-bold text-secondary">{{ setor.score_medio }}</div>
                     </div>
                 </div>
             </div>
-        </template>
+        </div>
+        {% endfor %}
     </div>
 
-    <!-- Tabela -->
+    <!-- Tabela Detalhada -->
     <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
             <h2 class="card-title text-neutral text-lg">
@@ -112,14 +100,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <template x-for="setor in (ordenados || [])" :key="setor.setor_id">
-                            <tr class="hover">
-                                <td x-text="setor.setor_nome"></td>
-                                <td class="text-center" x-text="setor.unidade_nome"></td>
-                                <td class="text-center" x-text="setor.total_respostas"></td>
-                                <td class="text-center" x-text="setor.score_medio"></td>
-                            </tr>
-                        </template>
+                        {% for setor in dados.setores %}
+                        <tr class="hover">
+                            <td>{{ setor.setor_nome }}</td>
+                            <td class="text-center">{{ setor.unidade_nome }}</td>
+                            <td class="text-center">{{ setor.total_respostas }}</td>
+                            <td class="text-center">{{ setor.score_medio }}</td>
+                        </tr>
+                        {% endfor %}
                     </tbody>
                 </table>
             </div>
@@ -156,60 +144,62 @@
   {% endif %}
 
   <script>
-    (function registerSetores() {
-      const defineComponent = () => {
-        Alpine.data('setoresApp', () => ({
-          filtroRisco: '',
-          ordenacao: 'risco',
-
-          setoresData: (function() {
-            try {
-              const el = document.getElementById('dados-setores-json');
-              return el ? JSON.parse(el.textContent).setores || [] : [];
-            } catch (err) {
-              console.error('Falha ao parsear dados-setores-json:', err);
-              return [];
-            }
-          })(),
-
-          get setoresCriticos() {
-            return this.setoresData.filter(s => (s.nivel_risco_nr1 || '').toUpperCase() === 'CRÍTICO');
-          },
-
-          get setoresSatisfatorios() {
-            return this.setoresData.filter(s => (s.nivel_risco_nr1 || '').toUpperCase() === 'SATISFATÓRIO');
-          },
-
-          get filtrados() {
-            if (!this.filtroRisco) return this.setoresData;
-            const risk = this.filtroRisco.toUpperCase();
-            return this.setoresData.filter(s => (s.nivel_risco_nr1 || '').toUpperCase() === risk);
-          },
-
-          get ordenados() {
-            const arr = [...this.filtrados];
-            if (this.ordenacao === 'score') {
-              arr.sort((a, b) => (b.score_medio || 0) - (a.score_medio || 0));
-            } else {
-              // ordenar por nível de risco: CRÍTICO > ATENÇÃO > SATISFATÓRIO
-              const rank = r => (r === 'CRÍTICO' ? 3 : (r === 'ATENÇÃO' ? 2 : 1));
-              arr.sort((a, b) => rank((b.nivel_risco_nr1 || '').toUpperCase()) - rank((a.nivel_risco_nr1 || '').toUpperCase()));
-            }
-            return arr;
-          },
-
-          init() {
-            // Nenhuma ação crítica no init além de garantir que getters funcionem com dados
-            this.$nextTick(() => {});
-          }
-        }));
-      };
-
-      if (window.Alpine && window.Alpine.data) {
-        defineComponent();
-      } else {
-        document.addEventListener('alpine:init', defineComponent);
+    document.addEventListener('DOMContentLoaded', function () {
+      let setoresData = [];
+      try {
+        const el = document.getElementById('dados-setores-json');
+        setoresData = el ? (JSON.parse(el.textContent).setores || []) : [];
+      } catch (err) {
+        console.error('Erro ao parsear dados-setores-json:', err);
+        setoresData = [];
       }
-    })();
+
+      const loadingEl = document.getElementById('chart-setores-loading');
+      const containerEl = document.getElementById('chart-setores-container');
+      const canvas = document.getElementById('graficoSetores');
+
+      if (!setoresData || setoresData.length === 0) {
+        if (loadingEl) loadingEl.classList.add('hidden');
+        return;
+      }
+
+      if (!canvas || typeof Chart === 'undefined') {
+        console.error('Chart.js não encontrado ou canvas ausente (setores)');
+        if (loadingEl) loadingEl.classList.add('hidden');
+        return;
+      }
+
+      const labels = setoresData.map(s => s.setor_nome || 'Sem nome');
+      const values = setoresData.map(s => s.score_medio || 0);
+      const bg = labels.map(() => '#6EDBC1');
+
+      try {
+        const ctx = canvas.getContext('2d');
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Score Médio',
+              data: values,
+              backgroundColor: bg,
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+          }
+        });
+
+        if (loadingEl) loadingEl.classList.add('hidden');
+        if (containerEl) containerEl.classList.remove('hidden');
+      } catch (err) {
+        console.error('Erro ao criar Chart.js (setores):', err);
+        if (loadingEl) loadingEl.classList.add('hidden');
+      }
+    });
   </script>
 {% endblock %}
