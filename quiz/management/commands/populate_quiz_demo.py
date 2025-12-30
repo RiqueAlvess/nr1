@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 import random
 
 from django.conf import settings
@@ -14,54 +14,109 @@ from core.services.audit_service import AuditService
 
 
 class Command(BaseCommand):
-    help = "Popula DB com Empresa X, 5 colaboradores, gera magic links e submete respostas aleatórias (35 perguntas)."
+    help = "Popula DB com empresa demo, 1000 colaboradores com dados demográficos, gera magic links e submete respostas."
 
     def add_arguments(self, parser):
         parser.add_argument(
             "--empresa",
             type=str,
-            default="Empresa X",
-            help="Nome da empresa a ser criada/atualizada (default: 'Empresa X')"
+            default="Empresa Demo",
+            help="Nome da empresa a ser criada/atualizada (default: 'Empresa Demo')"
         )
         parser.add_argument(
             "--create-user",
             action="store_true",
             help="Criar usuário 'tester' com perfil EMPRESA (senha: testpass) para visualizar dashboard"
         )
+        parser.add_argument(
+            "--total",
+            type=int,
+            default=1000,
+            help="Total de colaboradores a criar (default: 1000)"
+        )
 
     def handle(self, *args, **options):
         empresa_nome = options["empresa"]
         create_user = options["create_user"]
+        total_colaboradores = options["total"]
 
         self.stdout.write(self.style.MIGRATE_HEADING(f"Iniciando população para empresa: {empresa_nome}"))
+        self.stdout.write(self.style.NOTICE(f"Total de colaboradores a criar: {total_colaboradores}"))
 
         # 1) Empresa
         empresa, _ = Empresa.objects.get_or_create(nome=empresa_nome)
         self.stdout.write(self.style.SUCCESS(f"Empresa pronta: {empresa.nome} ({empresa.id})"))
 
-        # 2) Linhas (suas + 2 extras) -> unidade,setor,cargo,email
-        rows = [
-            ("Matriz", "RH", "Analista", "henrique.alves.siqueira@hotmail.com"),
-            ("Matriz", "TI", "Desenvolvedor", "maria@empresa.com"),
-            ("Filial SP", "Vendas", "Vendedor", "pedro@empresa.com"),
-            # extras para totalizar 5
-            ("Filial SP", "Suporte", "Técnico", "ana.souza@empresa.com"),
-            ("Matriz", "Financeiro", "Analista", "carlos.santos@empresa.com"),
-        ]
+        # 2) Estrutura simples e equilibrada
+        # Formato: unidade, setor, cargo, email, data_nascimento, sexo
+        unidades_nomes = ["Matriz", "Filial SP", "Filial RJ", "Filial MG"]
+        setores_nomes = ["RH", "TI", "Vendas", "Financeiro", "Operações"]
+        cargos_nomes = ["Analista", "Gerente"]
+        sexos = ["M", "F"]
 
-        colaboradores = []
-        for unidade_nome, setor_nome, cargo_nome, email in rows:
+        # Criar hierarquia
+        estrutura = []  # Lista de (unidade, setor, cargo)
+        for unidade_nome in unidades_nomes:
             unidade, _ = Unidade.objects.get_or_create(empresa=empresa, nome=unidade_nome)
-            setor, _ = Setor.objects.get_or_create(unidade=unidade, nome=setor_nome)
-            cargo, _ = Cargo.objects.get_or_create(setor=setor, nome=cargo_nome)
-            colaborador, created = Colaborador.objects.update_or_create(
-                email=email,
-                defaults={"cargo": cargo, "ativo": True}
-            )
-            colaboradores.append(colaborador)
-            self.stdout.write(self.style.NOTICE(f"{'Criado' if created else 'Atualizado'} colaborador: {email}"))
+            for setor_nome in setores_nomes:
+                setor, _ = Setor.objects.get_or_create(unidade=unidade, nome=setor_nome)
+                for cargo_nome in cargos_nomes:
+                    cargo, _ = Cargo.objects.get_or_create(setor=setor, nome=cargo_nome)
+                    estrutura.append((unidade, setor, cargo))
 
-        # 3) Usuário tester/profile opcional
+        self.stdout.write(self.style.SUCCESS(f"Estrutura criada: {len(unidades_nomes)} unidades, {len(setores_nomes)} setores, {len(cargos_nomes)} cargos"))
+        self.stdout.write(self.style.NOTICE(f"Total de combinações: {len(estrutura)}"))
+
+        # Calcular distribuição igual
+        combinacoes = len(estrutura)
+        por_combinacao = total_colaboradores // combinacoes
+        restante = total_colaboradores % combinacoes
+
+        self.stdout.write(self.style.NOTICE(f"Colaboradores por combinação: {por_combinacao} (+ {restante} extras distribuídos)"))
+
+        # 3) Criar colaboradores com distribuição igual
+        colaboradores = []
+        contador = 0
+
+        # Gerar datas de nascimento (faixa: 18-65 anos)
+        hoje = date.today()
+
+        for idx, (unidade, setor, cargo) in enumerate(estrutura):
+            # Adicionar 1 extra para as primeiras 'restante' combinações
+            qtd = por_combinacao + (1 if idx < restante else 0)
+
+            for i in range(qtd):
+                contador += 1
+                email = f"colaborador{contador:04d}@empresa.com"
+
+                # Alternar sexo para distribuição equilibrada
+                sexo = sexos[contador % 2]
+
+                # Gerar data de nascimento aleatória (idade entre 18-65)
+                idade = random.randint(18, 65)
+                ano_nasc = hoje.year - idade
+                mes_nasc = random.randint(1, 12)
+                dia_nasc = random.randint(1, 28)  # Simplificado para evitar problemas com dias inválidos
+                data_nascimento = date(ano_nasc, mes_nasc, dia_nasc)
+
+                colaborador, created = Colaborador.objects.update_or_create(
+                    email=email,
+                    defaults={
+                        "cargo": cargo,
+                        "data_nascimento": data_nascimento,
+                        "sexo": sexo,
+                        "ativo": True
+                    }
+                )
+                colaboradores.append(colaborador)
+
+                # Log a cada 100
+                if contador % 100 == 0:
+                    self.stdout.write(self.style.NOTICE(f"Criados {contador} colaboradores..."))
+
+        self.stdout.write(self.style.SUCCESS(f"Total de {len(colaboradores)} colaboradores criados/atualizados"))
+
+        # 4) Usuário tester/profile opcional
         if create_user:
             user, created = User.objects.get_or_create(username="tester", defaults={"email": "tester@example.com"})
             if created:
@@ -71,7 +126,6 @@ class Command(BaseCommand):
             else:
                 self.stdout.write(self.style.WARNING("Usuário 'tester' já existe"))
 
-            # criar perfil de acesso EMPRESA ligado à empresa criada
             perfil, pcreated = PerfilAcesso.objects.get_or_create(
                 user=user,
                 defaults={"nivel_acesso": "EMPRESA", "empresa": empresa, "ativo": True}
@@ -83,11 +137,10 @@ class Command(BaseCommand):
                 perfil.save()
             self.stdout.write(self.style.SUCCESS("Perfil de acesso EMPRESA vinculado a 'tester'"))
 
-        # 4) Garantir que as perguntas HSE-IT existam (NÃO criar perguntas genéricas!)
+        # 5) Garantir que as perguntas HSE-IT existam
         from django.core.management import call_command
         call_command('populate_hseit')
 
-        # Buscar perguntas HSE-IT existentes
         perguntas = list(Pergunta.objects.filter(ativa=True).order_by('numero'))
 
         if len(perguntas) < 35:
@@ -99,15 +152,17 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(f"{len(perguntas)} perguntas HSE-IT carregadas"))
 
-        # 5) Para cada colaborador: gerar magic link (somente hash no DB) e gravar/atualizar resposta aleatória
+        # 6) Para cada colaborador: gerar magic link e gravar resposta aleatória
         agora = timezone.now()
         expiration = agora + timedelta(hours=getattr(settings, "MAGIC_LINK_EXPIRATION_HOURS", 48))
 
-        for colaborador in colaboradores:
-            # obter/criar magic link (evitar duplicar)
+        respostas_criadas = 0
+        respostas_atualizadas = 0
+
+        for idx, colaborador in enumerate(colaboradores):
+            # Obter/criar magic link
             if hasattr(colaborador, "magic_link"):
                 magic_link = colaborador.magic_link
-                self.stdout.write(self.style.WARNING(f"Colaborador {colaborador.email} já tem magic link ({magic_link.id}), usando existente"))
             else:
                 token = MagicLink.gerar_token()
                 token_hash = MagicLink.hash_token(token)
@@ -116,22 +171,21 @@ class Command(BaseCommand):
                     token_hash=token_hash,
                     expires_at=expiration
                 )
-                self.stdout.write(self.style.NOTICE(f"MagicLink criado para {colaborador.email} (id={magic_link.id})"))
 
-            # marcar iniciado se necessário
+            # Marcar iniciado se necessário
             if not magic_link.started_at:
                 magic_link.started_at = timezone.now()
                 magic_link.save()
 
-            # montar respostas aleatórias para 35 perguntas
+            # Montar respostas aleatórias para as perguntas
             respostas_dict = {}
             for p in perguntas:
                 respostas_dict[str(p.numero)] = random.randint(0, p.pontuacao_maxima)
 
-            # tempo total: random 300..900 segundos (5..15 min)
+            # Tempo total: random 300..900 segundos (5..15 min)
             tempo_total = random.randint(300, 900)
 
-            # Se já existir resposta associada ao magic_link, atualizamos; senão, criamos
+            # Se já existir resposta, atualizar; senão, criar
             if hasattr(magic_link, "resposta"):
                 resposta = magic_link.resposta
                 resposta.respostas = respostas_dict
@@ -139,9 +193,9 @@ class Command(BaseCommand):
                 resposta.save()
                 try:
                     resposta.calcular_scores()
-                except Exception as e:
-                    self.stdout.write(self.style.ERROR(f"Erro ao recalcular scores para resposta existente {resposta.id}: {e}"))
-                self.stdout.write(self.style.SUCCESS(f"Resposta existente atualizada para {colaborador.email} (resposta id={resposta.id})"))
+                except Exception:
+                    pass
+                respostas_atualizadas += 1
             else:
                 try:
                     resposta = Resposta.objects.create(
@@ -149,37 +203,38 @@ class Command(BaseCommand):
                         respostas=respostas_dict,
                         tempo_total_segundos=tempo_total
                     )
-                except Exception as e:
-                    # lidar com condição de corrida / integridade de forma segura
-                    self.stdout.write(self.style.ERROR(f"Erro ao criar resposta para magic link {magic_link.id}: {e}"))
+                    try:
+                        resposta.calcular_scores()
+                    except Exception:
+                        pass
+                    respostas_criadas += 1
+                except Exception:
                     continue
 
-                try:
-                    resposta.calcular_scores()
-                except Exception as e:
-                    self.stdout.write(self.style.ERROR(f"Erro ao calcular scores para resposta {resposta.id}: {e}"))
-
-                self.stdout.write(self.style.SUCCESS(f"Resposta criada e scores calculados para {colaborador.email}"))
-
-            # marcar concluído
+            # Marcar concluído
             try:
                 magic_link.marcar_concluido()
-            except Exception as e:
-                # tentar salvar manualmente status/completed_at se houver erro
+            except Exception:
                 magic_link.status = "COMPLETED"
                 magic_link.completed_at = timezone.now()
                 magic_link.save()
 
-            # auditoria (opcional)
-            try:
-                AuditService.log(
-                    action="QUIZ_COMPLETED",
-                    description=f"Questionário concluído (populado): {str(magic_link.id)[:8]}",
-                    metadata={"magic_link_id": str(magic_link.id), "resposta_id": str(resposta.id)},
-                )
-            except Exception:
-                # não bloquear por falha de auditoria
-                pass
+            # Log a cada 100
+            if (idx + 1) % 100 == 0:
+                self.stdout.write(self.style.NOTICE(f"Processadas {idx + 1} respostas..."))
 
-        self.stdout.write(self.style.MIGRATE_LABEL("População concluída. Dados persistidos no banco real."))
-        self.stdout.write(self.style.WARNING("Não foram enviados e-mails. Tokens em texto puro não são exibidos por segurança."))
+        self.stdout.write(self.style.SUCCESS(f"Respostas criadas: {respostas_criadas}, atualizadas: {respostas_atualizadas}"))
+
+        # Resumo final
+        self.stdout.write(self.style.MIGRATE_LABEL("\n=== RESUMO ==="))
+        self.stdout.write(self.style.SUCCESS(f"Empresa: {empresa_nome}"))
+        self.stdout.write(self.style.SUCCESS(f"Unidades: {len(unidades_nomes)} ({', '.join(unidades_nomes)})"))
+        self.stdout.write(self.style.SUCCESS(f"Setores: {len(setores_nomes)} ({', '.join(setores_nomes)})"))
+        self.stdout.write(self.style.SUCCESS(f"Cargos: {len(cargos_nomes)} ({', '.join(cargos_nomes)})"))
+        self.stdout.write(self.style.SUCCESS(f"Colaboradores: {len(colaboradores)}"))
+        self.stdout.write(self.style.SUCCESS(f"Respostas: {respostas_criadas + respostas_atualizadas}"))
+        self.stdout.write(self.style.SUCCESS(f"Distribuição de sexo: ~50% M, ~50% F"))
+        self.stdout.write(self.style.SUCCESS(f"Faixa etária: 18-65 anos (aleatório)"))
+        self.stdout.write(self.style.MIGRATE_LABEL("===============\n"))
+
+        self.stdout.write(self.style.MIGRATE_LABEL("População concluída. Dados persistidos no banco."))
