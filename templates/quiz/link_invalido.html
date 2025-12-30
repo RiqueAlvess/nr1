@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="nr1theme">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Link Inválido - Plataforma NR-1</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'public/icone.ico' %}">
+    <link rel="icon" type="image/png" href="{% static 'public/icone.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'public/icone.png' %}">
 
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -291,14 +297,8 @@
 
         <!-- Footer -->
         <div class="mt-8 pt-6 border-t border-base-300 animate-in delay-4">
-            <div class="flex items-center justify-center space-x-2">
-                <div class="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
-                    <i class="fas fa-shield-alt text-white text-xs"></i>
-                </div>
-                <div class="text-left">
-                    <p class="text-xs font-semibold text-secondary">Plataforma NR-1</p>
-                    <p class="text-[10px] text-base-content/50">Avaliação de Riscos Psicossociais</p>
-                </div>
+            <div class="flex items-center justify-center">
+                <img src="{% static 'public/icone.png' %}" alt="NR-1" class="w-10 h-10">
             </div>
         </div>
     </div>

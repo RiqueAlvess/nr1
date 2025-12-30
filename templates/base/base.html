@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="nr1theme">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Plataforma NR-1{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'public/icone.ico' %}">
+    <link rel="icon" type="image/png" href="{% static 'public/icone.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'public/icone.png' %}">
 
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
@@ -307,13 +313,7 @@
 
             <div class="p-3 border-b border-white/10"> <!-- Reduced padding -->
                 <a href="{% url 'account:dashboard' %}" class="flex items-center justify-start"> <!-- Left-aligned -->
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0"> <!-- Smaller logo -->
-                        <i class="fas fa-shield-alt text-white text-base"></i> <!-- Smaller icon -->
-                    </div>
-                    <div class="sidebar-menu-text" style="margin-left: 0.5rem;">
-                        <h1 class="font-bold text-white text-sm whitespace-nowrap">Plataforma NR-1</h1>
-                        <p class="text-xs text-accent whitespace-nowrap">Riscos Psicossociais</p>
-                    </div>
+                    <img src="{% static 'public/icone.png' %}" alt="NR-1" class="w-8 h-8 flex-shrink-0">
                 </a>
             </div>
 
@@ -430,10 +430,7 @@
             </div>
             <div class="flex-1">
                 <a href="{% url 'account:dashboard' %}" class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                        <i class="fas fa-shield-alt text-white text-sm"></i>
-                    </div>
-                    <span class="font-semibold text-lg">NR-1</span>
+                    <img src="{% static 'public/icone.png' %}" alt="NR-1" class="w-8 h-8">
                 </a>
             </div>
             <div class="flex-none">
@@ -488,13 +485,7 @@
                 <div class="p-4 border-b border-white/10">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                                <i class="fas fa-shield-alt text-white text-lg"></i>
-                            </div>
-                            <div>
-                                <h1 class="font-bold text-white">NR-1</h1>
-                                <p class="text-xs text-accent">Riscos Psicossociais</p>
-                            </div>
+                            <img src="{% static 'public/icone.png' %}" alt="NR-1" class="w-10 h-10">
                         </div>
                         <button @click="sidebarOpen = false" class="btn btn-ghost btn-sm btn-circle text-white/70 hover:text-white hover:bg-white/10">
                             <i class="fas fa-times"></i>
@@ -558,13 +549,7 @@
         <header class="navbar bg-secondary text-white shadow-sm">
             <div class="flex-1">
                 <a href="/" class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-                        <i class="fas fa-shield-alt text-white text-lg"></i>
-                    </div>
-                    <div>
-                        <span class="text-lg font-bold">Plataforma NR-1</span>
-                        <span class="hidden sm:inline text-sm text-accent ml-2">Riscos Psicossociais</span>
-                    </div>
+                    <img src="{% static 'public/icone.png' %}" alt="NR-1" class="w-10 h-10">
                 </a>
             </div>
         </header>
