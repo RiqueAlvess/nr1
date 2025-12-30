@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
+from django.utils import timezone
+from datetime import timedelta
+from django.conf import settings
+import secrets
 from core.models import TimeStampedModel, Empresa, Unidade, Setor
 
 
@@ -268,3 +272,100 @@ class PerfilAcesso(TimeStampedModel):
             return f"{setores} setor(es)"
 
         return "Acesso não configurado"
+
+
+class PasswordResetToken(TimeStampedModel):
+    """
+    Token para redefinição de senha via magic link
+    Utiliza o sistema nativo do Django para segurança
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='password_reset_tokens',
+        verbose_name='Usuário'
+    )
+    token = models.CharField(
+        max_length=100,
+        unique=True,
+        db_index=True,
+        verbose_name='Token'
+    )
+    expires_at = models.DateTimeField(
+        verbose_name='Expira em'
+    )
+    is_used = models.BooleanField(
+        default=False,
+        verbose_name='Foi utilizado'
+    )
+    used_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Utilizado em'
+    )
+    ip_address = models.GenericIPAddressField(
+        null=True,
+        blank=True,
+        verbose_name='Endereço IP'
+    )
+    user_agent = models.TextField(
+        null=True,
+        blank=True,
+        verbose_name='User Agent'
+    )
+
+    class Meta:
+        db_table = 'password_reset_tokens'
+        verbose_name = 'Token de Redefinição de Senha'
+        verbose_name_plural = 'Tokens de Redefinição de Senha'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['token', 'is_used']),
+            models.Index(fields=['user', 'is_used']),
+        ]
+
+    def __str__(self):
+        status = "Usado" if self.is_used else ("Expirado" if self.is_expired() else "Válido")
+        return f"{self.user.username} - {status} - {self.created_at.strftime('%d/%m/%Y %H:%M')}"
+
+    def save(self, *args, **kwargs):
+        """Gera token automático se não existir"""
+        if not self.token:
+            self.token = self.generate_token()
+        if not self.expires_at:
+            expiration_hours = getattr(settings, 'MAGIC_LINK_EXPIRATION_HOURS', 48)
+            self.expires_at = timezone.now() + timedelta(hours=expiration_hours)
+        super().save(*args, **kwargs)
+
+    @staticmethod
+    def generate_token():
+        """Gera token seguro de 64 caracteres"""
+        return secrets.token_urlsafe(48)
+
+    def is_expired(self):
+        """Verifica se o token está expirado"""
+        return timezone.now() > self.expires_at
+
+    def is_valid(self):
+        """Verifica se o token é válido (não usado e não expirado)"""
+        return not self.is_used and not self.is_expired()
+
+    def mark_as_used(self, ip_address=None, user_agent=None):
+        """Marca o token como utilizado"""
+        self.is_used = True
+        self.used_at = timezone.now()
+        if ip_address:
+            self.ip_address = ip_address
+        if user_agent:
+            self.user_agent = user_agent
+        self.save()
+
+    def invalidate_previous_tokens(self):
+        """Invalida todos os tokens anteriores do mesmo usuário"""
+        PasswordResetToken.objects.filter(
+            user=self.user,
+            is_used=False
+        ).exclude(id=self.id).update(
+            is_used=True,
+            used_at=timezone.now()
+        )

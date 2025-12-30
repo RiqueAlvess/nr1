@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from account.models import PerfilAcesso
+from account.models import PerfilAcesso, PasswordResetToken
 
 
 @admin.register(PerfilAcesso)
@@ -74,3 +74,64 @@ class PerfilAcessoAdmin(admin.ModelAdmin):
     def get_resumo_acesso_display(self, obj):
         return obj.get_resumo_acesso()
     get_resumo_acesso_display.short_description = 'Resumo de Acesso'
+
+
+@admin.register(PasswordResetToken)
+class PasswordResetTokenAdmin(admin.ModelAdmin):
+    list_display = ['user', 'get_status_display', 'created_at', 'expires_at', 'used_at', 'ip_address']
+    list_filter = ['is_used', 'created_at', 'expires_at']
+    search_fields = ['user__username', 'user__email', 'token', 'ip_address']
+    readonly_fields = ['id', 'token', 'user', 'created_at', 'updated_at', 'expires_at',
+                       'is_used', 'used_at', 'ip_address', 'user_agent']
+    date_hierarchy = 'created_at'
+    ordering = ['-created_at']
+
+    fieldsets = (
+        ('Informações do Token', {
+            'fields': ('id', 'token', 'user')
+        }),
+        ('Status', {
+            'fields': ('is_used', 'created_at', 'expires_at', 'used_at')
+        }),
+        ('Informações de Uso', {
+            'fields': ('ip_address', 'user_agent'),
+            'classes': ('collapse',)
+        }),
+        ('Metadados', {
+            'fields': ('updated_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def get_status_display(self, obj):
+        if obj.is_used:
+            return format_html(
+                '<span style="background-color: {}; color: white; padding: 2px 8px; '
+                'border-radius: 4px; font-size: 11px;">Usado</span>',
+                '#6B7280'
+            )
+        elif obj.is_expired():
+            return format_html(
+                '<span style="background-color: {}; color: white; padding: 2px 8px; '
+                'border-radius: 4px; font-size: 11px;">Expirado</span>',
+                '#EF4444'
+            )
+        else:
+            return format_html(
+                '<span style="background-color: {}; color: white; padding: 2px 8px; '
+                'border-radius: 4px; font-size: 11px;">Válido</span>',
+                '#10B981'
+            )
+    get_status_display.short_description = 'Status'
+
+    def has_add_permission(self, request):
+        """Não permite criar tokens manualmente via admin"""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Não permite editar tokens via admin"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Permite deletar tokens expirados via admin"""
+        return request.user.is_superuser
