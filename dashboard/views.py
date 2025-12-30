@@ -88,17 +88,37 @@ def dashboard_principal_view(request):
         }
     )
 
+    # Buscar dados avançados adicionais
+    estatisticas_avancadas = dashboard_service.get_estatisticas_avancadas(empresa_id)
+    distribuicao_scores = dashboard_service.get_distribuicao_scores(empresa_id)
+    tempo_medio = dashboard_service.get_tempo_medio_resposta(empresa_id)
+    pontuacao_por_pergunta = dashboard_service.get_pontuacao_por_pergunta(empresa_id)
+    analise_genero = dashboard_service.get_analise_por_genero(empresa_id)
+    analise_faixa_etaria = dashboard_service.get_analise_por_faixa_etaria(empresa_id)
+    piramide_etaria = dashboard_service.get_piramide_etaria_com_risco(empresa_id)
+    dimensoes_por_genero = dashboard_service.get_dimensoes_por_genero(empresa_id)
+
     context = {
         # Dados originais para uso no template HTML
         'kpis': kpis,
         'dados_unidades': dados_unidades,
         'dados_setores': dados_setores,
         'dados_dimensoes': dados_dimensoes,
+        'estatisticas_avancadas': estatisticas_avancadas,
+        'tempo_medio': tempo_medio,
         # Dados serializados em JSON para uso no JavaScript
         'kpis_json': json.dumps(kpis, cls=DjangoJSONEncoder),
         'dados_unidades_json': json.dumps(dados_unidades, cls=DjangoJSONEncoder),
         'dados_setores_json': json.dumps(dados_setores, cls=DjangoJSONEncoder),
         'dados_dimensoes_json': json.dumps(dados_dimensoes, cls=DjangoJSONEncoder),
+        'estatisticas_avancadas_json': json.dumps(estatisticas_avancadas, cls=DjangoJSONEncoder),
+        'distribuicao_scores_json': json.dumps(distribuicao_scores, cls=DjangoJSONEncoder),
+        'tempo_medio_json': json.dumps(tempo_medio, cls=DjangoJSONEncoder),
+        'pontuacao_por_pergunta_json': json.dumps(pontuacao_por_pergunta, cls=DjangoJSONEncoder),
+        'analise_genero_json': json.dumps(analise_genero, cls=DjangoJSONEncoder),
+        'analise_faixa_etaria_json': json.dumps(analise_faixa_etaria, cls=DjangoJSONEncoder),
+        'piramide_etaria_json': json.dumps(piramide_etaria, cls=DjangoJSONEncoder),
+        'dimensoes_por_genero_json': json.dumps(dimensoes_por_genero, cls=DjangoJSONEncoder),
         # Outros dados do contexto
         'empresa': empresa_selecionada,
         'empresas': empresas,

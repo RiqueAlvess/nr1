@@ -1,0 +1,64 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Convite para Avaliação de Riscos Psicossociais - NR-1{% endblock %}
+
+{% block header_title %}Avaliação de Riscos Psicossociais{% endblock %}
+
+{% block content %}
+<h2>Você foi convidado(a) a participar!</h2>
+
+<p>
+    Sua empresa está realizando uma avaliação de <strong>Riscos Psicossociais</strong> conforme
+    determinado pela <strong>NR-1 (Norma Regulamentadora nº 1)</strong>.
+</p>
+
+<p>
+    Sua participação é fundamental para identificarmos oportunidades de melhoria no ambiente de trabalho
+    e promovermos um espaço mais saudável e seguro para todos.
+</p>
+
+<div class="info-box">
+    <p><strong>📋 Informações Importantes:</strong></p>
+    <ul>
+        <li>✅ Suas respostas são <span class="highlight">totalmente anônimas</span></li>
+        <li>⏱️ O questionário leva aproximadamente <strong>10-15 minutos</strong></li>
+        <li>🔒 Este link é <strong>pessoal e intransferível</strong></li>
+        <li>📅 Válido por <strong>{{ expiration_hours }} horas</strong> após o envio</li>
+        <li>✔️ Após responder, o link expira automaticamente</li>
+    </ul>
+</div>
+
+<p>
+    <strong>Como funciona?</strong><br>
+    Clique no botão abaixo para acessar o questionário de forma segura e anônima.
+    Você será direcionado diretamente para a pesquisa, sem necessidade de login ou cadastro.
+</p>
+
+<div class="btn-container">
+    <a href="{{ magic_link }}" class="btn-primary">
+        🚀 Responder Questionário
+    </a>
+</div>
+
+<hr class="divider">
+
+<p style="font-size: 14px; color: #6b7280;">
+    <strong>Por que minha participação é importante?</strong><br>
+    Esta avaliação nos ajuda a entender melhor o clima organizacional e identificar
+    fatores que podem impactar o bem-estar e a saúde mental dos colaboradores.
+    Seus dados são tratados com total confidencialidade e utilizados apenas para
+    fins estatísticos e de melhoria contínua.
+</p>
+
+<p style="font-size: 13px; color: #9ca3af; margin-top: 20px;">
+    💡 <strong>Dica:</strong> Reserve um momento tranquilo para responder ao questionário
+    e seja sincero(a) em suas respostas. Não existem respostas certas ou erradas!
+</p>
+{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<p style="text-align: center; font-size: 11px; color: #9ca3af; margin-top: 15px;">
+    Este é um email automático. Por favor, não responda a esta mensagem.
+</p>
+{% endblock %}
