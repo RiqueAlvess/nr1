@@ -152,22 +152,6 @@
         {% endfor %}
     </div>
 
-    <!-- Gráfico Radar -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <h2 class="card-title text-neutral text-lg">
-                <i class="fas fa-chart-area text-primary mr-2"></i>
-                Mapa de Dimensões
-            </h2>
-            <div id="chart-dimensoes-loading" class="flex items-center justify-center h-96">
-                <span class="loading loading-spinner loading-lg text-primary"></span>
-            </div>
-            <div id="chart-dimensoes-container" class="hidden mt-4 flex justify-center" style="height: 400px;">
-                <canvas id="graficoDimensoes"></canvas>
-            </div>
-        </div>
-    </div>
-
     <!-- Tabela Detalhada -->
     <div class="card bg-base-100 shadow-soft">
         <div class="card-body">
@@ -221,78 +205,4 @@
     {% endif %}
 
 </div>
-{% endblock %}
-
-{% block extra_js %}
-{% if dados.pode_visualizar %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const dimensoesData = {{ dados_dimensoes_json|safe }}.dimensoes || [];
-    
-    const ctx = document.getElementById('graficoDimensoes');
-    const loadingEl = document.getElementById('chart-dimensoes-loading');
-    const containerEl = document.getElementById('chart-dimensoes-container');
-
-    if (!ctx || !window.Chart || dimensoesData.length === 0) {
-        console.error('Canvas, Chart.js ou dados não disponíveis');
-        if (loadingEl) loadingEl.classList.add('hidden');
-        return;
-    }
-
-    const cores = {
-        primary: '#1EEB88',
-        error: '#EF4444',
-        warning: '#FACC15',
-        success: '#22C55E'
-    };
-
-    try {
-        new Chart(ctx.getContext('2d'), {
-            type: 'radar',
-            data: {
-                labels: dimensoesData.map(d => d.dimensao || 'N/A'),
-                datasets: [{
-                    label: 'Score Médio',
-                    data: dimensoesData.map(d => d.score_medio || 0),
-                    backgroundColor: 'rgba(30, 235, 136, 0.2)',
-                    borderColor: cores.primary,
-                    borderWidth: 2,
-                    pointBackgroundColor: dimensoesData.map(d => {
-                        if (d.nivel_risco === 'CRÍTICO') return cores.error;
-                        if (d.nivel_risco === 'ATENÇÃO') return cores.warning;
-                        return cores.success;
-                    }),
-                    pointBorderColor: '#fff',
-                    pointRadius: 6,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: '#0F3D52',
-                        padding: 12,
-                        cornerRadius: 8
-                    }
-                },
-                scales: {
-                    r: {
-                        suggestedMin: 0,
-                        suggestedMax: 4
-                    }
-                }
-            }
-        });
-
-        if (loadingEl) loadingEl.classList.add('hidden');
-        if (containerEl) containerEl.classList.remove('hidden');
-    } catch (error) {
-        console.error('Erro ao criar gráfico:', error);
-        if (loadingEl) loadingEl.classList.add('hidden');
-    }
-});
-</script>
-{% endif %}
 {% endblock %}
