@@ -66,7 +66,7 @@
                             required
                         />
                         <label class="label">
-                            <span class="label-text-alt text-neutral/50">Formato: unidade, setor, cargo, email</span>
+                            <span class="label-text-alt text-neutral/50">Campos obrigatórios + opcionais (data_nascimento, sexo)</span>
                         </label>
                     </div>
                 </div>
@@ -90,7 +90,7 @@
             </h3>
 
             <div class="text-sm space-y-3 mt-4">
-                <p class="text-neutral/70">O arquivo CSV deve conter as seguintes colunas (com cabeçalho):</p>
+                <p class="text-neutral/70"><strong>Campos obrigatórios:</strong></p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <div class="bg-base-200 rounded-lg p-3">
@@ -111,11 +111,33 @@
                     </div>
                 </div>
 
+                <p class="text-neutral/70 mt-4"><strong>Campos opcionais (para análises demográficas):</strong></p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="bg-accent/10 border border-accent/30 rounded-lg p-3">
+                        <p class="font-semibold text-neutral">data_nascimento</p>
+                        <p class="text-xs text-neutral/60">Data de nascimento (DD/MM/AAAA, DD-MM-AAAA ou AAAA-MM-DD)</p>
+                    </div>
+                    <div class="bg-accent/10 border border-accent/30 rounded-lg p-3">
+                        <p class="font-semibold text-neutral">sexo</p>
+                        <p class="text-xs text-neutral/60">M/Masculino/F/Feminino/O/Outro ou vazio para "Não informado"</p>
+                    </div>
+                </div>
+
                 <div class="mockup-code mt-4 text-xs">
-                    <pre data-prefix="1"><code>unidade,setor,cargo,email</code></pre>
-                    <pre data-prefix="2"><code>Matriz,RH,Analista,joao@empresa.com</code></pre>
-                    <pre data-prefix="3"><code>Matriz,TI,Desenvolvedor,maria@empresa.com</code></pre>
-                    <pre data-prefix="4"><code>Filial SP,Vendas,Vendedor,pedro@empresa.com</code></pre>
+                    <pre data-prefix="1"><code>unidade,setor,cargo,email,data_nascimento,sexo</code></pre>
+                    <pre data-prefix="2"><code>Matriz,RH,Analista,joao@empresa.com,15/03/1990,M</code></pre>
+                    <pre data-prefix="3"><code>Matriz,TI,Desenvolvedor,maria@empresa.com,22/07/1985,F</code></pre>
+                    <pre data-prefix="4"><code>Filial SP,Vendas,Vendedor,pedro@empresa.com,10/12/1995,M</code></pre>
+                    <pre data-prefix="5"><code>Filial SP,Vendas,Gerente,ana@empresa.com,,</code></pre>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="text-xs">
+                        Os campos demográficos permitem análises por faixa etária e grupos de sexo no dashboard.
+                        Deixe em branco se não disponível.
+                    </span>
                 </div>
             </div>
         </div>
@@ -212,8 +234,11 @@
                 <ul class="text-sm text-neutral/70 mt-2 space-y-1 list-disc list-inside">
                     <li>Use codificação UTF-8 para evitar problemas com acentos</li>
                     <li>Separe as colunas por vírgula (,)</li>
-                    <li>Emails duplicados serão ignorados automaticamente</li>
+                    <li>Emails duplicados serão atualizados automaticamente com os novos dados</li>
                     <li>A hierarquia (unidade > setor > cargo) é criada automaticamente</li>
+                    <li>Campos demográficos (data_nascimento, sexo) são opcionais mas recomendados para análises mais ricas</li>
+                    <li>Formatos de data aceitos: DD/MM/AAAA, DD-MM-AAAA ou AAAA-MM-DD</li>
+                    <li>Valores de sexo aceitos: M, Masculino, F, Feminino, O, Outro (ou vazio)</li>
                 </ul>
             </div>
         </div>
