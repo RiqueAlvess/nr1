@@ -364,6 +364,238 @@
         </div>
     </div>
 
+    <!-- === ESTATÍSTICAS AVANÇADAS === -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral text-lg mb-4">
+                <i class="fas fa-chart-area mr-2 text-secondary"></i>
+                Estatísticas Avançadas
+            </h2>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <div class="stat bg-base-200 rounded-lg p-3">
+                    <div class="stat-title text-xs">Mediana</div>
+                    <div class="stat-value text-lg text-secondary">{{ kpis.mediana_score }}</div>
+                    <div class="stat-desc text-xs">Score central</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg p-3">
+                    <div class="stat-title text-xs">Desvio Padrão</div>
+                    <div class="stat-value text-lg text-secondary">{{ kpis.desvio_padrao }}</div>
+                    <div class="stat-desc text-xs">Dispersão</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg p-3">
+                    <div class="stat-title text-xs">CV%</div>
+                    <div class="stat-value text-lg text-secondary">{{ kpis.cv_percent }}%</div>
+                    <div class="stat-desc text-xs">Coef. Variação</div>
+                </div>
+                <div class="stat bg-base-200 rounded-lg p-3">
+                    <div class="stat-title text-xs">Tempo Médio</div>
+                    <div class="stat-value text-lg text-secondary">{{ kpis.tempo_medio_minutos }}</div>
+                    <div class="stat-desc text-xs">minutos</div>
+                </div>
+            </div>
+
+            <!-- Quartis -->
+            <div class="mt-4">
+                <h3 class="text-sm font-semibold text-neutral/70 mb-2">Distribuição por Quartis</h3>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="badge badge-outline">Q1: {{ kpis.quartis.Q1 }}</div>
+                    <div class="badge badge-primary">Q2: {{ kpis.quartis.Q2 }}</div>
+                    <div class="badge badge-outline">Q3: {{ kpis.quartis.Q3 }}</div>
+                    <div class="badge badge-ghost">Min: {{ kpis.score_minimo }} | Max: {{ kpis.score_maximo }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ANÁLISES AVANÇADAS - GRÁFICOS === -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Histograma de Scores -->
+        <div class="card bg-base-100 shadow-soft">
+            <div class="card-body">
+                <h2 class="card-title text-neutral text-lg">
+                    <i class="fas fa-chart-bar mr-2 text-primary"></i>
+                    Distribuição de Scores
+                </h2>
+                <div id="chart-histograma-container" class="mt-4" style="height: 280px;">
+                    <canvas id="graficoHistograma"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Radar Multi-nível -->
+        <div class="card bg-base-100 shadow-soft">
+            <div class="card-body">
+                <h2 class="card-title text-neutral text-lg">
+                    <i class="fas fa-spider mr-2 text-accent"></i>
+                    Perfil Psicossocial
+                </h2>
+                <!-- Filtros do Radar -->
+                <div class="flex flex-wrap gap-2 mt-2 mb-3">
+                    <select x-model="radarFiltroUnidade" @change="atualizarRadar()" class="select select-bordered select-xs">
+                        <option value="">Empresa</option>
+                        <template x-for="u in dados.unidades" :key="u.unidade_id">
+                            <option :value="u.unidade_id" x-text="u.unidade_nome"></option>
+                        </template>
+                    </select>
+                    <select x-model="radarFiltroSetor" @change="atualizarRadar()" class="select select-bordered select-xs" x-show="radarFiltroUnidade">
+                        <option value="">Todos Setores</option>
+                        <template x-for="s in setoresFiltrados" :key="s.setor_id">
+                            <option :value="s.setor_id" x-text="s.setor_nome"></option>
+                        </template>
+                    </select>
+                </div>
+                <div id="chart-radar-container" style="height: 250px;">
+                    <canvas id="graficoRadar"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === DIMENSÕES POR POLARIDADE === -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral text-lg">
+                <i class="fas fa-balance-scale mr-2 text-secondary"></i>
+                Dimensões por Polaridade
+            </h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
+                <!-- Positivas -->
+                <div>
+                    <h3 class="text-sm font-semibold text-success mb-2">
+                        <i class="fas fa-plus-circle mr-1"></i>
+                        Positivas (menor score = maior risco)
+                    </h3>
+                    <div class="space-y-2">
+                        {% for dim in dimensoes_polaridade.positivas %}
+                        <div class="flex items-center gap-2">
+                            <span class="badge {% if dim.nivel_risco == 'CRÍTICO' %}badge-error{% elif dim.nivel_risco == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %} badge-xs"></span>
+                            <span class="text-sm flex-1">{{ dim.dimensao }}</span>
+                            <span class="font-mono text-sm">{{ dim.score_medio }}</span>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-neutral/50">Sem dados disponíveis</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <!-- Negativas -->
+                <div>
+                    <h3 class="text-sm font-semibold text-error mb-2">
+                        <i class="fas fa-minus-circle mr-1"></i>
+                        Negativas (maior score = maior risco)
+                    </h3>
+                    <div class="space-y-2">
+                        {% for dim in dimensoes_polaridade.negativas %}
+                        <div class="flex items-center gap-2">
+                            <span class="badge {% if dim.nivel_risco == 'CRÍTICO' %}badge-error{% elif dim.nivel_risco == 'ATENÇÃO' %}badge-warning{% else %}badge-success{% endif %} badge-xs"></span>
+                            <span class="text-sm flex-1">{{ dim.dimensao }}</span>
+                            <span class="font-mono text-sm">{{ dim.score_medio }}</span>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-neutral/50">Sem dados disponíveis</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <!-- Resumo -->
+            <div class="flex gap-4 mt-4 pt-4 border-t border-base-300">
+                <div class="badge badge-lg badge-outline">
+                    Média Positivas: {{ dimensoes_polaridade.resumo.media_positivas }}
+                </div>
+                <div class="badge badge-lg badge-outline">
+                    Média Negativas: {{ dimensoes_polaridade.resumo.media_negativas }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === PIRÂMIDE ETÁRIA === -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral text-lg">
+                <i class="fas fa-users mr-2 text-primary"></i>
+                Pirâmide Etária por Nível de Risco
+            </h2>
+            <div id="chart-piramide-container" class="mt-4" style="height: 320px;">
+                <canvas id="graficoPiramide"></canvas>
+            </div>
+            <div class="flex justify-center gap-4 mt-2 text-sm">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-error"></span> Crítico</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-warning"></span> Atenção</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-success"></span> Satisfatório</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- === PONTUAÇÃO POR PERGUNTA === -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="card-title text-neutral text-lg">
+                    <i class="fas fa-list-ol mr-2 text-accent"></i>
+                    Pontuação por Pergunta
+                </h2>
+                <select x-model="ordenacaoPergunta" @change="ordenarPerguntas()" class="select select-bordered select-sm">
+                    <option value="numero">Por Número</option>
+                    <option value="criticidade">Por Criticidade</option>
+                    <option value="media_asc">Menor Média</option>
+                    <option value="media_desc">Maior Média</option>
+                </select>
+            </div>
+            <div class="overflow-x-auto max-h-96">
+                <table class="table table-zebra table-sm w-full">
+                    <thead class="sticky top-0 bg-base-200">
+                        <tr>
+                            <th class="w-12">#</th>
+                            <th>Pergunta</th>
+                            <th>Dimensão</th>
+                            <th class="text-center">Média</th>
+                            <th class="text-center">Risco</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="p in perguntasOrdenadas" :key="p.numero">
+                            <tr class="hover">
+                                <td class="font-mono text-xs" x-text="p.numero"></td>
+                                <td class="text-sm max-w-xs truncate" x-text="p.texto" :title="p.texto"></td>
+                                <td class="text-xs text-neutral/70" x-text="p.dimensao"></td>
+                                <td class="text-center font-bold" x-text="p.media"></td>
+                                <td class="text-center">
+                                    <span class="badge badge-xs"
+                                          :class="{
+                                              'badge-error': p.nivel_risco === 'CRÍTICO',
+                                              'badge-warning': p.nivel_risco === 'ATENÇÃO',
+                                              'badge-success': p.nivel_risco === 'SATISFATÓRIO'
+                                          }"
+                                          x-text="p.nivel_risco"></span>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- === DISTRIBUIÇÃO DE RESPOSTAS POR PERGUNTA === -->
+    <div class="card bg-base-100 shadow-soft">
+        <div class="card-body">
+            <h2 class="card-title text-neutral text-lg">
+                <i class="fas fa-chart-bar mr-2 text-secondary"></i>
+                Distribuição de Respostas (0-4)
+            </h2>
+            <div id="chart-distribuicao-perguntas-container" class="mt-4" style="height: 350px;">
+                <canvas id="graficoDistribuicaoPerguntas"></canvas>
+            </div>
+            <div class="flex justify-center gap-2 mt-2 text-xs">
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background: #EF4444"></span> 0</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background: #F97316"></span> 1</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background: #FACC15"></span> 2</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background: #84CC16"></span> 3</span>
+                <span class="flex items-center gap-1"><span class="w-3 h-3 rounded" style="background: #22C55E"></span> 4</span>
+            </div>
+        </div>
+    </div>
+
     <!-- === AÇÃO (apenas RH) === -->
     {% if perfil.is_rh %}
     <div class="card bg-primary text-primary-content shadow-soft">
@@ -403,6 +635,19 @@ document.addEventListener('alpine:init', () => {
         tituloGrafico: 'Visão Geral',
         chartMain: null,
         chartDistribuicao: null,
+        // Novos gráficos
+        chartHistograma: null,
+        chartRadar: null,
+        chartPiramide: null,
+        chartDistPerguntas: null,
+        // Filtros para radar multi-nível
+        radarFiltroUnidade: '',
+        radarFiltroSetor: '',
+        // Ordenação de perguntas
+        ordenacaoPergunta: 'numero',
+        // Dados de perguntas (para ordenação reativa)
+        perguntas: {{ pontuacao_por_pergunta_json|safe }},
+        perguntasOrdenadas: [],
 
         // Dados do backend (corretamente serializados como JSON)
         dados: {
@@ -411,13 +656,76 @@ document.addEventListener('alpine:init', () => {
             setores: ({{ dados_setores_json|safe }}).setores || [],
             dimensoes: ({{ dados_dimensoes_json|safe }}).dimensoes || []
         },
+        // Dados adicionais para gráficos avançados
+        histogramaData: {{ histograma_scores_json|safe }},
+        radarData: {{ radar_multinivel_json|safe }},
+        piramideData: {{ piramide_etaria_json|safe }},
+        distribuicaoRespostas: {{ distribuicao_respostas_json|safe }},
+        empresaId: '{{ empresa_selecionada_id }}',
+
+        // Computed: setores filtrados por unidade selecionada
+        get setoresFiltrados() {
+            if (!this.radarFiltroUnidade) return [];
+            return this.dados.setores.filter(s => s.unidade_id === this.radarFiltroUnidade);
+        },
 
         init() {
+            // Inicializar perguntas ordenadas
+            this.perguntasOrdenadas = [...this.perguntas];
+            this.ordenarPerguntas();
+
             // Aguardar DOM estar completamente carregado
             this.$nextTick(() => {
                 this.criarGraficoDistribuicao();
                 this.atualizarGraficos();
+                // Novos gráficos
+                this.criarGraficoHistograma();
+                this.criarGraficoRadar();
+                this.criarGraficoPiramide();
+                this.criarGraficoDistribuicaoPerguntas();
             });
+        },
+
+        ordenarPerguntas() {
+            const perguntas = [...this.perguntas];
+            const ordemRisco = { 'CRÍTICO': 0, 'ATENÇÃO': 1, 'SATISFATÓRIO': 2 };
+
+            switch (this.ordenacaoPergunta) {
+                case 'criticidade':
+                    perguntas.sort((a, b) => ordemRisco[a.nivel_risco] - ordemRisco[b.nivel_risco]);
+                    break;
+                case 'media_asc':
+                    perguntas.sort((a, b) => a.media - b.media);
+                    break;
+                case 'media_desc':
+                    perguntas.sort((a, b) => b.media - a.media);
+                    break;
+                default: // numero
+                    perguntas.sort((a, b) => a.numero - b.numero);
+            }
+            this.perguntasOrdenadas = perguntas;
+        },
+
+        async atualizarRadar() {
+            // Limpar setor se unidade mudou
+            if (!this.radarFiltroUnidade) {
+                this.radarFiltroSetor = '';
+            }
+
+            // Fazer fetch dos novos dados
+            const params = new URLSearchParams({ empresa: this.empresaId });
+            if (this.radarFiltroUnidade) params.append('unidade', this.radarFiltroUnidade);
+            if (this.radarFiltroSetor) params.append('setor', this.radarFiltroSetor);
+
+            try {
+                const response = await fetch(`/dashboard/api/radar/?${params}`);
+                if (response.ok) {
+                    this.radarData = await response.json();
+                    this.criarGraficoRadar();
+                }
+            } catch (error) {
+                console.error('Erro ao atualizar radar:', error);
+            }
         },
 
         atualizarGraficos() {
@@ -637,6 +945,265 @@ document.addEventListener('alpine:init', () => {
                 // Em caso de erro, esconder loading mesmo assim
                 if (loadingEl) loadingEl.classList.add('hidden');
             }
+        },
+
+        // ======================================================
+        // NOVOS GRÁFICOS - Análises Avançadas
+        // ======================================================
+
+        criarGraficoHistograma() {
+            const ctx = document.getElementById('graficoHistograma');
+            if (!ctx || !this.histogramaData || !this.histogramaData.labels) return;
+
+            if (this.chartHistograma) {
+                this.chartHistograma.destroy();
+            }
+
+            const cores = {
+                primary: '#1EEB88',
+                secondary: '#0F3D52'
+            };
+
+            this.chartHistograma = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: this.histogramaData.labels,
+                    datasets: [{
+                        label: 'Frequência',
+                        data: this.histogramaData.counts,
+                        backgroundColor: cores.primary,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: cores.secondary,
+                            padding: 10,
+                            cornerRadius: 6
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Quantidade' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Faixa de Score' }
+                        }
+                    }
+                }
+            });
+        },
+
+        criarGraficoRadar() {
+            const ctx = document.getElementById('graficoRadar');
+            if (!ctx || !this.radarData || !this.radarData.labels) return;
+
+            if (this.chartRadar) {
+                this.chartRadar.destroy();
+            }
+
+            const cores = {
+                primary: 'rgba(30, 235, 136, 0.5)',
+                primaryBorder: '#1EEB88',
+                error: '#EF4444',
+                warning: '#FACC15',
+                success: '#22C55E'
+            };
+
+            // Determinar cores dos pontos baseado no nível de risco
+            const pontoCores = this.radarData.niveis_risco.map(nivel => {
+                if (nivel === 'CRÍTICO') return cores.error;
+                if (nivel === 'ATENÇÃO') return cores.warning;
+                return cores.success;
+            });
+
+            this.chartRadar = new Chart(ctx.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: this.radarData.labels,
+                    datasets: [{
+                        label: this.radarData.nivel_nome || 'Empresa',
+                        data: this.radarData.scores,
+                        backgroundColor: cores.primary,
+                        borderColor: cores.primaryBorder,
+                        borderWidth: 2,
+                        pointBackgroundColor: pontoCores,
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 4,
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        },
+
+        criarGraficoPiramide() {
+            const ctx = document.getElementById('graficoPiramide');
+            if (!ctx || !this.piramideData || !this.piramideData.faixas) return;
+
+            if (this.chartPiramide) {
+                this.chartPiramide.destroy();
+            }
+
+            const faixas = this.piramideData.faixas;
+            const masculino = this.piramideData.masculino;
+            const feminino = this.piramideData.feminino;
+
+            const cores = {
+                error: '#EF4444',
+                warning: '#FACC15',
+                success: '#22C55E'
+            };
+
+            // Preparar datasets para pirâmide
+            const datasets = [
+                // Masculino (valores negativos - esquerda)
+                {
+                    label: 'M - Crítico',
+                    data: faixas.map(f => masculino[f]?.critico || 0),
+                    backgroundColor: cores.error,
+                    stack: 'masculino'
+                },
+                {
+                    label: 'M - Atenção',
+                    data: faixas.map(f => masculino[f]?.atencao || 0),
+                    backgroundColor: cores.warning,
+                    stack: 'masculino'
+                },
+                {
+                    label: 'M - Satisfatório',
+                    data: faixas.map(f => masculino[f]?.satisfatorio || 0),
+                    backgroundColor: cores.success,
+                    stack: 'masculino'
+                },
+                // Feminino (valores positivos - direita)
+                {
+                    label: 'F - Crítico',
+                    data: faixas.map(f => feminino[f]?.critico || 0),
+                    backgroundColor: cores.error,
+                    stack: 'feminino'
+                },
+                {
+                    label: 'F - Atenção',
+                    data: faixas.map(f => feminino[f]?.atencao || 0),
+                    backgroundColor: cores.warning,
+                    stack: 'feminino'
+                },
+                {
+                    label: 'F - Satisfatório',
+                    data: faixas.map(f => feminino[f]?.satisfatorio || 0),
+                    backgroundColor: cores.success,
+                    stack: 'feminino'
+                }
+            ];
+
+            this.chartPiramide = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: faixas,
+                    datasets: datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = Math.abs(context.raw);
+                                    return `${context.dataset.label}: ${value}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return Math.abs(value);
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: '← Masculino | Feminino →'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            title: { display: true, text: 'Faixa Etária' }
+                        }
+                    }
+                }
+            });
+        },
+
+        criarGraficoDistribuicaoPerguntas() {
+            const ctx = document.getElementById('graficoDistribuicaoPerguntas');
+            if (!ctx || !this.distribuicaoRespostas || !this.distribuicaoRespostas.perguntas_info) return;
+
+            if (this.chartDistPerguntas) {
+                this.chartDistPerguntas.destroy();
+            }
+
+            const perguntas = this.distribuicaoRespostas.perguntas_info.slice(0, 15); // Limitar a 15 perguntas
+            const labels = perguntas.map(p => `P${p.numero}`);
+
+            const cores = ['#EF4444', '#F97316', '#FACC15', '#84CC16', '#22C55E'];
+
+            const datasets = [0, 1, 2, 3, 4].map((opcao, idx) => ({
+                label: `Opção ${opcao}`,
+                data: perguntas.map(p => p.distribuicao[opcao] || 0),
+                backgroundColor: cores[idx],
+                stack: 'stack1'
+            }));
+
+            this.chartDistPerguntas = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: { display: true, text: 'Pergunta' }
+                        },
+                        y: {
+                            stacked: true,
+                            title: { display: true, text: 'Respostas' }
+                        }
+                    }
+                }
+            });
         }
     }));
 });
