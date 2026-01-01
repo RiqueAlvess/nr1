@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django_ratelimit.decorators import ratelimit
 from core.services.audit_service import AuditService
 from account.services.password_reset_service import PasswordResetService
 from account.models import PasswordResetToken
@@ -14,20 +15,21 @@ logger = logging.getLogger('nr1')
 
 
 @require_http_methods(["GET", "POST"])
+@ratelimit(key='ip', rate='10/h', method='POST', block=True)
 def login_view(request):
-    """View de login"""
+    """View de login com rate limiting (10 tentativas por IP por hora)"""
     if request.user.is_authenticated:
         return redirect('account:dashboard')
-    
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        
+
         user = authenticate(request, username=username, password=password)
-        
+
         if user is not None:
             login(request, user)
-            
+
             # Auditoria
             AuditService.log(
                 action='LOGIN',
@@ -36,12 +38,12 @@ def login_view(request):
                 ip_address=AuditService.get_client_ip(request),
                 user_agent=AuditService.get_user_agent(request)
             )
-            
+
             messages.success(request, 'Login realizado com sucesso!')
             return redirect('account:dashboard')
         else:
             messages.error(request, 'Usuário ou senha inválidos.')
-    
+
     return render(request, 'account/login.html')
 
 
@@ -89,9 +91,10 @@ def dashboard_view(request):
 # ============================================================================
 
 @require_http_methods(["GET", "POST"])
+@ratelimit(key='ip', rate='3/h', method='POST', block=True)
 def password_reset_request(request):
     """
-    View para solicitar redefinição de senha
+    View para solicitar redefinição de senha com rate limiting (3 tentativas por IP por hora)
     Usuário informa o email e recebe magic link
     """
     if request.user.is_authenticated:
@@ -138,9 +141,10 @@ def password_reset_sent(request):
 
 
 @require_http_methods(["GET", "POST"])
+@ratelimit(key='ip', rate='10/h', method='POST', block=True)
 def password_reset_confirm(request, token):
     """
-    View para confirmar o token e redefinir a senha
+    View para confirmar o token e redefinir a senha com rate limiting (10 tentativas por IP por hora)
     """
     if request.user.is_authenticated:
         return redirect('account:dashboard')
