@@ -21,7 +21,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Security
-    'csp',  # django-csp
     'axes',  # django-axes (brute force protection)
 
     # Apps do projeto
@@ -35,7 +34,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'csp.middleware.CSPMiddleware',  # Content Security Policy
+    'nr1_platform.middleware.SecurityHeadersMiddleware',  # Content Security Policy customizado
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -57,6 +56,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'nr1_platform.context_processors.csp_nonce',  # Nonce CSP
             ],
         },
     },
@@ -171,36 +171,12 @@ SECURE_SSL_REDIRECT = config('SECURE_SSL_REDIRECT', default=False, cast=bool)
 SESSION_COOKIE_SECURE = config('SESSION_COOKIE_SECURE', default=False, cast=bool)
 CSRF_COOKIE_SECURE = config('CSRF_COOKIE_SECURE', default=False, cast=bool)
 
-# Content Security Policy (CSP)
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = (
-    "'self'",
-    "'unsafe-inline'",  # Necessário para Django Admin
-    "https://cdn.jsdelivr.net",  # Chart.js e bibliotecas
-)
-CSP_STYLE_SRC = (
-    "'self'",
-    "'unsafe-inline'",  # Necessário para Django Admin e Bootstrap
-    "https://cdn.jsdelivr.net",
-)
-CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_FONT_SRC = ("'self'", "https://cdn.jsdelivr.net")
-CSP_CONNECT_SRC = ("'self'",)
-CSP_FRAME_ANCESTORS = ("'none'",)  # Equivalente a X-Frame-Options: DENY
-CSP_BASE_URI = ("'self'",)
-CSP_FORM_ACTION = ("'self'",)
+# Content Security Policy (CSP) - Implementado via middleware customizado
+# As configurações CSP estão em nr1_platform/middleware.py (SecurityHeadersMiddleware)
+# Para usar nonce em templates: <script nonce="{{ csp_nonce }}">código</script>
 
-# Referrer Policy
-SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
-
-# Permissions Policy (Feature-Policy)
-PERMISSIONS_POLICY = {
-    "geolocation": [],
-    "microphone": [],
-    "camera": [],
-    "payment": [],
-    "usb": [],
-}
+# Referrer Policy e Permissions Policy - Implementados via middleware customizado
+# As configurações estão em nr1_platform/middleware.py (SecurityHeadersMiddleware)
 
 # ============================================================================
 # SEGURANÇA - BRUTE FORCE PROTECTION (django-axes)
@@ -215,8 +191,6 @@ AUTHENTICATION_BACKENDS = [
 # Configurações do django-axes
 AXES_FAILURE_LIMIT = 5  # Bloquear após 5 tentativas falhas
 AXES_COOLOFF_TIME = 1  # Cooldown de 1 hora
-AXES_LOCKOUT_CALLABLE = 'axes.lockout.reset_on_success'  # Reset após login bem-sucedido
-AXES_ONLY_USER_FAILURES = False  # Rastrear por IP também
 AXES_ENABLE_ACCESS_FAILURE_LOG = True  # Log de tentativas
 AXES_RESET_ON_SUCCESS = True  # Reset contador após login bem-sucedido
 AXES_LOCKOUT_TEMPLATE = 'account/locked_out.html'  # Template customizado
