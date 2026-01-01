@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django_ratelimit.decorators import ratelimit
 from importacao.services.import_service import ImportService
 from importacao.models import ProcessoImportacao
 
@@ -39,8 +40,9 @@ def importacao_view(request):
 
 @login_required
 @require_http_methods(["POST"])
+@ratelimit(key='user', rate='5/h', method='POST', block=True)
 def upload_csv_view(request):
-    """View para upload de CSV - Apenas usuários do grupo RH"""
+    """View para upload de CSV - Apenas usuários do grupo RH, rate limited (5 uploads por hora)"""
 
     # Verificar permissão
     if not user_tem_acesso_importacao(request.user):
@@ -49,20 +51,25 @@ def upload_csv_view(request):
             'Acesso restrito ao RH. Apenas usuários do grupo RH podem importar dados.'
         )
         return redirect('account:dashboard')
-    
+
     if 'arquivo' not in request.FILES:
         messages.error(request, 'Nenhum arquivo foi enviado.')
         return redirect('importacao:importacao')
-    
+
     arquivo = request.FILES['arquivo']
     empresa_nome = request.POST.get('empresa_nome', '').strip()
-    
+
     if not empresa_nome:
         messages.error(request, 'Nome da empresa é obrigatório.')
         return redirect('importacao:importacao')
-    
+
     if not arquivo.name.endswith('.csv'):
         messages.error(request, 'Apenas arquivos CSV são permitidos.')
+        return redirect('importacao:importacao')
+
+    # Validação de tamanho do arquivo (max 10MB)
+    if arquivo.size > 10 * 1024 * 1024:
+        messages.error(request, 'Arquivo muito grande. Tamanho máximo: 10MB.')
         return redirect('importacao:importacao')
     
     try:

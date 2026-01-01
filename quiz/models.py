@@ -189,10 +189,43 @@ class Resposta(TimeStampedModel):
         """Retorna nível de risco global"""
         if self.score_global is None:
             return 'NÃO CALCULADO'
-        
+
         if self.score_global <= 35:
             return 'CRÍTICO'
         elif self.score_global <= 70:
             return 'ATENÇÃO'
         else:
             return 'SATISFATÓRIO'
+
+
+class ConsentimentoLGPD(TimeStampedModel):
+    """
+    Registro de consentimento LGPD para coleta e tratamento de dados
+    Armazenado junto com a resposta para fins de auditoria
+    """
+
+    resposta = models.OneToOneField(
+        Resposta,
+        on_delete=models.CASCADE,
+        related_name='consentimento'
+    )
+
+    # Consentimento
+    aceito = models.BooleanField(default=False)
+    data_consentimento = models.DateTimeField(auto_now_add=True)
+    versao_termo = models.CharField(max_length=10, default='1.0')
+
+    # Texto do termo aceito (para auditoria)
+    texto_termo = models.TextField(blank=True)
+
+    # Metadados para auditoria
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        db_table = 'consentimentos_lgpd'
+        verbose_name = 'Consentimento LGPD'
+        verbose_name_plural = 'Consentimentos LGPD'
+
+    def __str__(self):
+        return f"Consentimento {str(self.id)[:8]} - {'Aceito' if self.aceito else 'Negado'}"

@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.db import transaction, IntegrityError
+from django_ratelimit.decorators import ratelimit
 from quiz.models import Pergunta, Resposta, MagicLink
 from quiz.services.magic_link_service import MagicLinkService
 from core.services.audit_service import AuditService
@@ -38,8 +39,9 @@ def gerenciar_links_view(request):
 
 @login_required
 @require_http_methods(["POST"])
+@ratelimit(key='user', rate='5/h', method='POST', block=True)
 def enviar_links_view(request):
-    """View para enviar magic links em massa - Apenas RH"""
+    """View para enviar magic links em massa - Apenas RH, rate limited (5 envios por hora por usuário)"""
 
     # Verificar permissão
     if not hasattr(request.user, 'perfil_acesso') or not request.user.perfil_acesso.pode_visualizar_emails():
@@ -54,27 +56,30 @@ def enviar_links_view(request):
     if not colaboradores_ids:
         messages.error(request, 'Selecione pelo menos um colaborador.')
         return redirect('quiz:gerenciar_links')
-    
-    # Gerar links
+
+    # Gerar links imediatamente (síncrono)
     gerados, ja_existentes = MagicLinkService.gerar_magic_links_bulk(colaboradores_ids)
-    
-    # Enviar emails
+
+    # Enviar emails de forma assíncrona via Celery
     base_url = request.build_absolute_uri('/').rstrip('/')
-    enviados, erros = MagicLinkService.enviar_magic_links_bulk(colaboradores_ids, base_url)
-    
+
+    from quiz.tasks import send_magic_links_async
+    send_magic_links_async.delay(colaboradores_ids, base_url)
+
     messages.success(
         request,
-        f'Magic links processados: {gerados} gerados, {ja_existentes} já existiam, '
-        f'{enviados} enviados, {erros} erro(s).'
+        f'Magic links processados: {gerados} gerados, {ja_existentes} já existiam. '
+        f'{len(colaboradores_ids)} emails serão enviados em segundo plano.'
     )
-    
+
     return redirect('quiz:gerenciar_links')
 
 
 @require_http_methods(["GET"])
+@ratelimit(key='ip', rate='30/m', method='GET', block=True)
 def responder_view(request, token):
-    """View para responder questionário via magic link"""
-    
+    """View para responder questionário via magic link, rate limited (30 acessos por IP por minuto)"""
+
     # Validar token
     magic_link = MagicLinkService.validar_token(token)
     
@@ -110,8 +115,9 @@ def responder_view(request, token):
 
 
 @require_http_methods(["POST"])
+@ratelimit(key='ip', rate='10/h', method='POST', block=True)
 def submeter_respostas_view(request, token):
-    """View para submeter respostas do questionário"""
+    """View para submeter respostas do questionário, rate limited (10 submissões por IP por hora)"""
 
     # Validar token
     magic_link = MagicLinkService.validar_token(token)

@@ -1,4 +1,5 @@
 from django.db import models
+from encrypted_model_fields.fields import EncryptedEmailField
 from core.models import TimeStampedModel, Empresa, Setor, Cargo
 
 
@@ -15,8 +16,10 @@ class Colaborador(TimeStampedModel):
         ('N', 'Não informado'),
     ]
 
-    # Email isolado - usado apenas para envio
-    email = models.EmailField(unique=True, db_index=True)
+    # Email isolado e criptografado (LGPD) - usado apenas para envio
+    # Nota: unique=True e db_index não são suportados em campos criptografados
+    # A unicidade deve ser verificada na aplicação
+    email = EncryptedEmailField()
 
     # Dimensões analíticas (hierarquia completa via Cargo)
     cargo = models.ForeignKey(Cargo, on_delete=models.CASCADE, related_name='colaboradores')
@@ -28,12 +31,19 @@ class Colaborador(TimeStampedModel):
     # Controle
     ativo = models.BooleanField(default=True)
 
+    # LGPD - Retenção de dados
+    data_expiracao = models.DateField(
+        null=True,
+        blank=True,
+        help_text='Data de expiração dos dados (política de retenção LGPD)'
+    )
+
     class Meta:
         db_table = 'colaboradores'
         verbose_name = 'Colaborador'
         verbose_name_plural = 'Colaboradores'
         indexes = [
-            models.Index(fields=['email']),
+            # Email é criptografado, não pode ter índice
             models.Index(fields=['cargo']),
             models.Index(fields=['data_nascimento']),
             models.Index(fields=['sexo']),
