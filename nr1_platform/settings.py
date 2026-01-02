@@ -23,6 +23,9 @@ INSTALLED_APPS = [
     # Security
     'axes',  # django-axes (brute force protection)
 
+    # Third-party
+    'django_htmx',  # HTMX integration
+
     # Apps do projeto
     'core',
     'account',
@@ -38,6 +41,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',  # HTMX middleware
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'axes.middleware.AxesMiddleware',  # Brute force protection (must be last)
