@@ -15,6 +15,7 @@ from importacao.models import Colaborador
 @require_http_methods(["GET"])
 def gerenciar_links_view(request):
     """View para gerenciar envio de magic links - Apenas RH"""
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
     # Verificar permissão
     if not hasattr(request.user, 'perfil_acesso') or not request.user.perfil_acesso.pode_visualizar_emails():
@@ -24,14 +25,25 @@ def gerenciar_links_view(request):
         )
         return redirect('account:dashboard')
 
-    colaboradores = Colaborador.objects.filter(ativo=True).select_related(
+    colaboradores_all = Colaborador.objects.filter(ativo=True).select_related(
         'cargo__setor__unidade__empresa'
-    ).prefetch_related('magic_link')
+    ).prefetch_related('magic_link').order_by('email')
+
+    # Paginação
+    page = request.GET.get('page', 1)
+    paginator = Paginator(colaboradores_all, 20)  # 20 itens por página
+
+    try:
+        colaboradores = paginator.page(page)
+    except PageNotAnInteger:
+        colaboradores = paginator.page(1)
+    except EmptyPage:
+        colaboradores = paginator.page(paginator.num_pages)
 
     context = {
         'colaboradores': colaboradores,
-        'total': colaboradores.count(),
-        'com_link': sum(1 for c in colaboradores if hasattr(c, 'magic_link')),
+        'total': paginator.count,
+        'com_link': sum(1 for c in colaboradores_all if hasattr(c, 'magic_link')),
     }
 
     return render(request, 'quiz/gerenciar_links.html', context)

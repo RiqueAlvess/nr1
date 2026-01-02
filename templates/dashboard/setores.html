@@ -2,79 +2,61 @@
 
 {% block title %}Análise por Setores - Vivamente360{% endblock %}
 
-{% block breadcrumb %}
-<div class="text-sm breadcrumbs mb-4">
-    <ul>
-        <li><a href="{% url 'account:dashboard' %}" class="text-accent hover:text-primary"><i class="fas fa-home mr-1"></i>Início</a></li>
-        <li><a href="{% url 'dashboard:principal' %}" class="text-accent hover:text-primary">Dashboard</a></li>
-        {% if unidade_id %}
-        <li><a href="{% url 'dashboard:unidades' %}" class="text-accent hover:text-primary">Unidades</a></li>
-        {% endif %}
-        <li class="text-neutral font-medium">Setores</li>
-    </ul>
-</div>
-{% endblock %}
-
-{% block page_header %}
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
-    <div>
-        <h1 class="text-2xl lg:text-3xl font-bold text-neutral">
-            <i class="fas fa-sitemap text-primary mr-2"></i>
-            Análise por Setores
-        </h1>
-        {% if unidade_id %}
-            <p class="text-sm text-neutral/60 mt-1">Unidade selecionada: {{ unidade_id }}</p>
-        {% endif %}
+{% block content %}
+<!-- Page Header -->
+<div class="flex flex-col gap-4 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <i data-lucide="network" class="w-8 h-8 text-primary"></i>
+                Análise por Setores
+            </h1>
+            {% if unidade_id %}
+                <p class="text-muted-foreground mt-1">Filtrando por unidade</p>
+            {% endif %}
+        </div>
+        <div class="mt-4 lg:mt-0">
+            <a href="{% url 'dashboard:principal' %}"
+               hx-get="{% url 'dashboard:principal' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar
+            </a>
+        </div>
     </div>
 </div>
-{% endblock %}
 
-{% block content %}
 <div class="space-y-6">
 
     {% if dados.setores %}
-    <!-- Resumo -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <div class="flex items-center justify-between">
-                <div>
-                    <div class="font-medium text-lg">Setores</div>
-                    <div class="text-sm text-neutral/60">Análise por setor</div>
-                </div>
-            </div>
+    <!-- Gráfico -->
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-5 h-5 text-primary"></i>
+            Comparativo de Score por Setor
+        </h2>
+        <div id="chart-setores-loading" class="flex items-center justify-center h-56">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+        <div id="chart-setores-container" class="hidden" style="height: 320px;">
+            <canvas id="graficoSetores"></canvas>
         </div>
     </div>
 
-    <!-- Gráfico (Score Médio por Setor) -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <h2 class="card-title text-neutral">
-                <i class="fas fa-chart-bar text-primary mr-2"></i>
-                Comparativo de Score por Setor
-            </h2>
-            <div id="chart-setores-loading" class="flex items-center justify-center h-56">
-                <span class="loading loading-spinner loading-lg text-primary"></span>
-            </div>
-            <div id="chart-setores-container" class="hidden mt-4" style="height: 320px;">
-                <canvas id="graficoSetores"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Cards de Setores (renderizado via Django) -->
+    <!-- Cards de Setores -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for setor in dados.setores %}
-        <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
-            <div class="card-body">
-                <div class="flex items-start justify-between">
-                    <div>
-                        <div class="font-medium">{{ setor.setor_nome }}</div>
-                        <div class="text-sm text-neutral/60">{{ setor.unidade_nome }}</div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-sm text-neutral/60">Score Médio</div>
-                        <div class="font-bold text-secondary">{{ setor.score_medio }}</div>
-                    </div>
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+                <div>
+                    <div class="font-medium text-foreground">{{ setor.setor_nome }}</div>
+                    <div class="text-sm text-muted-foreground">{{ setor.unidade_nome }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-muted-foreground">Score Médio</div>
+                    <div class="font-bold text-primary">{{ setor.score_medio }}</div>
                 </div>
             </div>
         </div>
@@ -82,60 +64,72 @@
     </div>
 
     <!-- Tabela Detalhada -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <h2 class="card-title text-neutral text-lg">
-                <i class="fas fa-table mr-2 text-accent"></i>
-                Dados Detalhados
-            </h2>
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <i data-lucide="table" class="w-5 h-5 text-primary"></i>
+            Dados Detalhados
+        </h2>
 
-            <div class="overflow-x-auto mt-4">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr class="bg-base-200">
-                            <th>Setor</th>
-                            <th class="text-center">Unidade</th>
-                            <th class="text-center">Respostas</th>
-                            <th class="text-center">Score Médio</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for setor in dados.setores %}
-                        <tr class="hover">
-                            <td>{{ setor.setor_nome }}</td>
-                            <td class="text-center">{{ setor.unidade_nome }}</td>
-                            <td class="text-center">{{ setor.total_respostas }}</td>
-                            <td class="text-center">{{ setor.score_medio }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-border">
+                        <th class="text-left py-3 px-4 font-semibold text-sm text-muted-foreground">Setor</th>
+                        <th class="text-center py-3 px-4 font-semibold text-sm text-muted-foreground">Unidade</th>
+                        <th class="text-center py-3 px-4 font-semibold text-sm text-muted-foreground">Respostas</th>
+                        <th class="text-center py-3 px-4 font-semibold text-sm text-muted-foreground">Score Médio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for setor in dados.setores %}
+                    <tr class="border-b border-border hover:bg-muted/50 transition-colors">
+                        <td class="py-3 px-4 font-medium text-foreground">{{ setor.setor_nome }}</td>
+                        <td class="text-center py-3 px-4 text-muted-foreground">{{ setor.unidade_nome }}</td>
+                        <td class="text-center py-3 px-4">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                                {{ setor.total_respostas }}
+                            </span>
+                        </td>
+                        <td class="text-center py-3 px-4">
+                            <span class="font-bold text-primary">{{ setor.score_medio }}</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
     {% else %}
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body items-center text-center py-12">
-            <div class="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mb-4">
-                <i class="fas fa-sitemap text-warning text-3xl"></i>
+    <div class="rounded-xl border border-border bg-card p-12 shadow-sm text-center">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-20 h-20 rounded-full bg-yellow-100 flex items-center justify-center">
+                <i data-lucide="network" class="w-10 h-10 text-yellow-600"></i>
             </div>
-            <h2 class="card-title text-neutral">Nenhum Setor Disponível</h2>
-            <p class="text-neutral/60 max-w-md">
+            <h2 class="text-xl font-semibold text-foreground">Nenhum Setor Disponível</h2>
+            <p class="text-muted-foreground max-w-md">
                 Não há setores com dados suficientes para garantir o anonimato dos respondentes.
                 É necessário um mínimo de 5 respostas por setor.
             </p>
-            <div class="card-actions mt-6">
-                <a href="{% url 'dashboard:principal' %}" class="btn btn-primary">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Voltar ao Dashboard
-                </a>
-            </div>
+            <a href="{% url 'dashboard:principal' %}"
+               hx-get="{% url 'dashboard:principal' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium transition-colors mt-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar ao Dashboard
+            </a>
         </div>
     </div>
     {% endif %}
 
 </div>
+
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
 {% endblock %}
 
 {% block extra_js %}
