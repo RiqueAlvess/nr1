@@ -68,12 +68,12 @@ def logout_view(request):
 
 @login_required
 def dashboard_view(request):
-    """Dashboard principal do sistema"""
+    """Dashboard principal do sistema - HTMX-ready"""
     context = {
         'user': request.user,
         'has_perfil': hasattr(request.user, 'perfil_acesso'),
     }
-    
+
     # Auditoria
     AuditService.log(
         action='DASHBOARD_ACCESSED',
@@ -82,8 +82,10 @@ def dashboard_view(request):
         ip_address=AuditService.get_client_ip(request),
         user_agent=AuditService.get_user_agent(request)
     )
-    
-    return render(request, 'account/dashboard.html', context)
+
+    # Se requisição HTMX, retorna apenas o conteúdo
+    template = 'account/dashboard_content.html' if request.htmx else 'account/dashboard.html'
+    return render(request, template, context)
 
 
 # ============================================================================

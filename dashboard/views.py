@@ -15,17 +15,20 @@ def dashboard_principal_view(request):
     """
     Dashboard principal consolidado com visão geral e análises detalhadas
     Suporta múltiplas empresas no perfil de acesso
+    HTMX-ready: Retorna apenas o conteúdo quando requisição vem do HTMX
     """
 
     # Verificar perfil de acesso
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
 
     # Verificar se o usuário tem acesso ao dashboard
     if not (perfil.tem_acesso_completo_dashboards() or perfil.tem_acesso_limitado()):
-        return render(request, 'dashboard/sem_permissao.html')
+        template = 'dashboard/sem_permissao_content.html' if request.htmx else 'dashboard/sem_permissao.html'
+        return render(request, template)
 
     # Obter empresas do usuário
     empresas = perfil.get_empresas()
@@ -146,15 +149,18 @@ def dashboard_principal_view(request):
         'perfil': perfil
     }
 
-    return render(request, 'dashboard/principal.html', context)
+    # Se requisição HTMX, retorna apenas o conteúdo
+    template = 'dashboard/principal_content.html' if request.htmx else 'dashboard/principal.html'
+    return render(request, template, context)
 
 
 @login_required
 def dashboard_unidades_view(request):
-    """Dashboard com dados por unidade"""
+    """Dashboard com dados por unidade - HTMX-ready"""
 
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
 
@@ -195,15 +201,17 @@ def dashboard_unidades_view(request):
         'tem_multiplas_empresas': empresas.count() > 1,
     }
 
-    return render(request, 'dashboard/unidades.html', context)
+    template = 'dashboard/unidades_content.html' if request.htmx else 'dashboard/unidades.html'
+    return render(request, template, context)
 
 
 @login_required
 def dashboard_setores_view(request):
-    """Dashboard com dados por setor"""
+    """Dashboard com dados por setor - HTMX-ready"""
 
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
     unidade_id = request.GET.get('unidade')
@@ -256,15 +264,17 @@ def dashboard_setores_view(request):
         'unidade_id': unidade_id
     }
 
-    return render(request, 'dashboard/setores.html', context)
+    template = 'dashboard/setores_content.html' if request.htmx else 'dashboard/setores.html'
+    return render(request, template, context)
 
 
 @login_required
 def dashboard_dimensoes_view(request):
-    """Dashboard com análise de dimensões"""
+    """Dashboard com análise de dimensões - HTMX-ready"""
 
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
 
@@ -291,7 +301,8 @@ def dashboard_dimensoes_view(request):
         'tem_multiplas_empresas': empresas.count() > 1,
     }
 
-    return render(request, 'dashboard/dimensoes.html', context)
+    template = 'dashboard/dimensoes_content.html' if request.htmx else 'dashboard/dimensoes.html'
+    return render(request, template, context)
 
 
 # ============================================================================

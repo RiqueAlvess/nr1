@@ -17,6 +17,7 @@ dj-database-url==3.0.1
 Django==6.0
 django-axes==8.1.0
 django-encrypted-model-fields==0.6.5
+django-htmx==1.27.0
 django-ratelimit==4.1.0
 django-redis==6.0.0
 greenlet==3.3.0

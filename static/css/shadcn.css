@@ -1,0 +1,289 @@
+/**
+ * Shadcn UI Variables - Vivamente360
+ * Estilo moderno baseado em bordas finas e cores neutras
+ * Mantém a paleta Navy (#0F3D52) e Verde (#1EEB88)
+ */
+
+@layer base {
+  :root {
+    /* Shadcn Semantic Colors (HSL) */
+    --background: 210 40% 98%;       /* Fundo Slate muito claro */
+    --foreground: 222.2 84% 4.9%;    /* Texto escuro */
+
+    --card: 0 0% 100%;               /* Cards brancos puros */
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 199 69% 19%;          /* Navy #0F3D52 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96.1%;      /* Cinza claro */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 152 87% 52%;           /* Verde #1EEB88 */
+    --accent-foreground: 222.2 84% 4.9%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 214.3 31.8% 91.4%;     /* Borda cinza sutil */
+    --input: 214.3 31.8% 91.4%;
+    --ring: 199 69% 19%;             /* Navy para focus ring */
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============================================
+   Shadcn Components - Manual Styling
+   ============================================ */
+
+/* Card estilo Shadcn */
+.shadcn-card {
+  @apply rounded-xl border border-border bg-card text-card-foreground shadow-sm;
+}
+
+/* Input estilo Shadcn */
+.shadcn-input {
+  @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background;
+  @apply file:border-0 file:bg-transparent file:text-sm file:font-medium;
+  @apply placeholder:text-muted-foreground;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* Button estilo Shadcn */
+.shadcn-btn {
+  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium;
+  @apply ring-offset-background transition-colors;
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+  @apply disabled:pointer-events-none disabled:opacity-50;
+}
+
+.shadcn-btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90;
+}
+
+.shadcn-btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+.shadcn-btn-accent {
+  @apply bg-accent text-accent-foreground hover:bg-accent/90;
+}
+
+.shadcn-btn-ghost {
+  @apply hover:bg-accent/10 hover:text-accent-foreground;
+}
+
+.shadcn-btn-outline {
+  @apply border border-input bg-background hover:bg-accent/10 hover:text-accent-foreground;
+}
+
+/* Badge estilo Shadcn */
+.shadcn-badge {
+  @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors;
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+}
+
+.shadcn-badge-default {
+  @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+}
+
+.shadcn-badge-secondary {
+  @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+.shadcn-badge-accent {
+  @apply border-transparent bg-accent text-accent-foreground hover:bg-accent/80;
+}
+
+.shadcn-badge-outline {
+  @apply text-foreground;
+}
+
+/* Table estilo Shadcn */
+.shadcn-table {
+  @apply w-full caption-bottom text-sm;
+}
+
+.shadcn-table thead {
+  @apply border-b;
+}
+
+.shadcn-table thead tr {
+  @apply border-b transition-colors hover:bg-muted/50;
+}
+
+.shadcn-table th {
+  @apply h-12 px-4 text-left align-middle font-medium text-muted-foreground;
+}
+
+.shadcn-table tbody tr {
+  @apply border-b transition-colors hover:bg-muted/50;
+}
+
+.shadcn-table td {
+  @apply p-4 align-middle;
+}
+
+/* Select estilo Shadcn */
+.shadcn-select {
+  @apply flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm;
+  @apply ring-offset-background placeholder:text-muted-foreground;
+  @apply focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  @apply disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+/* Alert estilo Shadcn */
+.shadcn-alert {
+  @apply relative w-full rounded-lg border px-4 py-3 text-sm;
+}
+
+.shadcn-alert-info {
+  @apply border-blue-200 bg-blue-50 text-blue-900;
+}
+
+.shadcn-alert-success {
+  @apply border-green-200 bg-green-50 text-green-900;
+}
+
+.shadcn-alert-warning {
+  @apply border-yellow-200 bg-yellow-50 text-yellow-900;
+}
+
+.shadcn-alert-error {
+  @apply border-red-200 bg-red-50 text-red-900;
+}
+
+/* ============================================
+   Utilities Shadcn
+   ============================================ */
+
+/* Text colors semânticos */
+.text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+}
+
+.text-primary {
+  color: hsl(var(--primary));
+}
+
+.text-accent {
+  color: hsl(var(--accent));
+}
+
+.text-destructive {
+  color: hsl(var(--destructive));
+}
+
+/* Background colors semânticos */
+.bg-background {
+  background-color: hsl(var(--background));
+}
+
+.bg-card {
+  background-color: hsl(var(--card));
+}
+
+.bg-primary {
+  background-color: hsl(var(--primary));
+}
+
+.bg-accent {
+  background-color: hsl(var(--accent));
+}
+
+.bg-muted {
+  background-color: hsl(var(--muted));
+}
+
+/* Border colors semânticos */
+.border-border {
+  border-color: hsl(var(--border));
+}
+
+.border-input {
+  border-color: hsl(var(--input));
+}
+
+/* ============================================
+   Shadcn Animations
+   ============================================ */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
+/* ============================================
+   HTMX Transitions
+   ============================================ */
+
+.htmx-settling {
+  opacity: 0;
+}
+
+.htmx-swapping {
+  opacity: 0;
+  transition: opacity 200ms ease-out;
+}
+
+.htmx-added {
+  animation: fadeIn 300ms ease-out;
+}
+
+/* ============================================
+   Responsive Utilities
+   ============================================ */
+
+/* Hide/show helpers */
+@media (max-width: 1023px) {
+  .lg\:hidden {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:flex {
+    display: flex !important;
+  }
+
+  .lg\:block {
+    display: block !important;
+  }
+}
