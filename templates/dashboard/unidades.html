@@ -2,114 +2,117 @@
 
 {% block title %}Análise por Unidades - Vivamente360{% endblock %}
 
-{% block breadcrumb %}
-<div class="text-sm breadcrumbs mb-4">
-    <ul>
-        <li><a href="{% url 'account:dashboard' %}" class="text-accent hover:text-primary"><i class="fas fa-home mr-1"></i>Início</a></li>
-        <li><a href="{% url 'dashboard:principal' %}" class="text-accent hover:text-primary">Dashboard</a></li>
-        <li class="text-neutral font-medium">Unidades</li>
-    </ul>
-</div>
-{% endblock %}
-
-{% block page_header %}
-<div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
-    <div>
-        <h1 class="text-2xl lg:text-3xl font-bold text-neutral">
-            <i class="fas fa-building text-primary mr-2"></i>
-            Análise por Unidades
-        </h1>
-        <p class="text-sm text-neutral/60 mt-1">{{ empresa.nome }}</p>
-    </div>
-    <div class="mt-4 lg:mt-0 flex items-center gap-2">
-        <a href="{% url 'dashboard:principal' %}" class="btn btn-outline btn-sm">
-            <i class="fas fa-arrow-left mr-2"></i>
-            Voltar
-        </a>
-    </div>
-</div>
-{% endblock %}
-
 {% block content %}
+<!-- Page Header -->
+<div class="flex flex-col gap-4 mb-6">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+                <i data-lucide="building" class="w-8 h-8 text-primary"></i>
+                Análise por Unidades
+            </h1>
+            <p class="text-muted-foreground mt-1">{{ empresa.nome }}</p>
+        </div>
+        <div class="mt-4 lg:mt-0">
+            <a href="{% url 'dashboard:principal' %}"
+               hx-get="{% url 'dashboard:principal' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar
+            </a>
+        </div>
+    </div>
+</div>
+
 <div class="space-y-6">
 
     {% if dados.unidades %}
     <!-- Resumo -->
-    <div class="stats stats-vertical sm:stats-horizontal shadow-soft bg-base-100 w-full">
-        <div class="stat">
-            <div class="stat-figure text-primary">
-                <i class="fas fa-building text-3xl"></i>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-sm font-medium text-muted-foreground">Total de Unidades</p>
+                    <p class="text-3xl font-bold text-primary">{{ dados.total_unidades_visiveis }}</p>
+                    <p class="text-xs text-muted-foreground">Com dados suficientes</p>
+                </div>
+                <i data-lucide="building" class="w-8 h-8 text-primary/20"></i>
             </div>
-            <div class="stat-title">Total de Unidades</div>
-            <div class="stat-value text-primary">{{ dados.total_unidades_visiveis }}</div>
-            <div class="stat-desc">Com dados suficientes</div>
         </div>
 
-        <div class="stat">
-            <div class="stat-figure text-accent">
-                <i class="fas fa-users text-3xl"></i>
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-sm font-medium text-muted-foreground">Respostas Totais</p>
+                    <p class="text-3xl font-bold text-accent">
+                        {% with total=0 %}
+                            {% for unidade in dados.unidades %}
+                                {% with total=total|add:unidade.total_respostas %}{% endwith %}
+                            {% endfor %}
+                            {{ total }}
+                        {% endwith %}
+                    </p>
+                    <p class="text-xs text-muted-foreground">Questionários concluídos</p>
+                </div>
+                <i data-lucide="users" class="w-8 h-8 text-accent/20"></i>
             </div>
-            <div class="stat-title">Respostas Totais</div>
-            <div class="stat-value text-accent">
-                {% with total=0 %}
-                    {% for unidade in dados.unidades %}
-                        {% with total=total|add:unidade.total_respostas %}{% endwith %}
-                    {% endfor %}
-                    {{ total }}
-                {% endwith %}
-            </div>
-            <div class="stat-desc">Questionários concluídos</div>
         </div>
 
-        <div class="stat">
-            <div class="stat-figure text-secondary">
-                <i class="fas fa-chart-bar text-3xl"></i>
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-sm font-medium text-muted-foreground">Comparativo</p>
+                    <p class="text-xl font-bold text-primary">Score Médio</p>
+                    <p class="text-xs text-muted-foreground">Entre unidades</p>
+                </div>
+                <i data-lucide="bar-chart-2" class="w-8 h-8 text-primary/20"></i>
             </div>
-            <div class="stat-title">Comparativo</div>
-            <div class="stat-value text-secondary">Score Médio</div>
-            <div class="stat-desc">Comparação entre unidades</div>
         </div>
     </div>
 
     <!-- Gráfico de Comparação -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <h2 class="card-title text-neutral">
-                <i class="fas fa-chart-bar text-primary mr-2"></i>
-                Comparativo de Score por Unidade
-            </h2>
-            <div id="chart-unidades-loading" class="flex items-center justify-center h-72">
-                <span class="loading loading-spinner loading-lg text-primary"></span>
-            </div>
-            <div id="chart-unidades-container" class="hidden mt-4" style="height: 300px;">
-                <canvas id="graficoUnidades"></canvas>
-            </div>
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <i data-lucide="bar-chart-2" class="w-5 h-5 text-primary"></i>
+            Comparativo de Score por Unidade
+        </h2>
+        <div id="chart-unidades-loading" class="flex items-center justify-center h-72">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+        <div id="chart-unidades-container" class="hidden" style="height: 300px;">
+            <canvas id="graficoUnidades"></canvas>
         </div>
     </div>
 
-    <!-- Cards de Unidades (renderizado no servidor) -->
+    <!-- Cards de Unidades -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {% for unidade in dados.unidades %}
-        <div class="card bg-base-100 shadow-soft card-hover transition-smooth">
-            <div class="card-body">
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+            <div class="space-y-4">
                 <div class="flex items-start justify-between">
                     <div class="flex items-center gap-3">
                         <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <i class="fas fa-building text-primary text-xl"></i>
+                            <i data-lucide="building" class="w-6 h-6 text-primary"></i>
                         </div>
                         <div>
-                            <div class="font-medium">{{ unidade.unidade_nome }}</div>
-                            <div class="text-sm text-neutral/60">{{ unidade.total_respostas }} respostas</div>
+                            <div class="font-medium text-foreground">{{ unidade.unidade_nome }}</div>
+                            <div class="text-sm text-muted-foreground">{{ unidade.total_respostas }} respostas</div>
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-sm text-neutral/60">Score Médio</div>
-                        <div class="font-bold text-secondary">{{ unidade.score_medio }}</div>
+                        <div class="text-sm text-muted-foreground">Score Médio</div>
+                        <div class="font-bold text-primary">{{ unidade.score_medio }}</div>
                     </div>
                 </div>
-                <div class="card-actions justify-end mt-4">
-                    <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}" class="btn btn-outline btn-sm btn-primary">
-                        <i class="fas fa-sitemap mr-1"></i>
+                <div class="flex justify-end">
+                    <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}"
+                       hx-get="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       class="inline-flex items-center justify-center gap-2 rounded-md border border-primary text-primary hover:bg-primary hover:text-white px-3 py-1.5 text-sm font-medium transition-colors">
+                        <i data-lucide="network" class="w-4 h-4"></i>
                         Ver Setores
                     </a>
                 </div>
@@ -119,76 +122,89 @@
     </div>
 
     <!-- Tabela Detalhada -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body">
-            <h2 class="card-title text-neutral">
-                <i class="fas fa-table text-accent mr-2"></i>
-                Dados Detalhados
-            </h2>
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            <i data-lucide="table" class="w-5 h-5 text-primary"></i>
+            Dados Detalhados
+        </h2>
 
-            <div class="overflow-x-auto mt-4">
-                <table class="table table-zebra w-full">
-                    <thead>
-                        <tr class="bg-base-200">
-                            <th class="font-semibold">Unidade</th>
-                            <th class="font-semibold text-center">Respostas</th>
-                            <th class="font-semibold text-center">Score Médio</th>
-                            <th class="font-semibold text-center">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for unidade in dados.unidades %}
-                        <tr class="hover">
-                            <td>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <i class="fas fa-building text-primary"></i>
-                                    </div>
-                                    <span class="font-medium">{{ unidade.unidade_nome }}</span>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-border">
+                        <th class="text-left py-3 px-4 font-semibold text-sm text-muted-foreground">Unidade</th>
+                        <th class="text-center py-3 px-4 font-semibold text-sm text-muted-foreground">Respostas</th>
+                        <th class="text-center py-3 px-4 font-semibold text-sm text-muted-foreground">Score Médio</th>
+                        <th class="text-center py-3 px-4 font-semibold text-sm text-muted-foreground">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for unidade in dados.unidades %}
+                    <tr class="border-b border-border hover:bg-muted/50 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <i data-lucide="building" class="w-5 h-5 text-primary"></i>
                                 </div>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-ghost">{{ unidade.total_respostas }}</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="font-bold text-secondary">{{ unidade.score_medio }}</span>
-                            </td>
-                            <td class="text-center">
-                                <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}" class="btn btn-ghost btn-xs text-primary">
-                                    <i class="fas fa-arrow-right"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                <span class="font-medium text-foreground">{{ unidade.unidade_nome }}</span>
+                            </div>
+                        </td>
+                        <td class="text-center py-3 px-4">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-muted text-muted-foreground">
+                                {{ unidade.total_respostas }}
+                            </span>
+                        </td>
+                        <td class="text-center py-3 px-4">
+                            <span class="font-bold text-primary">{{ unidade.score_medio }}</span>
+                        </td>
+                        <td class="text-center py-3 px-4">
+                            <a href="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}"
+                               hx-get="{% url 'dashboard:setores' %}?unidade={{ unidade.unidade_id }}"
+                               hx-target="#main-content"
+                               hx-push-url="true"
+                               class="inline-flex items-center justify-center rounded-md hover:bg-muted p-2 transition-colors">
+                                <i data-lucide="arrow-right" class="w-4 h-4 text-primary"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
     {% else %}
     <!-- Estado Vazio -->
-    <div class="card bg-base-100 shadow-soft">
-        <div class="card-body items-center text-center py-12">
-            <div class="w-20 h-20 rounded-full bg-warning/10 flex items-center justify-center mb-4">
-                <i class="fas fa-building text-warning text-3xl"></i>
+    <div class="rounded-xl border border-border bg-card p-12 shadow-sm text-center">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-20 h-20 rounded-full bg-yellow-100 flex items-center justify-center">
+                <i data-lucide="building" class="w-10 h-10 text-yellow-600"></i>
             </div>
-            <h2 class="card-title text-neutral">Nenhuma Unidade Disponível</h2>
-            <p class="text-neutral/60 max-w-md">
+            <h2 class="text-xl font-semibold text-foreground">Nenhuma Unidade Disponível</h2>
+            <p class="text-muted-foreground max-w-md">
                 Não há unidades com dados suficientes para garantir o anonimato dos respondentes.
                 É necessário um mínimo de 5 respostas por unidade.
             </p>
-            <div class="card-actions mt-6">
-                <a href="{% url 'dashboard:principal' %}" class="btn btn-primary">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Voltar ao Dashboard
-                </a>
-            </div>
+            <a href="{% url 'dashboard:principal' %}"
+               hx-get="{% url 'dashboard:principal' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium transition-colors mt-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                Voltar ao Dashboard
+            </a>
         </div>
     </div>
     {% endif %}
 
 </div>
+
+<!-- Reinitialize Lucide Icons -->
+<script>
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>
 {% endblock %}
 
 {% block extra_js %}
