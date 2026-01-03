@@ -35,19 +35,19 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
 
         # script-src: permite scripts do próprio domínio, nonce dinâmico e CDNs específicos
         if nonce:
-            csp_directives.append(f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net")
+            csp_directives.append(f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://unpkg.com")
         else:
             # Fallback se não houver nonce (não deveria acontecer)
-            csp_directives.append("script-src 'self' https://cdn.jsdelivr.net")
+            csp_directives.append("script-src 'self' https://cdn.jsdelivr.net https://unpkg.com")
 
-        # style-src: permite estilos do próprio domínio, inline (necessário para Bootstrap/Django Admin) e CDNs
-        csp_directives.append("style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net")
+        # style-src: permite estilos do próprio domínio, inline (necessário para estilos dinâmicos) e Google Fonts
+        csp_directives.append("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com")
 
         # img-src: permite imagens do próprio domínio, data URIs e HTTPS
         csp_directives.append("img-src 'self' data: https:")
 
-        # font-src: permite fontes do próprio domínio e CDNs
-        csp_directives.append("font-src 'self' https://cdn.jsdelivr.net")
+        # font-src: permite fontes do próprio domínio e Google Fonts
+        csp_directives.append("font-src 'self' https://fonts.gstatic.com")
 
         # connect-src: permite conexões apenas para o próprio domínio
         csp_directives.append("connect-src 'self'")
@@ -78,5 +78,16 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         response["Permissions-Policy"] = (
             "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
         )
+
+        # Cache headers para performance (apenas para arquivos estáticos)
+        if '/static/' in request.path:
+            # Cache agressivo para arquivos estáticos (1 ano)
+            response["Cache-Control"] = "public, max-age=31536000, immutable"
+        elif '/media/' in request.path:
+            # Cache para arquivos de mídia (1 mês)
+            response["Cache-Control"] = "public, max-age=2592000"
+        else:
+            # Para páginas HTML, cache curto mas permitindo revalidação
+            response["Cache-Control"] = "private, max-age=0, must-revalidate"
 
         return response
