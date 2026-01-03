@@ -66,8 +66,11 @@
             <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Principal</p>
 
             <a href="{% url 'account:dashboard' %}"
+               hx-get="{% url 'account:dashboard' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="home" class="w-5 h-5 text-accent"></i>
                 <span class="text-white/90 font-medium">Início</span>
             </a>
@@ -79,31 +82,43 @@
             <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Análises</p>
 
             <a href="{% url 'dashboard:principal' %}"
+               hx-get="{% url 'dashboard:principal' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="line-chart" class="w-5 h-5 text-accent"></i>
                 <span class="text-white/90 font-medium">Dashboard</span>
             </a>
 
             {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
             <a href="{% url 'dashboard:unidades' %}"
+               hx-get="{% url 'dashboard:unidades' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="building" class="w-5 h-5 text-white/60"></i>
                 <span class="text-white/90">Unidades</span>
             </a>
             {% endif %}
 
             <a href="{% url 'dashboard:setores' %}"
+               hx-get="{% url 'dashboard:setores' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="network" class="w-5 h-5 text-white/60"></i>
                 <span class="text-white/90">Setores</span>
             </a>
 
             <a href="{% url 'dashboard:dimensoes' %}"
+               hx-get="{% url 'dashboard:dimensoes' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="brain" class="w-5 h-5 text-white/60"></i>
                 <span class="text-white/90">Dimensões</span>
             </a>
@@ -116,15 +131,21 @@
             <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Gestão</p>
 
             <a href="{% url 'importacao:importacao' %}"
+               hx-get="{% url 'importacao:importacao' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="file-input" class="w-5 h-5 text-accent"></i>
                 <span class="text-white/90 font-medium">Importação</span>
             </a>
 
             <a href="{% url 'quiz:gerenciar_links' %}"
+               hx-get="{% url 'quiz:gerenciar_links' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
                @click="sidebarOpen = false"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="send" class="w-5 h-5 text-accent"></i>
                 <span class="text-white/90 font-medium">Enviar Pesquisas</span>
             </a>
@@ -172,14 +193,22 @@
 <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border shadow-lg">
     <div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
         <a href="{% url 'account:dashboard' %}"
-           class="flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-accent{% else %}text-muted-foreground{% endif %}">
+           hx-get="{% url 'account:dashboard' %}"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-accent{% else %}text-muted-foreground{% endif %}"
+           data-nav-path="{% url 'account:dashboard' %}">
             <i data-lucide="home" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Início</span>
         </a>
 
         {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
         <a href="{% url 'dashboard:principal' %}"
-           class="flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'dashboard' %}text-accent{% else %}text-muted-foreground{% endif %}">
+           hx-get="{% url 'dashboard:principal' %}"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'dashboard' %}text-accent{% else %}text-muted-foreground{% endif %}"
+           data-nav-path="{% url 'dashboard:principal' %}">
             <i data-lucide="line-chart" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Dashboard</span>
         </a>
@@ -187,7 +216,11 @@
 
         {% if user.perfil_acesso.is_rh %}
         <a href="{% url 'quiz:gerenciar_links' %}"
-           class="flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'quiz' %}text-accent{% else %}text-muted-foreground{% endif %}">
+           hx-get="{% url 'quiz:gerenciar_links' %}"
+           hx-target="#main-content"
+           hx-push-url="true"
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'quiz' %}text-accent{% else %}text-muted-foreground{% endif %}"
+           data-nav-path="{% url 'quiz:gerenciar_links' %}">
             <i data-lucide="send" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Enviar</span>
         </a>

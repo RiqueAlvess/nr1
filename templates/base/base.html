@@ -83,28 +83,64 @@
         /* Google Fonts - Inter */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-        /* HTMX Transitions */
+        /* HTMX Transitions - Smooth fade effect */
         .htmx-swapping {
             opacity: 0;
-            transition: opacity 200ms ease-out;
+            transform: translateY(10px);
+            transition: opacity 200ms ease-out, transform 200ms ease-out;
         }
 
         .htmx-settling {
             opacity: 0;
+            transform: translateY(10px);
         }
 
         .htmx-added {
             opacity: 1;
-            transition: opacity 300ms ease-in;
+            transform: translateY(0);
+            transition: opacity 400ms ease-in, transform 400ms ease-in;
         }
 
-        /* HTMX Loading Indicator */
+        /* HTMX Loading Indicator - Smooth appearance */
         .htmx-request .htmx-indicator {
-            display: block !important;
+            display: flex !important;
+            animation: fadeIn 200ms ease-in;
         }
 
         .htmx-indicator {
             display: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Smooth skeleton loading animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
         }
 
         /* Mobile bottom nav spacing */
@@ -232,20 +268,40 @@
             updateActiveLinks();
         });
 
-        // Function to update active sidebar links
+        // Function to update active sidebar and mobile nav links
         function updateActiveLinks() {
             const currentPath = window.location.pathname;
 
-            // Remove all active classes
+            // Update desktop and mobile sidebar links
             document.querySelectorAll('.sidebar-link').forEach(link => {
                 link.classList.remove('bg-white/10', 'border-l-2', 'border-accent');
             });
 
-            // Add active class to matching link
             document.querySelectorAll('.sidebar-link').forEach(link => {
                 const linkPath = new URL(link.href).pathname;
                 if (currentPath === linkPath) {
                     link.classList.add('bg-white/10', 'border-l-2', 'border-accent');
+                }
+            });
+
+            // Update mobile bottom navigation
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                link.classList.remove('text-accent');
+                link.classList.add('text-muted-foreground');
+            });
+
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                const linkPath = link.getAttribute('data-nav-path');
+                if (linkPath && currentPath === linkPath) {
+                    link.classList.remove('text-muted-foreground');
+                    link.classList.add('text-accent');
+                } else if (!linkPath) {
+                    // Fallback to href comparison
+                    const linkHref = new URL(link.href).pathname;
+                    if (currentPath === linkHref) {
+                        link.classList.remove('text-muted-foreground');
+                        link.classList.add('text-accent');
+                    }
                 }
             });
         }
