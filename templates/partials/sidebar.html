@@ -26,7 +26,7 @@
                hx-get="{% url 'account:dashboard' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-white/10 border-l-2 border-accent{% endif %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-white/10 border-l-2 border-accent{% endif %}"
                aria-label="Ir para Início">
                 <i data-lucide="home" class="w-5 h-5 text-accent" aria-hidden="true"></i>
                 <span class="text-white/90 font-medium text-sm">Início</span>
@@ -42,7 +42,7 @@
                hx-get="{% url 'dashboard:principal' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}bg-white/10 border-l-2 border-accent{% endif %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}bg-white/10 border-l-2 border-accent{% endif %}"
                aria-label="Ir para Dashboard">
                 <i data-lucide="line-chart" class="w-5 h-5 text-accent" aria-hidden="true"></i>
                 <span class="text-white/90 font-medium text-sm">Dashboard</span>
@@ -53,7 +53,7 @@
                hx-get="{% url 'dashboard:unidades' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="building" class="w-5 h-5 text-white/60" aria-hidden="true"></i>
                 <span class="text-white/90 text-sm">Unidades</span>
             </a>
@@ -63,7 +63,7 @@
                hx-get="{% url 'dashboard:setores' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="network" class="w-5 h-5 text-white/60" aria-hidden="true"></i>
                 <span class="text-white/90 text-sm">Setores</span>
             </a>
@@ -72,7 +72,7 @@
                hx-get="{% url 'dashboard:dimensoes' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="brain" class="w-5 h-5 text-white/60" aria-hidden="true"></i>
                 <span class="text-white/90 text-sm">Dimensões</span>
             </a>
@@ -88,7 +88,7 @@
                hx-get="{% url 'importacao:importacao' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="file-input" class="w-5 h-5 text-accent" aria-hidden="true"></i>
                 <span class="text-white/90 font-medium text-sm">Importação</span>
             </a>
@@ -97,7 +97,7 @@
                hx-get="{% url 'quiz:gerenciar_links' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 border-l-2 border-accent{% endif %}">
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}bg-white/10 border-l-2 border-accent{% endif %}">
                 <i data-lucide="send" class="w-5 h-5 text-accent" aria-hidden="true"></i>
                 <span class="text-white/90 font-medium text-sm">Enviar Pesquisas</span>
             </a>

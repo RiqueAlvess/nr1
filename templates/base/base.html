@@ -98,6 +98,15 @@
             transition: opacity 300ms ease-in;
         }
 
+        /* HTMX Loading Indicator */
+        .htmx-request .htmx-indicator {
+            display: block !important;
+        }
+
+        .htmx-indicator {
+            display: none;
+        }
+
         /* Mobile bottom nav spacing */
         @media (max-width: 1023px) {
             .main-content-mobile {
@@ -134,6 +143,10 @@
 
             <!-- Main Content -->
             <main id="main-content" class="flex-1 p-6 main-content-mobile">
+                <!-- HTMX Loading Indicator -->
+                <div class="htmx-indicator fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+                    {% include 'components/skeleton.html' %}
+                </div>
                 {% block content %}{% endblock %}
             </main>
         </div>
@@ -205,12 +218,37 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             lucide.createIcons();
+            updateActiveLinks();
         });
 
         // Reinitialize icons after HTMX swaps
         document.body.addEventListener('htmx:afterSwap', function() {
             lucide.createIcons();
+            updateActiveLinks();
         });
+
+        // Update active links after HTMX navigation
+        document.body.addEventListener('htmx:pushedIntoHistory', function(event) {
+            updateActiveLinks();
+        });
+
+        // Function to update active sidebar links
+        function updateActiveLinks() {
+            const currentPath = window.location.pathname;
+
+            // Remove all active classes
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('bg-white/10', 'border-l-2', 'border-accent');
+            });
+
+            // Add active class to matching link
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                const linkPath = new URL(link.href).pathname;
+                if (currentPath === linkPath) {
+                    link.classList.add('bg-white/10', 'border-l-2', 'border-accent');
+                }
+            });
+        }
     </script>
 
     {% block extra_js %}{% endblock %}
