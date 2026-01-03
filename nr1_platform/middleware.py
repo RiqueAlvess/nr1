@@ -33,15 +33,15 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             "default-src 'self'",
         ]
 
-        # script-src: permite scripts do próprio domínio, nonce dinâmico e CDNs específicos
+        # script-src: permite scripts do próprio domínio, nonce dinâmico, CDNs específicos, Alpine.JS e DaisyUI
         if nonce:
-            csp_directives.append(f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://unpkg.com")
+            csp_directives.append(f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com")
         else:
             # Fallback se não houver nonce (não deveria acontecer)
-            csp_directives.append("script-src 'self' https://cdn.jsdelivr.net https://unpkg.com")
+            csp_directives.append("script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com")
 
-        # style-src: permite estilos do próprio domínio, inline (necessário para estilos dinâmicos) e Google Fonts
-        csp_directives.append("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com")
+        # style-src: permite estilos do próprio domínio, inline (necessário para estilos dinâmicos), Google Fonts e DaisyUI
+        csp_directives.append("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net")
 
         # img-src: permite imagens do próprio domínio, data URIs e HTTPS
         csp_directives.append("img-src 'self' data: https:")

@@ -1,51 +1,54 @@
 {% load static %}
-<!-- Sidebar Desktop - Estilo Shadcn -->
-<aside class="sidebar hidden lg:flex lg:flex-col fixed left-0 top-0 h-screen w-64 bg-primary border-r border-border/10 text-white">
+<!-- Sidebar Desktop - Design Minimalista Lovable -->
+<aside class="sidebar hidden lg:flex lg:flex-col fixed left-0 top-0 h-screen w-64 bg-white border-r border-border"
+       x-data="{ openSection: '' }">
 
     <!-- Logo -->
-    <div class="p-4 border-b border-white/10">
+    <div class="p-6 border-b border-border">
         <a href="{% url 'account:dashboard' %}"
            hx-get="{% url 'account:dashboard' %}"
            hx-target="#main-content"
            hx-push-url="true"
-           class="flex items-center gap-3 group"
+           class="flex items-center gap-3 group transition-opacity hover:opacity-80"
            aria-label="Ir para página inicial">
-            <img src="{% static 'public/icone.png' %}" alt="Logo Vivamente360" class="w-9 h-9 flex-shrink-0">
-            <span class="font-semibold text-white text-base">Vivamente360</span>
+            <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
+                <img src="{% static 'public/icone.png' %}" alt="Logo Vivamente360" class="w-6 h-6">
+            </div>
+            <span class="font-semibold text-foreground text-lg">Vivamente360</span>
         </a>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
 
         <!-- Principal Section -->
-        <div class="mb-4">
-            <p class="px-3 text-xs uppercase tracking-wider text-white/40 font-semibold mb-2">Principal</p>
+        <div class="mb-6">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Principal</p>
 
             <a href="{% url 'account:dashboard' %}"
                hx-get="{% url 'account:dashboard' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}active{% endif %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-muted font-medium{% endif %}"
                aria-label="Ir para Início">
-                {% include 'components/icons.html' with icon='home' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium text-sm">Início</span>
+                <i data-lucide="home" class="w-5 h-5 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Início</span>
             </a>
         </div>
 
         {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
         <!-- Análises Section -->
-        <div class="mb-4">
-            <p class="px-3 text-xs uppercase tracking-wider text-white/40 font-semibold mb-2">Análises</p>
+        <div class="mb-6">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Análises</p>
 
             <a href="{% url 'dashboard:principal' %}"
                hx-get="{% url 'dashboard:principal' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}active{% endif %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'principal' %}bg-muted font-medium{% endif %}"
                aria-label="Ir para Dashboard">
-                {% include 'components/icons.html' with icon='line-chart' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium text-sm">Dashboard</span>
+                <i data-lucide="bar-chart-3" class="w-5 h-5 {% if request.resolver_match.url_name == 'principal' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.url_name == 'principal' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Dashboard</span>
             </a>
 
             {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
@@ -53,9 +56,9 @@
                hx-get="{% url 'dashboard:unidades' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='building' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90 text-sm">Unidades</span>
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'unidades' %}bg-muted font-medium{% endif %}">
+                <i data-lucide="building-2" class="w-5 h-5 {% if request.resolver_match.url_name == 'unidades' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.url_name == 'unidades' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Unidades</span>
             </a>
             {% endif %}
 
@@ -63,77 +66,77 @@
                hx-get="{% url 'dashboard:setores' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='network' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90 text-sm">Setores</span>
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'setores' %}bg-muted font-medium{% endif %}">
+                <i data-lucide="network" class="w-5 h-5 {% if request.resolver_match.url_name == 'setores' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.url_name == 'setores' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Setores</span>
             </a>
 
             <a href="{% url 'dashboard:dimensoes' %}"
                hx-get="{% url 'dashboard:dimensoes' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='brain' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90 text-sm">Dimensões</span>
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'dimensoes' %}bg-muted font-medium{% endif %}">
+                <i data-lucide="brain" class="w-5 h-5 {% if request.resolver_match.url_name == 'dimensoes' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.url_name == 'dimensoes' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Dimensões</span>
             </a>
         </div>
         {% endif %}
 
         {% if user.perfil_acesso.is_rh %}
         <!-- Gestão Section -->
-        <div class="mb-4">
-            <p class="px-3 text-xs uppercase tracking-wider text-white/40 font-semibold mb-2">Gestão</p>
+        <div class="mb-6">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Gestão</p>
 
             <a href="{% url 'importacao:importacao' %}"
                hx-get="{% url 'importacao:importacao' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='file-input' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium text-sm">Importação</span>
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.app_name == 'importacao' %}bg-muted font-medium{% endif %}">
+                <i data-lucide="file-input" class="w-5 h-5 {% if request.resolver_match.app_name == 'importacao' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.app_name == 'importacao' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Importação</span>
             </a>
 
             <a href="{% url 'quiz:gerenciar_links' %}"
                hx-get="{% url 'quiz:gerenciar_links' %}"
                hx-target="#main-content"
                hx-push-url="true"
-               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='send' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium text-sm">Enviar Pesquisas</span>
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.app_name == 'quiz' %}bg-muted font-medium{% endif %}">
+                <i data-lucide="send" class="w-5 h-5 {% if request.resolver_match.app_name == 'quiz' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                <span class="text-sm {% if request.resolver_match.app_name == 'quiz' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Enviar Pesquisas</span>
             </a>
         </div>
         {% endif %}
 
         <!-- Sistema Section -->
-        <div class="mb-4">
-            <p class="px-3 text-xs uppercase tracking-wider text-white/40 font-semibold mb-2">Sistema</p>
+        <div class="mb-6">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Sistema</p>
 
             {% if user.is_superuser %}
             <a href="/admin/"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-white/10">
-                {% include 'components/icons.html' with icon='settings' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90 text-sm">Administração</span>
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-muted">
+                <i data-lucide="settings" class="w-5 h-5 text-muted-foreground"></i>
+                <span class="text-sm text-muted-foreground">Administração</span>
             </a>
             {% endif %}
 
             <a href="{% url 'account:logout' %}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-red-500/20 group">
-                {% include 'components/icons.html' with icon='log-out' class='w-5 h-5 text-white/60 group-hover:text-red-400' %}
-                <span class="text-white/90 text-sm group-hover:text-red-400">Sair</span>
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:bg-red-50 group">
+                <i data-lucide="log-out" class="w-5 h-5 text-muted-foreground group-hover:text-destructive"></i>
+                <span class="text-sm text-muted-foreground group-hover:text-destructive">Sair</span>
             </a>
         </div>
     </nav>
 
     <!-- User Profile -->
-    <div class="p-4 border-t border-white/10">
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
-                <span class="font-semibold text-primary text-sm">{{ user.username|first|upper }}</span>
+    <div class="p-4 border-t border-border">
+        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+            <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="font-semibold text-white text-sm">{{ user.username|first|upper }}</span>
             </div>
             <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-white truncate">{{ user.username }}</p>
+                <p class="text-sm font-medium text-foreground truncate">{{ user.username }}</p>
                 {% if user.perfil_acesso %}
-                <p class="text-xs text-accent truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                <p class="text-xs text-muted-foreground truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
                 {% endif %}
             </div>
         </div>

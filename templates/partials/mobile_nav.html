@@ -1,180 +1,202 @@
 {% load static %}
-<!-- Mobile Navigation - Estilo Shadcn (Vanilla JS) -->
+<!-- Mobile Navigation - Design Minimalista -->
 
 <!-- Mobile Header -->
-<header class="lg:hidden sticky top-0 z-40 w-full border-b border-border bg-primary text-white">
+<header class="lg:hidden sticky top-0 z-40 w-full border-b border-border bg-white" x-data="{ sidebarOpen: false }">
     <div class="flex h-14 items-center px-4">
-        <button onclick="toggleMobileSidebar()"
-                class="inline-flex items-center justify-center rounded-md hover:bg-white/10 h-9 w-9 transition-colors"
+        <button @click="sidebarOpen = true"
+                class="inline-flex items-center justify-center rounded-md hover:bg-muted h-9 w-9 transition-colors"
                 aria-label="Abrir menu de navegação">
-            {% include 'components/icons.html' with icon='menu' class='w-5 h-5' %}
+            <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
 
         <div class="flex-1 flex items-center justify-center">
             <a href="{% url 'account:dashboard' %}" class="flex items-center gap-2">
-                <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-8 h-8">
-                <span class="font-semibold text-white text-sm">Vivamente360</span>
+                <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                    <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-5 h-5">
+                </div>
+                <span class="font-semibold text-foreground text-sm">Vivamente360</span>
             </a>
         </div>
 
         <div class="w-9"></div>
     </div>
-</header>
 
-<!-- Mobile Sidebar Overlay -->
-<div id="mobile-sidebar-overlay"
-     onclick="toggleMobileSidebar()"
-     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 lg:hidden transition-opacity hidden"
-     style="opacity: 0;">
-</div>
+    <!-- Mobile Sidebar -->
+    <div x-show="sidebarOpen"
+         x-cloak
+         @click.away="sidebarOpen = false"
+         class="fixed inset-0 z-50">
 
-<!-- Mobile Sidebar -->
-<aside id="mobile-sidebar"
-       class="fixed inset-y-0 left-0 w-72 bg-primary z-50 overflow-y-auto lg:hidden transition-transform transform -translate-x-full">
+        <!-- Overlay -->
+        <div x-show="sidebarOpen"
+             x-transition:enter="transition-opacity ease-linear duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-linear duration-300"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="sidebarOpen = false"
+             class="fixed inset-0 bg-black/50 backdrop-blur-sm">
+        </div>
 
-    <div class="p-4 border-b border-white/10">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-10 h-10">
-                <span class="font-semibold text-white">Vivamente360</span>
+        <!-- Sidebar Panel -->
+        <aside x-show="sidebarOpen"
+               x-transition:enter="transition ease-in-out duration-300 transform"
+               x-transition:enter-start="-translate-x-full"
+               x-transition:enter-end="translate-x-0"
+               x-transition:leave="transition ease-in-out duration-300 transform"
+               x-transition:leave-start="translate-x-0"
+               x-transition:leave-end="-translate-x-full"
+               class="fixed inset-y-0 left-0 w-72 bg-white z-50 overflow-y-auto border-r border-border">
+
+            <div class="p-4 border-b border-border">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                            <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-6 h-6">
+                        </div>
+                        <span class="font-semibold text-foreground">Vivamente360</span>
+                    </div>
+                    <button @click="sidebarOpen = false"
+                            class="inline-flex items-center justify-center rounded-md hover:bg-muted h-9 w-9 transition-colors">
+                        <i data-lucide="x" class="w-5 h-5 text-foreground"></i>
+                    </button>
+                </div>
             </div>
-            <button onclick="toggleMobileSidebar()"
-                    class="inline-flex items-center justify-center rounded-md hover:bg-white/10 h-9 w-9 transition-colors">
-                {% include 'components/icons.html' with icon='x' class='w-5 h-5 text-white' %}
-            </button>
-        </div>
-    </div>
 
-    <!-- Navigation (mesmo conteúdo da sidebar desktop) -->
-    <nav class="flex-1 p-4 space-y-2">
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
 
-        <!-- Principal Section -->
-        <div class="mb-6">
-            <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Principal</p>
+                <!-- Principal Section -->
+                <div class="mb-6">
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Principal</p>
 
-            <a href="{% url 'account:dashboard' %}"
-               hx-get="{% url 'account:dashboard' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='home' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium">Início</span>
-            </a>
-        </div>
+                    <a href="{% url 'account:dashboard' %}"
+                       hx-get="{% url 'account:dashboard' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="home" class="w-5 h-5 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Início</span>
+                    </a>
+                </div>
 
-        {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
-        <!-- Análises Section -->
-        <div class="mb-6">
-            <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Análises</p>
+                {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
+                <!-- Análises Section -->
+                <div class="mb-6">
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Análises</p>
 
-            <a href="{% url 'dashboard:principal' %}"
-               hx-get="{% url 'dashboard:principal' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'principal' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='line-chart' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium">Dashboard</span>
-            </a>
+                    <a href="{% url 'dashboard:principal' %}"
+                       hx-get="{% url 'dashboard:principal' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'principal' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5 {% if request.resolver_match.url_name == 'principal' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'principal' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Dashboard</span>
+                    </a>
 
-            {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
-            <a href="{% url 'dashboard:unidades' %}"
-               hx-get="{% url 'dashboard:unidades' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'unidades' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='building' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90">Unidades</span>
-            </a>
-            {% endif %}
+                    {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
+                    <a href="{% url 'dashboard:unidades' %}"
+                       hx-get="{% url 'dashboard:unidades' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'unidades' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="building-2" class="w-5 h-5 {% if request.resolver_match.url_name == 'unidades' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'unidades' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Unidades</span>
+                    </a>
+                    {% endif %}
 
-            <a href="{% url 'dashboard:setores' %}"
-               hx-get="{% url 'dashboard:setores' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'setores' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='network' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90">Setores</span>
-            </a>
+                    <a href="{% url 'dashboard:setores' %}"
+                       hx-get="{% url 'dashboard:setores' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'setores' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="network" class="w-5 h-5 {% if request.resolver_match.url_name == 'setores' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'setores' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Setores</span>
+                    </a>
 
-            <a href="{% url 'dashboard:dimensoes' %}"
-               hx-get="{% url 'dashboard:dimensoes' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.url_name == 'dimensoes' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='brain' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90">Dimensões</span>
-            </a>
-        </div>
-        {% endif %}
-
-        {% if user.perfil_acesso.is_rh %}
-        <!-- Gestão Section -->
-        <div class="mb-6">
-            <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Gestão</p>
-
-            <a href="{% url 'importacao:importacao' %}"
-               hx-get="{% url 'importacao:importacao' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'importacao' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='file-input' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium">Importação</span>
-            </a>
-
-            <a href="{% url 'quiz:gerenciar_links' %}"
-               hx-get="{% url 'quiz:gerenciar_links' %}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               onclick="toggleMobileSidebar()"
-               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10 {% if request.resolver_match.app_name == 'quiz' %}active{% endif %}">
-                {% include 'components/icons.html' with icon='send' class='w-5 h-5 text-accent' %}
-                <span class="text-white/90 font-medium">Enviar Pesquisas</span>
-            </a>
-        </div>
-        {% endif %}
-
-        <!-- Sistema Section -->
-        <div class="mb-6">
-            <p class="px-4 text-xs uppercase tracking-wider text-white/50 font-semibold mb-2">Sistema</p>
-
-            {% if user.is_superuser %}
-            <a href="/admin/"
-               onclick="toggleMobileSidebar()"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-white/10">
-                {% include 'components/icons.html' with icon='settings' class='w-5 h-5 text-white/60' %}
-                <span class="text-white/90">Administração</span>
-            </a>
-            {% endif %}
-
-            <a href="{% url 'account:logout' %}"
-               class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-red-500/20 group">
-                {% include 'components/icons.html' with icon='log-out' class='w-5 h-5 text-white/60 group-hover:text-red-400' %}
-                <span class="text-white/90 group-hover:text-red-400">Sair</span>
-            </a>
-        </div>
-    </nav>
-
-    <!-- User Profile -->
-    <div class="p-4 border-t border-white/10">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center flex-shrink-0">
-                <span class="font-semibold text-primary">{{ user.username|first|upper }}</span>
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-white truncate">{{ user.username }}</p>
-                {% if user.perfil_acesso %}
-                <p class="text-xs text-accent truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                    <a href="{% url 'dashboard:dimensoes' %}"
+                       hx-get="{% url 'dashboard:dimensoes' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.url_name == 'dimensoes' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="brain" class="w-5 h-5 {% if request.resolver_match.url_name == 'dimensoes' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'dimensoes' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Dimensões</span>
+                    </a>
+                </div>
                 {% endif %}
+
+                {% if user.perfil_acesso.is_rh %}
+                <!-- Gestão Section -->
+                <div class="mb-6">
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Gestão</p>
+
+                    <a href="{% url 'importacao:importacao' %}"
+                       hx-get="{% url 'importacao:importacao' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.app_name == 'importacao' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="file-input" class="w-5 h-5 {% if request.resolver_match.app_name == 'importacao' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.app_name == 'importacao' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Importação</span>
+                    </a>
+
+                    <a href="{% url 'quiz:gerenciar_links' %}"
+                       hx-get="{% url 'quiz:gerenciar_links' %}"
+                       hx-target="#main-content"
+                       hx-push-url="true"
+                       @click="sidebarOpen = false"
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted {% if request.resolver_match.app_name == 'quiz' %}bg-muted font-medium{% endif %}">
+                        <i data-lucide="send" class="w-5 h-5 {% if request.resolver_match.app_name == 'quiz' %}text-foreground{% else %}text-muted-foreground{% endif %}"></i>
+                        <span class="text-sm {% if request.resolver_match.app_name == 'quiz' %}text-foreground font-medium{% else %}text-muted-foreground{% endif %}">Enviar Pesquisas</span>
+                    </a>
+                </div>
+                {% endif %}
+
+                <!-- Sistema Section -->
+                <div class="mb-6">
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Sistema</p>
+
+                    {% if user.is_superuser %}
+                    <a href="/admin/"
+                       @click="sidebarOpen = false"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-muted">
+                        <i data-lucide="settings" class="w-5 h-5 text-muted-foreground"></i>
+                        <span class="text-sm text-muted-foreground">Administração</span>
+                    </a>
+                    {% endif %}
+
+                    <a href="{% url 'account:logout' %}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-red-50 group">
+                        <i data-lucide="log-out" class="w-5 h-5 text-muted-foreground group-hover:text-destructive"></i>
+                        <span class="text-sm text-muted-foreground group-hover:text-destructive">Sair</span>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User Profile -->
+            <div class="p-4 border-t border-border">
+                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer">
+                    <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="font-semibold text-white text-sm">{{ user.username|first|upper }}</span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-foreground truncate">{{ user.username }}</p>
+                        {% if user.perfil_acesso %}
+                        <p class="text-xs text-muted-foreground truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-        </div>
+        </aside>
     </div>
-</aside>
+</header>
 
 <!-- Bottom Navigation (Mobile) -->
 <nav class="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-border shadow-lg">
@@ -183,9 +205,9 @@
            hx-get="{% url 'account:dashboard' %}"
            hx-target="#main-content"
            hx-push-url="true"
-           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-accent{% else %}text-muted-foreground{% endif %}"
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-foreground{% else %}text-muted-foreground{% endif %}"
            data-nav-path="{% url 'account:dashboard' %}">
-            {% include 'components/icons.html' with icon='home' class='w-5 h-5 mb-1' %}
+            <i data-lucide="home" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Início</span>
         </a>
 
@@ -194,10 +216,10 @@
            hx-get="{% url 'dashboard:principal' %}"
            hx-target="#main-content"
            hx-push-url="true"
-           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'dashboard' %}text-accent{% else %}text-muted-foreground{% endif %}"
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'dashboard' %}text-foreground{% else %}text-muted-foreground{% endif %}"
            data-nav-path="{% url 'dashboard:principal' %}">
-            {% include 'components/icons.html' with icon='line-chart' class='w-5 h-5 mb-1' %}
-            <span class="text-xs font-medium">Dashboard</span>
+            <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
+            <span class="text-xs font-medium">Análises</span>
         </a>
         {% endif %}
 
@@ -206,45 +228,18 @@
            hx-get="{% url 'quiz:gerenciar_links' %}"
            hx-target="#main-content"
            hx-push-url="true"
-           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'quiz' %}text-accent{% else %}text-muted-foreground{% endif %}"
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'quiz' %}text-foreground{% else %}text-muted-foreground{% endif %}"
            data-nav-path="{% url 'quiz:gerenciar_links' %}">
-            {% include 'components/icons.html' with icon='send' class='w-5 h-5 mb-1' %}
+            <i data-lucide="send" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Enviar</span>
         </a>
         {% endif %}
 
-        <button onclick="toggleMobileSidebar()"
+        <button @click="sidebarOpen = true"
+                x-data="{ sidebarOpen: false }"
                 class="flex flex-col items-center justify-center flex-1 py-2 text-muted-foreground transition-colors">
-            {% include 'components/icons.html' with icon='menu' class='w-5 h-5 mb-1' %}
+            <i data-lucide="menu" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Mais</span>
         </button>
     </div>
 </nav>
-
-<script>
-    // Função para toggle do mobile sidebar
-    function toggleMobileSidebar() {
-        const sidebar = document.getElementById('mobile-sidebar');
-        const overlay = document.getElementById('mobile-sidebar-overlay');
-
-        if (!sidebar || !overlay) return;
-
-        const isOpen = !sidebar.classList.contains('-translate-x-full');
-
-        if (isOpen) {
-            // Fechar
-            sidebar.classList.add('-translate-x-full');
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 300);
-        } else {
-            // Abrir
-            overlay.classList.remove('hidden');
-            setTimeout(() => {
-                overlay.style.opacity = '1';
-                sidebar.classList.remove('-translate-x-full');
-            }, 10);
-        }
-    }
-</script>
