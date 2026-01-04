@@ -1,0 +1,114 @@
+{% comment %}
+===========================================
+SELECT COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de select/dropdown padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+{% include 'components/ui/select.html' with label='Country' name='country' options=country_list %}
+
+PARAMETERS:
+-----------
+- label: Label do select (string)
+- name: Atributo name do select (string, obrigatório)
+- options: Lista de opções (list ou queryset)
+- selected: Valor da opção selecionada
+- placeholder: Texto quando nenhuma opção está selecionada
+- required: true/false
+- disabled: true/false
+- error: Mensagem de erro (string)
+- helper_text: Texto de ajuda abaixo do select (string)
+- extra_classes: Classes CSS adicionais para o select
+- wrapper_classes: Classes CSS adicionais para o wrapper
+- attrs: Atributos HTML adicionais
+
+OPTION FORMAT:
+--------------
+As opções devem ser:
+1. Lista de tuplas: [(value, label), ...]
+2. Lista de dicts: [{'value': 'val', 'label': 'Label'}, ...]
+3. Lista de strings: ['Option 1', 'Option 2', ...]
+
+EXAMPLES:
+---------
+Basic select:
+{% include 'components/ui/select.html' with
+  label='Status'
+  name='status'
+  options=status_choices
+%}
+
+With placeholder:
+{% include 'components/ui/select.html' with
+  label='Country'
+  name='country'
+  placeholder='Select a country'
+  options=countries
+%}
+
+With error:
+{% include 'components/ui/select.html' with
+  label='Role'
+  name='role'
+  options=roles
+  error='This field is required'
+%}
+
+Pre-selected:
+{% include 'components/ui/select.html' with
+  label='Department'
+  name='department'
+  options=departments
+  selected='engineering'
+%}
+{% endcomment %}
+
+<div class="{{ wrapper_classes }}">
+  {% if label %}
+  <label for="id_{{ name }}" class="block text-sm font-medium leading-none mb-2">
+    {{ label }}
+    {% if required %}<span class="text-destructive ml-1">*</span>{% endif %}
+  </label>
+  {% endif %}
+
+  <select
+    id="id_{{ name }}"
+    name="{{ name }}"
+    {% if required %}required{% endif %}
+    {% if disabled %}disabled{% endif %}
+    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+    {% if error %}border-destructive focus:ring-destructive{% endif %}
+    {{ extra_classes }}"
+    {{ attrs }}
+  >
+    {% if placeholder %}
+    <option value="" {% if not selected %}selected{% endif %} disabled>{{ placeholder }}</option>
+    {% endif %}
+
+    {% for option in options %}
+      {% comment %} Handle tuple format (value, label) {% endcomment %}
+      {% if option.0 and option.1 %}
+        <option value="{{ option.0 }}" {% if selected == option.0 %}selected{% endif %}>{{ option.1 }}</option>
+      {% comment %} Handle dict format {% endcomment %}
+      {% elif option.value %}
+        <option value="{{ option.value }}" {% if selected == option.value %}selected{% endif %}>{{ option.label }}</option>
+      {% comment %} Handle string format {% endcomment %}
+      {% else %}
+        <option value="{{ option }}" {% if selected == option %}selected{% endif %}>{{ option }}</option>
+      {% endif %}
+    {% endfor %}
+  </select>
+
+  {% if error %}
+  <p class="text-sm text-destructive mt-1.5 flex items-center gap-1">
+    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+    {{ error }}
+  </p>
+  {% endif %}
+
+  {% if helper_text and not error %}
+  <p class="text-sm text-muted-foreground mt-1.5">{{ helper_text }}</p>
+  {% endif %}
+</div>

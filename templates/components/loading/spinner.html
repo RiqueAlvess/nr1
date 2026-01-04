@@ -1,0 +1,61 @@
+{% comment %}
+===========================================
+SPINNER COMPONENT - Loading Spinner
+===========================================
+
+Componente de spinner para indicar loading/processamento.
+
+USAGE:
+------
+{% include 'components/loading/spinner.html' with size='default' %}
+
+PARAMETERS:
+-----------
+- size: 'sm', 'default', 'lg', 'xl'
+- color: 'primary', 'accent', 'muted' (default: 'primary')
+- text: Texto ao lado do spinner (opcional)
+- center: true/false - Centraliza o spinner (default: false)
+- extra_classes: Classes CSS adicionais
+
+EXAMPLES:
+---------
+Basic spinner:
+{% include 'components/loading/spinner.html' %}
+
+With text:
+{% include 'components/loading/spinner.html' with text='Loading...' %}
+
+Large centered:
+{% include 'components/loading/spinner.html' with size='lg' center=True %}
+
+Different color:
+{% include 'components/loading/spinner.html' with color='accent' %}
+
+Inline in button:
+<button disabled>
+  {% include 'components/loading/spinner.html' with size='sm' %}
+  Processing...
+</button>
+{% endcomment %}
+
+<div class="{% if center %}flex justify-center items-center{% else %}inline-flex items-center gap-2{% endif %} {{ extra_classes }}">
+  <div
+    class="animate-spin rounded-full border-2 border-current border-t-transparent
+    {% if size == 'sm' %}w-4 h-4{% endif %}
+    {% if not size or size == 'default' %}w-6 h-6{% endif %}
+    {% if size == 'lg' %}w-8 h-8{% endif %}
+    {% if size == 'xl' %}w-12 h-12{% endif %}
+
+    {% if color == 'accent' %}text-accent{% endif %}
+    {% if color == 'muted' %}text-muted-foreground{% endif %}
+    {% if not color or color == 'primary' %}text-primary{% endif %}"
+    role="status"
+    aria-label="Loading"
+  >
+    <span class="sr-only">Loading...</span>
+  </div>
+
+  {% if text %}
+  <span class="text-sm text-muted-foreground">{{ text }}</span>
+  {% endif %}
+</div>

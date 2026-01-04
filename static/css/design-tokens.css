@@ -1,0 +1,403 @@
+/**
+ * Design Tokens - Vivamente360
+ * Sistema de design baseado em Shadcn UI
+ *
+ * Este arquivo centraliza TODAS as variáveis de design do sistema:
+ * - Cores semânticas (HSL)
+ * - Tipografia (tamanhos, pesos, line-heights)
+ * - Espaçamentos (escala 4px)
+ * - Bordas (radius, widths)
+ * - Sombras (elevação)
+ * - Transições (durations, easings)
+ */
+
+@layer base {
+  :root {
+    /* ============================================
+       CORES SEMÂNTICAS (HSL Format)
+       ============================================ */
+
+    /* Background & Foreground */
+    --background: 210 40% 98%;           /* Fundo Slate muito claro #F8FAFC */
+    --foreground: 222.2 84% 4.9%;        /* Texto escuro principal #0A0F14 */
+
+    /* Card */
+    --card: 0 0% 100%;                   /* Cards brancos puros #FFFFFF */
+    --card-foreground: 222.2 84% 4.9%;   /* Texto em cards */
+
+    /* Popover */
+    --popover: 0 0% 100%;                /* Popovers/dropdowns brancos */
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Primary - Navy Brand Color */
+    --primary: 199 69% 19%;              /* Navy #0F3D52 */
+    --primary-foreground: 0 0% 100%;     /* Texto branco em botões primary */
+
+    /* Secondary - Cinza claro */
+    --secondary: 210 40% 96.1%;          /* Cinza claro #F1F5F9 */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    /* Muted - Para textos secundários */
+    --muted: 210 40% 96.1%;              /* Fundo cinza claro */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Texto cinza médio #6B7280 */
+
+    /* Accent - Verde Brand Color */
+    --accent: 152 87% 52%;               /* Verde #1EEB88 */
+    --accent-foreground: 222.2 84% 4.9%; /* Texto escuro em elementos accent */
+
+    /* Destructive - Vermelho para ações destrutivas */
+    --destructive: 0 84.2% 60.2%;        /* Vermelho #EF4444 */
+    --destructive-foreground: 0 0% 100%; /* Texto branco em botões destrutivos */
+
+    /* Border & Input */
+    --border: 214.3 31.8% 91.4%;         /* Borda cinza sutil #E2E8F0 */
+    --input: 214.3 31.8% 91.4%;          /* Border de inputs */
+    --ring: 199 69% 19%;                 /* Navy para focus rings */
+
+    /* Radius Global */
+    --radius: 0.5rem;                    /* 8px - Border radius padrão */
+
+    /* ============================================
+       TIPOGRAFIA
+       ============================================ */
+
+    /* Font Families */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+    /* Font Sizes (Mobile First) */
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.25rem;      /* 20px */
+    --text-2xl: 1.5rem;      /* 24px */
+    --text-3xl: 1.875rem;    /* 30px */
+    --text-4xl: 2.25rem;     /* 36px */
+    --text-5xl: 3rem;        /* 48px */
+
+    /* Font Weights */
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+
+    /* Line Heights */
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+
+    /* ============================================
+       ESPAÇAMENTOS (Escala 4px)
+       ============================================ */
+    --spacing-0: 0;
+    --spacing-px: 1px;
+    --spacing-0-5: 0.125rem;  /* 2px */
+    --spacing-1: 0.25rem;     /* 4px */
+    --spacing-1-5: 0.375rem;  /* 6px */
+    --spacing-2: 0.5rem;      /* 8px */
+    --spacing-2-5: 0.625rem;  /* 10px */
+    --spacing-3: 0.75rem;     /* 12px */
+    --spacing-3-5: 0.875rem;  /* 14px */
+    --spacing-4: 1rem;        /* 16px */
+    --spacing-5: 1.25rem;     /* 20px */
+    --spacing-6: 1.5rem;      /* 24px */
+    --spacing-7: 1.75rem;     /* 28px */
+    --spacing-8: 2rem;        /* 32px */
+    --spacing-9: 2.25rem;     /* 36px */
+    --spacing-10: 2.5rem;     /* 40px */
+    --spacing-12: 3rem;       /* 48px */
+    --spacing-16: 4rem;       /* 64px */
+    --spacing-20: 5rem;       /* 80px */
+    --spacing-24: 6rem;       /* 96px */
+    --spacing-32: 8rem;       /* 128px */
+
+    /* ============================================
+       BORDAS
+       ============================================ */
+
+    /* Border Radius */
+    --radius-none: 0;
+    --radius-sm: 0.125rem;    /* 2px */
+    --radius-base: 0.25rem;   /* 4px */
+    --radius-md: 0.375rem;    /* 6px - Padrão Shadcn para inputs/buttons */
+    --radius-lg: 0.5rem;      /* 8px - Padrão para cards */
+    --radius-xl: 0.75rem;     /* 12px */
+    --radius-2xl: 1rem;       /* 16px */
+    --radius-3xl: 1.5rem;     /* 24px */
+    --radius-full: 9999px;    /* Círculo perfeito */
+
+    /* Border Widths */
+    --border-width-0: 0;
+    --border-width-1: 1px;
+    --border-width-2: 2px;
+    --border-width-4: 4px;
+    --border-width-8: 8px;
+
+    /* ============================================
+       SOMBRAS (Elevação)
+       ============================================ */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+    --shadow-none: 0 0 #0000;
+
+    /* ============================================
+       TRANSIÇÕES & ANIMAÇÕES
+       ============================================ */
+
+    /* Durations */
+    --duration-75: 75ms;
+    --duration-100: 100ms;
+    --duration-150: 150ms;
+    --duration-200: 200ms;
+    --duration-300: 300ms;
+    --duration-500: 500ms;
+    --duration-700: 700ms;
+    --duration-1000: 1000ms;
+
+    /* Timing Functions (Easings) */
+    --ease-linear: linear;
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    /* ============================================
+       Z-INDEX SCALE
+       ============================================ */
+    --z-0: 0;
+    --z-10: 10;
+    --z-20: 20;
+    --z-30: 30;
+    --z-40: 40;
+    --z-50: 50;
+    --z-auto: auto;
+
+    /* ============================================
+       BREAKPOINTS (Informacional)
+       Usar com @media queries
+       ============================================ */
+    --screen-sm: 640px;
+    --screen-md: 768px;
+    --screen-lg: 1024px;
+    --screen-xl: 1280px;
+    --screen-2xl: 1536px;
+  }
+
+  /* ============================================
+     DARK MODE (Preparado para implementação futura)
+     ============================================ */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Descomente quando implementar dark mode */
+      /* --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+
+      --popover: 222.2 84% 4.9%;
+      --popover-foreground: 210 40% 98%;
+
+      --primary: 199 69% 19%;
+      --primary-foreground: 0 0% 100%;
+
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+
+      --accent: 152 87% 52%;
+      --accent-foreground: 210 40% 98%;
+
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 40% 98%;
+
+      --border: 217.2 32.6% 17.5%;
+      --input: 217.2 32.6% 17.5%;
+      --ring: 152 87% 52%; */
+    }
+  }
+}
+
+/* ============================================
+   APLICAÇÃO GLOBAL DE TOKENS
+   ============================================ */
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings padrão */
+  h1 {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+  }
+
+  h2 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-tight);
+  }
+
+  h3 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-snug);
+  }
+
+  h4 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-medium);
+    line-height: var(--leading-snug);
+  }
+
+  /* Links */
+  a {
+    color: hsl(var(--primary));
+    text-decoration: none;
+    transition: color var(--duration-150) var(--ease-in-out);
+  }
+
+  a:hover {
+    color: hsl(var(--accent));
+  }
+
+  /* Focus states - Acessibilidade crítica */
+  *:focus {
+    outline: none;
+  }
+
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: hsl(var(--accent) / 0.3);
+    color: hsl(var(--foreground));
+  }
+
+  /* Scrollbar (Webkit) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: var(--radius-full);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES - Cores Semânticas
+   ============================================ */
+
+/* Text Colors */
+.text-primary {
+  color: hsl(var(--primary));
+}
+
+.text-secondary {
+  color: hsl(var(--secondary-foreground));
+}
+
+.text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+}
+
+.text-accent {
+  color: hsl(var(--accent));
+}
+
+.text-destructive {
+  color: hsl(var(--destructive));
+}
+
+/* Background Colors */
+.bg-background {
+  background-color: hsl(var(--background));
+}
+
+.bg-card {
+  background-color: hsl(var(--card));
+}
+
+.bg-primary {
+  background-color: hsl(var(--primary));
+}
+
+.bg-secondary {
+  background-color: hsl(var(--secondary));
+}
+
+.bg-muted {
+  background-color: hsl(var(--muted));
+}
+
+.bg-accent {
+  background-color: hsl(var(--accent));
+}
+
+.bg-destructive {
+  background-color: hsl(var(--destructive));
+}
+
+/* Border Colors */
+.border-border {
+  border-color: hsl(var(--border));
+}
+
+.border-input {
+  border-color: hsl(var(--input));
+}
+
+.border-primary {
+  border-color: hsl(var(--primary));
+}
+
+.border-accent {
+  border-color: hsl(var(--accent));
+}
+
+/* Ring Colors (Focus) */
+.ring-ring {
+  --tw-ring-color: hsl(var(--ring));
+}
+
+.ring-primary {
+  --tw-ring-color: hsl(var(--primary));
+}
+
+.ring-accent {
+  --tw-ring-color: hsl(var(--accent));
+}

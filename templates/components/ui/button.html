@@ -1,0 +1,120 @@
+{% comment %}
+===========================================
+BUTTON COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de botão padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+{% include 'components/ui/button.html' with variant='primary' size='default' text='Click me' %}
+
+PARAMETERS:
+-----------
+- variant: 'default', 'primary', 'secondary', 'accent', 'destructive', 'outline', 'ghost', 'link'
+- size: 'sm', 'default', 'lg', 'icon'
+- text: Texto do botão (string)
+- type: 'button' (default), 'submit', 'reset'
+- disabled: true/false
+- icon_left: Nome do ícone Lucide à esquerda (ex: 'user')
+- icon_right: Nome do ícone Lucide à direita (ex: 'arrow-right')
+- extra_classes: Classes CSS adicionais
+- attrs: Atributos HTML adicionais (ex: 'data-action="delete"')
+- href: Se fornecido, renderiza como <a> ao invés de <button>
+
+VARIANTS:
+---------
+- default: Estilo padrão neutro
+- primary: Navy brand color (ações principais)
+- secondary: Cinza claro (ações secundárias)
+- accent: Verde brand color (ações positivas)
+- destructive: Vermelho (ações destrutivas)
+- outline: Apenas borda (ações discretas)
+- ghost: Sem borda/fundo (ações muito discretas)
+- link: Estilo de link (navegação)
+
+EXAMPLES:
+---------
+Basic:
+{% include 'components/ui/button.html' with variant='primary' text='Save' %}
+
+With icon:
+{% include 'components/ui/button.html' with variant='accent' text='Create' icon_left='plus' %}
+
+Icon only:
+{% include 'components/ui/button.html' with variant='ghost' size='icon' icon_left='settings' %}
+
+As link:
+{% include 'components/ui/button.html' with variant='outline' text='Learn More' href='/docs' %}
+
+Submit form:
+{% include 'components/ui/button.html' with variant='primary' text='Submit' type='submit' %}
+
+Disabled:
+{% include 'components/ui/button.html' with variant='primary' text='Loading...' disabled=True icon_left='loader-2' extra_classes='animate-spin' %}
+{% endcomment %}
+
+{% if href %}
+<a
+  href="{{ href }}"
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
+  {% comment %} Variants {% endcomment %}
+  {% if variant == 'primary' %}bg-primary text-primary-foreground hover:bg-primary/90{% endif %}
+  {% if variant == 'secondary' %}bg-secondary text-secondary-foreground hover:bg-secondary/80{% endif %}
+  {% if variant == 'accent' %}bg-accent text-accent-foreground hover:bg-accent/90{% endif %}
+  {% if variant == 'destructive' %}bg-destructive text-destructive-foreground hover:bg-destructive/90{% endif %}
+  {% if variant == 'outline' %}border border-input bg-background hover:bg-accent/10 hover:text-accent-foreground{% endif %}
+  {% if variant == 'ghost' %}hover:bg-accent/10 hover:text-accent-foreground{% endif %}
+  {% if variant == 'link' %}text-primary underline-offset-4 hover:underline{% endif %}
+  {% if not variant or variant == 'default' %}bg-primary text-primary-foreground hover:bg-primary/90{% endif %}
+  {% comment %} Sizes {% endcomment %}
+  {% if size == 'sm' %}h-9 px-3 text-xs{% endif %}
+  {% if size == 'lg' %}h-11 px-8 text-base{% endif %}
+  {% if size == 'icon' %}h-10 w-10{% endif %}
+  {% if not size or size == 'default' %}h-10 px-4 py-2{% endif %}
+  {{ extra_classes }}"
+  {{ attrs }}
+>
+  {% if icon_left %}
+    <i data-lucide="{{ icon_left }}" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}"></i>
+  {% endif %}
+
+  {% if text %}{{ text }}{% endif %}
+
+  {% if icon_right %}
+    <i data-lucide="{{ icon_right }}" class="w-4 h-4"></i>
+  {% endif %}
+</a>
+{% else %}
+<button
+  type="{{ type|default:'button' }}"
+  class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50
+  {% comment %} Variants {% endcomment %}
+  {% if variant == 'primary' %}bg-primary text-primary-foreground hover:bg-primary/90{% endif %}
+  {% if variant == 'secondary' %}bg-secondary text-secondary-foreground hover:bg-secondary/80{% endif %}
+  {% if variant == 'accent' %}bg-accent text-accent-foreground hover:bg-accent/90{% endif %}
+  {% if variant == 'destructive' %}bg-destructive text-destructive-foreground hover:bg-destructive/90{% endif %}
+  {% if variant == 'outline' %}border border-input bg-background hover:bg-accent/10 hover:text-accent-foreground{% endif %}
+  {% if variant == 'ghost' %}hover:bg-accent/10 hover:text-accent-foreground{% endif %}
+  {% if variant == 'link' %}text-primary underline-offset-4 hover:underline{% endif %}
+  {% if not variant or variant == 'default' %}bg-primary text-primary-foreground hover:bg-primary/90{% endif %}
+  {% comment %} Sizes {% endcomment %}
+  {% if size == 'sm' %}h-9 px-3 text-xs{% endif %}
+  {% if size == 'lg' %}h-11 px-8 text-base{% endif %}
+  {% if size == 'icon' %}h-10 w-10{% endif %}
+  {% if not size or size == 'default' %}h-10 px-4 py-2{% endif %}
+  {{ extra_classes }}"
+  {% if disabled %}disabled{% endif %}
+  {{ attrs }}
+>
+  {% if icon_left %}
+    <i data-lucide="{{ icon_left }}" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}"></i>
+  {% endif %}
+
+  {% if text %}{{ text }}{% endif %}
+
+  {% if icon_right %}
+    <i data-lucide="{{ icon_right }}" class="w-4 h-4"></i>
+  {% endif %}
+</button>
+{% endif %}

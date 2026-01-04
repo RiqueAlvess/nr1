@@ -1,0 +1,141 @@
+{% comment %}
+===========================================
+CHART WRAPPER COMPONENT - Dashboard Chart Container
+===========================================
+
+Componente wrapper para gráficos Chart.js com loading state e empty state.
+
+USAGE:
+------
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='sales-chart'
+  title='Sales Overview'
+  height='h-64'
+%}
+
+PARAMETERS:
+-----------
+- id: ID único do canvas do gráfico (obrigatório)
+- title: Título do gráfico (string, obrigatório)
+- description: Descrição abaixo do título (opcional)
+- height: Classe de altura Tailwind (default: 'h-64')
+- loading: true/false - Mostra skeleton loader (default: false)
+- no_data: true/false - Mostra empty state (default: false)
+- actions: HTML de botões/ações no header (opcional)
+- footer: HTML do footer (opcional)
+- extra_classes: Classes CSS adicionais para o container
+
+EXAMPLES:
+---------
+Basic chart:
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='revenue-chart'
+  title='Monthly Revenue'
+%}
+
+With description:
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='users-chart'
+  title='User Growth'
+  description='Active users over the last 12 months'
+  height='h-80'
+%}
+
+With actions:
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='sales-chart'
+  title='Sales Trends'
+  actions='
+    <select class="text-sm border rounded px-2 py-1">
+      <option>Last 7 days</option>
+      <option>Last 30 days</option>
+      <option>Last 12 months</option>
+    </select>
+  '
+%}
+
+Loading state:
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='chart-loading'
+  title='Loading...'
+  loading=True
+%}
+
+No data state:
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='chart-empty'
+  title='Revenue Chart'
+  no_data=True
+%}
+
+With footer:
+{% include 'components/dashboard/chart-wrapper.html' with
+  id='analytics-chart'
+  title='Analytics'
+  footer='<p class="text-xs text-muted-foreground">Data updated 5 minutes ago</p>'
+%}
+
+JAVASCRIPT USAGE:
+-----------------
+After including this component, initialize Chart.js:
+
+<script>
+const ctx = document.getElementById('sales-chart').getContext('2d');
+new Chart(ctx, {
+  type: 'line',
+  data: {...},
+  options: {...}
+});
+</script>
+{% endcomment %}
+
+<div class="rounded-lg border border-border bg-card shadow-sm {{ extra_classes }}">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 pb-0">
+    <div class="flex-1">
+      <h3 class="text-lg font-semibold leading-none tracking-tight">{{ title }}</h3>
+      {% if description %}
+      <p class="text-sm text-muted-foreground mt-1.5">{{ description }}</p>
+      {% endif %}
+    </div>
+
+    {% if actions %}
+    <div class="flex items-center gap-2">
+      {{ actions|safe }}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Chart Content -->
+  <div class="p-6">
+    {% if loading %}
+      <!-- Loading State -->
+      <div class="{{ height }} w-full">
+        {% include 'components/ui/skeleton.html' with variant='rectangle' height=height %}
+      </div>
+
+    {% elif no_data %}
+      <!-- Empty State -->
+      <div class="{{ height }} flex items-center justify-center">
+        {% include 'components/empty-states/no-data.html' with
+          title='No data available'
+          message='There is no data to display for this chart yet.'
+          icon='bar-chart-3'
+        %}
+      </div>
+
+    {% else %}
+      <!-- Chart Canvas -->
+      <div class="{{ height }} w-full relative">
+        <canvas id="{{ id }}" aria-label="{{ title }}"></canvas>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Footer -->
+  {% if footer %}
+  <div class="px-6 pb-6 pt-0">
+    {{ footer|safe }}
+  </div>
+  {% endif %}
+</div>

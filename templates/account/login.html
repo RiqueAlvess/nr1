@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR">
 <head>
     {% load static %}
     <meta charset="UTF-8">
@@ -16,121 +16,109 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- DaisyUI + Tailwind CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- CSS Local -->
+    <!-- CSS Local - Shadcn UI Design System -->
+    <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'css/shadcn.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
     <!-- Alpine.JS -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest" defer></script>
 
     <style>
-        /* Login page specific styles - Lovable inspired */
+        /* Login page specific styles */
         .login-container {
-            background: linear-gradient(135deg, #fafafa 0%, #ffffff 100%);
+            background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
         }
 
         .login-card {
-            background: white;
-            border: 2px solid black;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: all 0.3s ease;
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            box-shadow: var(--shadow-lg);
+            transition: all var(--duration-300) var(--ease-in-out);
         }
 
         .login-card:hover {
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            box-shadow: var(--shadow-xl);
+            border-color: hsl(var(--primary) / 0.2);
         }
 
-        .input-group {
+        /* Custom password toggle button */
+        .password-toggle-wrapper {
             position: relative;
-            width: 100%;
         }
 
-        .input-icon {
-            position: absolute;
-            left: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: black;
-            opacity: 0.6;
-            pointer-events: none;
-        }
-
-        .input-with-icon {
-            padding-left: 2.5rem;
-        }
-
-        .password-toggle {
+        .password-toggle-btn {
             position: absolute;
             right: 0.75rem;
             top: 50%;
             transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: black;
-            opacity: 0.6;
             padding: 0.25rem;
-            transition: opacity 0.2s ease;
+            color: hsl(var(--muted-foreground));
+            transition: color var(--duration-150) var(--ease-in-out);
+            cursor: pointer;
         }
 
-        .password-toggle:hover {
-            opacity: 1;
-        }
-
-        .btn-primary-custom {
-            background: hsl(0, 0%, 9%);
-            color: white;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary-custom:hover {
-            background: hsl(0, 0%, 20%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-
-        .btn-primary-custom:active {
-            transform: translateY(0);
+        .password-toggle-btn:hover {
+            color: hsl(var(--foreground));
         }
     </style>
 </head>
-<body class="login-container min-h-screen p-4 py-12" x-data="{ showPassword: false }">
+<body class="login-container min-h-screen flex items-center justify-center p-4" x-data="{ showPassword: false, loading: false }" x-cloak>
 
-    <div class="w-full max-w-md mx-auto">
+    <div class="w-full max-w-md animate-fadeIn">
         <!-- Card Principal -->
         <div class="login-card rounded-2xl p-8 md:p-10">
 
             <!-- Logo e Título -->
             <div class="text-center mb-8">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-primary rounded-2xl mb-4 shadow-md">
                     <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-10 h-10">
                 </div>
-                <h1 class="text-2xl font-bold text-black mb-2">Vivamente360</h1>
-                <p class="text-black opacity-60 text-sm">Bem-vindo de volta</p>
+                <h1 class="text-2xl font-bold text-foreground mb-2">Vivamente360</h1>
+                <p class="text-muted-foreground text-sm">Bem-vindo de volta</p>
             </div>
 
+            <!-- Django Messages -->
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                    {% include 'components/ui/alert.html' with
+                        variant=message.tags
+                        message=message
+                        dismissible=True
+                    %}
+                {% endfor %}
+            </div>
+            {% endif %}
+
             <!-- Formulário -->
-            <form method="post" class="space-y-5">
+            <form method="post" class="space-y-5" @submit="loading = true">
                 {% csrf_token %}
 
                 <!-- Campo E-mail/Usuário -->
-                <div class="form-control">
-                    <label for="username" class="label">
-                        <span class="label-text font-medium text-sm text-black">E-mail ou Usuário</span>
+                <div>
+                    <label for="username" class="block text-sm font-medium leading-none mb-2">
+                        E-mail ou Usuário
+                        <span class="text-destructive ml-1">*</span>
                     </label>
-                    <div class="input-group">
-                        <i data-lucide="user" class="input-icon w-5 h-5"></i>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
                         <input
                             type="text"
                             id="username"
                             name="username"
                             placeholder="Digite seu e-mail ou usuário"
-                            class="input input-bordered w-full input-with-icon bg-white text-black"
+                            class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             required
                             autofocus
                         />
@@ -138,25 +126,27 @@
                 </div>
 
                 <!-- Campo Senha -->
-                <div class="form-control">
-                    <label for="password" class="label">
-                        <span class="label-text font-medium text-sm text-black">Senha</span>
+                <div>
+                    <label for="password" class="block text-sm font-medium leading-none mb-2">
+                        Senha
+                        <span class="text-destructive ml-1">*</span>
                     </label>
-                    <div class="input-group">
-                        <i data-lucide="lock" class="input-icon w-5 h-5"></i>
+                    <div class="password-toggle-wrapper relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </div>
                         <input
-                            type="password"
                             x-bind:type="showPassword ? 'text' : 'password'"
                             id="password"
                             name="password"
                             placeholder="Digite sua senha"
-                            class="input input-bordered w-full input-with-icon pr-12 bg-white text-black"
+                            class="flex h-10 w-full rounded-md border border-input bg-background pl-10 pr-12 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             required
                         />
                         <button
                             type="button"
                             @click="showPassword = !showPassword"
-                            class="password-toggle"
+                            class="password-toggle-btn"
                             aria-label="Mostrar/ocultar senha">
                             <i :data-lucide="showPassword ? 'eye-off' : 'eye'" class="w-5 h-5"></i>
                         </button>
@@ -166,29 +156,36 @@
                 <!-- Link Esqueci a Senha -->
                 <div class="text-right">
                     <a href="{% url 'account:password_reset_request' %}"
-                       class="text-sm text-black opacity-60 hover:opacity-100 transition-opacity">
+                       class="text-sm text-primary hover:text-accent transition-colors underline-offset-4 hover:underline">
                         Esqueceu a senha?
                     </a>
                 </div>
 
                 <!-- Botão de Login -->
-                <button type="submit" class="btn btn-primary-custom w-full h-12 text-base font-medium">
-                    Acessar
+                <button
+                    type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground h-12 w-full text-base font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/90"
+                    x-bind:disabled="loading">
+                    <span x-show="!loading">Acessar</span>
+                    <span x-show="loading" class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full border-2 border-current border-t-transparent w-5 h-5"></div>
+                        Entrando...
+                    </span>
                 </button>
             </form>
 
             <!-- Footer -->
-            <div class="mt-8 pt-6 border-t border-black">
-                <p class="text-center text-xs text-black opacity-60">
-                    Conformidade: <span class="font-medium">NR-1 • LGPD • HSE-IT</span>
+            <div class="mt-8 pt-6 border-t border-border">
+                <p class="text-center text-xs text-muted-foreground">
+                    Conformidade: <span class="font-medium text-foreground">NR-1 • LGPD • HSE-IT</span>
                 </p>
             </div>
         </div>
 
         <!-- Info adicional -->
         <div class="mt-6 text-center">
-            <p class="text-xs text-black opacity-60">
-                Problemas para acessar? Contate o <span class="font-medium">Suporte TI</span>
+            <p class="text-xs text-muted-foreground">
+                Problemas para acessar? Contate o <span class="font-medium text-foreground">Suporte TI</span>
             </p>
         </div>
     </div>
