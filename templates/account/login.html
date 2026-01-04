@@ -36,13 +36,13 @@
 
         .login-card {
             background: white;
-            border: 1px solid hsl(0, 0%, 89.8%);
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            border: 2px solid black;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             transition: all 0.3s ease;
         }
 
         .login-card:hover {
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
         }
 
         .input-group {
@@ -55,7 +55,8 @@
             left: 0.75rem;
             top: 50%;
             transform: translateY(-50%);
-            color: hsl(0, 0%, 45.1%);
+            color: black;
+            opacity: 0.6;
             pointer-events: none;
         }
 
@@ -71,13 +72,14 @@
             background: none;
             border: none;
             cursor: pointer;
-            color: hsl(0, 0%, 45.1%);
+            color: black;
+            opacity: 0.6;
             padding: 0.25rem;
-            transition: color 0.2s ease;
+            transition: opacity 0.2s ease;
         }
 
         .password-toggle:hover {
-            color: hsl(0, 0%, 3.9%);
+            opacity: 1;
         }
 
         .btn-primary-custom {
@@ -108,8 +110,8 @@
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-black rounded-2xl mb-4">
                     <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-10 h-10">
                 </div>
-                <h1 class="text-2xl font-bold text-foreground mb-2">Vivamente360</h1>
-                <p class="text-muted-foreground text-sm">Bem-vindo de volta</p>
+                <h1 class="text-2xl font-bold text-black mb-2">Vivamente360</h1>
+                <p class="text-black opacity-60 text-sm">Bem-vindo de volta</p>
             </div>
 
             <!-- Formulário -->
@@ -119,7 +121,7 @@
                 <!-- Campo E-mail/Usuário -->
                 <div class="form-control">
                     <label for="username" class="label">
-                        <span class="label-text font-medium text-sm">E-mail ou Usuário</span>
+                        <span class="label-text font-medium text-sm text-black">E-mail ou Usuário</span>
                     </label>
                     <div class="input-group">
                         <i data-lucide="user" class="input-icon w-5 h-5"></i>
@@ -128,7 +130,7 @@
                             id="username"
                             name="username"
                             placeholder="Digite seu e-mail ou usuário"
-                            class="input input-bordered w-full input-with-icon"
+                            class="input input-bordered w-full input-with-icon bg-white text-black"
                             required
                             autofocus
                         />
@@ -138,16 +140,17 @@
                 <!-- Campo Senha -->
                 <div class="form-control">
                     <label for="password" class="label">
-                        <span class="label-text font-medium text-sm">Senha</span>
+                        <span class="label-text font-medium text-sm text-black">Senha</span>
                     </label>
                     <div class="input-group">
                         <i data-lucide="lock" class="input-icon w-5 h-5"></i>
                         <input
-                            :type="showPassword ? 'text' : 'password'"
+                            type="password"
+                            x-bind:type="showPassword ? 'text' : 'password'"
                             id="password"
                             name="password"
                             placeholder="Digite sua senha"
-                            class="input input-bordered w-full input-with-icon pr-12"
+                            class="input input-bordered w-full input-with-icon pr-12 bg-white text-black"
                             required
                         />
                         <button
@@ -163,7 +166,7 @@
                 <!-- Link Esqueci a Senha -->
                 <div class="text-right">
                     <a href="{% url 'account:password_reset_request' %}"
-                       class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                       class="text-sm text-black opacity-60 hover:opacity-100 transition-opacity">
                         Esqueceu a senha?
                     </a>
                 </div>
@@ -175,8 +178,8 @@
             </form>
 
             <!-- Footer -->
-            <div class="mt-8 pt-6 border-t border-border">
-                <p class="text-center text-xs text-muted-foreground">
+            <div class="mt-8 pt-6 border-t border-black">
+                <p class="text-center text-xs text-black opacity-60">
                     Conformidade: <span class="font-medium">NR-1 • LGPD • HSE-IT</span>
                 </p>
             </div>
@@ -184,7 +187,7 @@
 
         <!-- Info adicional -->
         <div class="mt-6 text-center">
-            <p class="text-xs text-muted-foreground">
+            <p class="text-xs text-black opacity-60">
                 Problemas para acessar? Contate o <span class="font-medium">Suporte TI</span>
             </p>
         </div>
