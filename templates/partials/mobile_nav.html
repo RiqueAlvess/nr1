@@ -1,21 +1,21 @@
 {% load static %}
-<!-- Mobile Navigation - Design Minimalista com Contraste Melhorado -->
+<!-- Mobile Navigation - Shadcn UI Design System -->
 
 <!-- Mobile Header -->
-<header class="lg:hidden sticky top-0 z-40 w-full border-b border-black bg-white" x-data="{ sidebarOpen: false }">
+<header class="lg:hidden sticky top-0 z-40 w-full border-b border-border bg-card shadow-sm" x-data="{ sidebarOpen: false }">
     <div class="flex h-14 items-center px-4">
         <button @click="sidebarOpen = true"
-                class="inline-flex items-center justify-center rounded-md hover:bg-gray-100 h-9 w-9 transition-colors"
+                class="inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 aria-label="Abrir menu de navegação">
-            <i data-lucide="menu" class="w-5 h-5 text-black"></i>
+            <i data-lucide="menu" class="w-5 h-5 text-foreground"></i>
         </button>
 
         <div class="flex-1 flex items-center justify-center">
             <a href="{% url 'account:dashboard' %}" class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                     <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-5 h-5">
                 </div>
-                <span class="font-semibold text-black text-sm">Vivamente360</span>
+                <span class="font-semibold text-foreground text-sm">Vivamente360</span>
             </a>
         </div>
 
@@ -26,6 +26,7 @@
     <div x-show="sidebarOpen"
          x-cloak
          @click.away="sidebarOpen = false"
+         @keydown.escape.window="sidebarOpen = false"
          class="fixed inset-0 z-50">
 
         <!-- Overlay -->
@@ -37,7 +38,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              @click="sidebarOpen = false"
-             class="fixed inset-0 bg-black/50 backdrop-blur-sm">
+             class="fixed inset-0 bg-background/80 backdrop-blur-sm">
         </div>
 
         <!-- Sidebar Panel -->
@@ -48,71 +49,79 @@
                x-transition:leave="transition ease-in-out duration-300 transform"
                x-transition:leave-start="translate-x-0"
                x-transition:leave-end="-translate-x-full"
-               class="fixed inset-y-0 left-0 w-72 bg-white z-50 overflow-y-auto border-r border-black">
+               class="fixed inset-y-0 left-0 w-72 bg-card z-50 overflow-y-auto border-r border-border shadow-lg"
+               role="dialog"
+               aria-label="Menu de navegação">
 
-            <div class="p-4 border-b border-black">
+            <div class="p-4 border-b border-border">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+                        <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
                             <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-6 h-6">
                         </div>
-                        <span class="font-semibold text-black">Vivamente360</span>
+                        <span class="font-semibold text-foreground">Vivamente360</span>
                     </div>
                     <button @click="sidebarOpen = false"
-                            class="inline-flex items-center justify-center rounded-md hover:bg-gray-100 h-9 w-9 transition-colors">
-                        <i data-lucide="x" class="w-5 h-5 text-black"></i>
+                            class="inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground h-9 w-9 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            aria-label="Fechar menu">
+                        <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 p-4 space-y-2">
+            <nav class="flex-1 p-4 space-y-2" role="navigation" aria-label="Menu principal mobile">
 
                 <!-- Principal Section -->
                 <div class="mb-4">
-                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Principal</p>
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Principal</p>
 
                     <a href="{% url 'account:dashboard' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="home" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}font-medium{% endif %}">Início</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}page{% endif %}">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}font-medium{% endif %}">Início</span>
                     </a>
                 </div>
 
                 {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
                 <!-- Análises Section -->
                 <div class="mb-4">
-                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Análises</p>
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Análises</p>
 
                     <a href="{% url 'dashboard:principal' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.url_name == 'principal' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="bar-chart-3" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.url_name == 'principal' %}font-medium{% endif %}">Dashboard</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'principal' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.url_name == 'principal' %}page{% endif %}">
+                        <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'principal' %}font-medium{% endif %}">Dashboard</span>
                     </a>
 
                     {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
                     <a href="{% url 'dashboard:unidades' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.url_name == 'unidades' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="building-2" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.url_name == 'unidades' %}font-medium{% endif %}">Unidades</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'unidades' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.url_name == 'unidades' %}page{% endif %}">
+                        <i data-lucide="building-2" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'unidades' %}font-medium{% endif %}">Unidades</span>
                     </a>
                     {% endif %}
 
                     <a href="{% url 'dashboard:setores' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.url_name == 'setores' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="network" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.url_name == 'setores' %}font-medium{% endif %}">Setores</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'setores' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.url_name == 'setores' %}page{% endif %}">
+                        <i data-lucide="network" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'setores' %}font-medium{% endif %}">Setores</span>
                     </a>
 
                     <a href="{% url 'dashboard:dimensoes' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.url_name == 'dimensoes' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="brain" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.url_name == 'dimensoes' %}font-medium{% endif %}">Dimensões</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dimensoes' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.url_name == 'dimensoes' %}page{% endif %}">
+                        <i data-lucide="brain" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.url_name == 'dimensoes' %}font-medium{% endif %}">Dimensões</span>
                     </a>
                 </div>
                 {% endif %}
@@ -120,55 +129,57 @@
                 {% if user.perfil_acesso.is_rh %}
                 <!-- Gestão Section -->
                 <div class="mb-4">
-                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Gestão</p>
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Gestão</p>
 
                     <a href="{% url 'importacao:importacao' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.app_name == 'importacao' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="file-input" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.app_name == 'importacao' %}font-medium{% endif %}">Importação</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'importacao' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.app_name == 'importacao' %}page{% endif %}">
+                        <i data-lucide="file-input" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.app_name == 'importacao' %}font-medium{% endif %}">Importação</span>
                     </a>
 
                     <a href="{% url 'quiz:gerenciar_links' %}"
                        @click="sidebarOpen = false"
-                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100 {% if request.resolver_match.app_name == 'quiz' %}bg-gray-100 font-medium{% endif %}">
-                        <i data-lucide="send" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black {% if request.resolver_match.app_name == 'quiz' %}font-medium{% endif %}">Enviar Pesquisas</span>
+                       class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'quiz' %}bg-accent text-accent-foreground font-medium{% endif %}"
+                       aria-current="{% if request.resolver_match.app_name == 'quiz' %}page{% endif %}">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                        <span class="text-sm {% if request.resolver_match.app_name == 'quiz' %}font-medium{% endif %}">Enviar Pesquisas</span>
                     </a>
                 </div>
                 {% endif %}
 
                 <!-- Sistema Section -->
                 <div class="mb-4">
-                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Sistema</p>
+                    <p class="px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Sistema</p>
 
                     {% if user.is_superuser %}
                     <a href="/admin/"
                        @click="sidebarOpen = false"
-                       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-gray-100">
-                        <i data-lucide="settings" class="w-5 h-5 text-black"></i>
-                        <span class="text-sm text-black">Administração</span>
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                        <span class="text-sm">Administração</span>
                     </a>
                     {% endif %}
 
                     <a href="{% url 'account:logout' %}"
-                       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all hover:bg-red-50 group">
-                        <i data-lucide="log-out" class="w-5 h-5 text-black group-hover:text-red-600"></i>
-                        <span class="text-sm text-black group-hover:text-red-600">Sair</span>
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 hover:bg-destructive/10 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                        <i data-lucide="log-out" class="w-5 h-5 text-foreground group-hover:text-destructive transition-colors"></i>
+                        <span class="text-sm text-foreground group-hover:text-destructive transition-colors">Sair</span>
                     </a>
                 </div>
             </nav>
 
             <!-- User Profile -->
-            <div class="p-4 border-t border-black">
-                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                    <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center flex-shrink-0">
-                        <span class="font-semibold text-white text-sm">{{ user.username|first|upper }}</span>
+            <div class="p-4 border-t border-border">
+                <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" tabindex="0" role="button" aria-label="Perfil do usuário">
+                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
+                        <span class="font-semibold text-primary-foreground text-sm">{{ user.username|first|upper }}</span>
                     </div>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium text-black truncate">{{ user.username }}</p>
+                        <p class="text-sm font-medium text-foreground truncate">{{ user.username }}</p>
                         {% if user.perfil_acesso %}
-                        <p class="text-xs text-black opacity-60 truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                        <p class="text-xs text-muted-foreground truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
                         {% endif %}
                     </div>
                 </div>
@@ -178,19 +189,19 @@
 </header>
 
 <!-- Bottom Navigation (Mobile) -->
-<nav class="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-black shadow-lg">
+<nav class="mobile-nav lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg" role="navigation" aria-label="Navegação inferior">
     <div class="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
         <a href="{% url 'account:dashboard' %}"
-           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-black{% else %}text-black opacity-50{% endif %}"
-           data-nav-path="{% url 'account:dashboard' %}">
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 rounded-lg hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-primary{% else %}text-muted-foreground{% endif %}"
+           aria-current="{% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}page{% endif %}">
             <i data-lucide="home" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Início</span>
         </a>
 
         {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
         <a href="{% url 'dashboard:principal' %}"
-           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'dashboard' %}text-black{% else %}text-black opacity-50{% endif %}"
-           data-nav-path="{% url 'dashboard:principal' %}">
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 rounded-lg hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'dashboard' %}text-primary{% else %}text-muted-foreground{% endif %}"
+           aria-current="{% if request.resolver_match.app_name == 'dashboard' %}page{% endif %}">
             <i data-lucide="bar-chart-3" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Análises</span>
         </a>
@@ -198,8 +209,8 @@
 
         {% if user.perfil_acesso.is_rh %}
         <a href="{% url 'quiz:gerenciar_links' %}"
-           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-colors {% if request.resolver_match.app_name == 'quiz' %}text-black{% else %}text-black opacity-50{% endif %}"
-           data-nav-path="{% url 'quiz:gerenciar_links' %}">
+           class="mobile-nav-link flex flex-col items-center justify-center flex-1 py-2 transition-all duration-200 rounded-lg hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'quiz' %}text-primary{% else %}text-muted-foreground{% endif %}"
+           aria-current="{% if request.resolver_match.app_name == 'quiz' %}page{% endif %}">
             <i data-lucide="send" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Enviar</span>
         </a>
@@ -207,7 +218,8 @@
 
         <button @click="sidebarOpen = true"
                 x-data="{ sidebarOpen: false }"
-                class="flex flex-col items-center justify-center flex-1 py-2 text-black opacity-50 transition-colors hover:opacity-100">
+                class="flex flex-col items-center justify-center flex-1 py-2 text-muted-foreground transition-all duration-200 rounded-lg hover:bg-accent/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Abrir menu completo">
             <i data-lucide="menu" class="w-5 h-5 mb-1"></i>
             <span class="text-xs font-medium">Mais</span>
         </button>

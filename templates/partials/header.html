@@ -1,11 +1,11 @@
 {% load static %}
-<!-- Header Desktop - Design Minimalista -->
-<header class="sticky top-0 z-40 w-full border-b border-black bg-white/95 backdrop-blur">
+<!-- Header Desktop - Shadcn UI Design System -->
+<header class="sticky top-0 z-40 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 shadow-sm">
     <div class="flex h-16 items-center px-6 gap-4">
         <!-- Breadcrumb ou título da página -->
         <div class="flex-1">
             {% block page_title %}
-            <h1 class="text-xl font-semibold text-black">
+            <h1 class="text-xl font-semibold text-foreground">
                 {% block page_title_text %}Dashboard{% endblock %}
             </h1>
             {% endblock %}
@@ -14,50 +14,66 @@
         <!-- User Menu -->
         <div class="flex items-center gap-4">
             <!-- Notificações (futuro) -->
-            <button class="inline-flex items-center justify-center rounded-md transition-colors hover:bg-gray-100 h-9 w-9">
-                <i data-lucide="bell" class="w-5 h-5 text-black opacity-60"></i>
+            <button
+                class="inline-flex items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground h-9 w-9 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                aria-label="Notificações">
+                <i data-lucide="bell" class="w-5 h-5 text-muted-foreground"></i>
             </button>
 
             <!-- User Dropdown -->
-            <div class="relative">
-                <button onclick="toggleUserDropdown()"
-                        class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors">
-                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-                        <span class="font-semibold text-white text-sm">{{ user.username|first|upper }}</span>
+            <div class="relative" x-data="{ open: false }">
+                <button
+                    @click="open = !open"
+                    @click.away="open = false"
+                    class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-accent transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    aria-label="Menu do usuário"
+                    aria-expanded="open">
+                    <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                        <span class="font-semibold text-primary-foreground text-sm">{{ user.username|first|upper }}</span>
                     </div>
                     <div class="hidden md:block text-left">
-                        <p class="text-sm font-medium text-black">{{ user.username }}</p>
+                        <p class="text-sm font-medium text-foreground">{{ user.username }}</p>
                         {% if user.perfil_acesso %}
-                        <p class="text-xs text-black opacity-60">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                        <p class="text-xs text-muted-foreground">{{ user.perfil_acesso.get_grupo_principal }}</p>
                         {% endif %}
                     </div>
-                    <i data-lucide="chevron-down" class="w-4 h-4 text-black opacity-60"></i>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-muted-foreground transition-transform" :class="{ 'rotate-180': open }"></i>
                 </button>
 
                 <!-- Dropdown Menu -->
-                <div id="user-dropdown"
-                     class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white border border-black shadow-lg hidden"
-                     style="opacity: 0; transform: scale(0.95);">
+                <div
+                    x-show="open"
+                    x-transition:enter="transition ease-out duration-200"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-150"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-popover border border-border shadow-lg"
+                    role="menu"
+                    aria-orientation="vertical">
                     <div class="p-2">
-                        <div class="px-3 py-2 border-b border-gray-200 mb-2">
-                            <p class="text-sm font-medium text-black">{{ user.username }}</p>
+                        <div class="px-3 py-2 border-b border-border mb-2">
+                            <p class="text-sm font-medium text-foreground">{{ user.username }}</p>
                             {% if user.perfil_acesso %}
-                            <p class="text-xs text-black opacity-60">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                            <p class="text-xs text-muted-foreground">{{ user.perfil_acesso.get_grupo_principal }}</p>
                             {% endif %}
                         </div>
 
                         {% if user.is_superuser %}
                         <a href="/admin/"
-                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 transition-colors">
-                            <i data-lucide="settings" class="w-4 h-4 text-black"></i>
-                            <span class="text-black">Administração</span>
+                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                           role="menuitem">
+                            <i data-lucide="settings" class="w-4 h-4"></i>
+                            <span>Administração</span>
                         </a>
                         {% endif %}
 
                         <a href="{% url 'account:logout' %}"
-                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-red-50 transition-colors group">
-                            <i data-lucide="log-out" class="w-4 h-4 text-black group-hover:text-red-600"></i>
-                            <span class="text-black group-hover:text-red-600">Sair</span>
+                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-destructive/10 transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                           role="menuitem">
+                            <i data-lucide="log-out" class="w-4 h-4 text-foreground group-hover:text-destructive transition-colors"></i>
+                            <span class="text-foreground group-hover:text-destructive transition-colors">Sair</span>
                         </a>
                     </div>
                 </div>
@@ -65,39 +81,3 @@
         </div>
     </div>
 </header>
-
-<script>
-    // Função para toggle do user dropdown
-    function toggleUserDropdown() {
-        const dropdown = document.getElementById('user-dropdown');
-        if (!dropdown) return;
-
-        const isOpen = !dropdown.classList.contains('hidden');
-
-        if (isOpen) {
-            // Fechar
-            dropdown.style.opacity = '0';
-            dropdown.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                dropdown.classList.add('hidden');
-            }, 75);
-        } else {
-            // Abrir
-            dropdown.classList.remove('hidden');
-            setTimeout(() => {
-                dropdown.style.opacity = '1';
-                dropdown.style.transform = 'scale(1)';
-            }, 10);
-        }
-    }
-
-    // Fechar dropdown ao clicar fora
-    document.addEventListener('click', function(event) {
-        const dropdown = document.getElementById('user-dropdown');
-        const button = event.target.closest('button[onclick="toggleUserDropdown()"]');
-
-        if (dropdown && !dropdown.classList.contains('hidden') && !button && !dropdown.contains(event.target)) {
-            toggleUserDropdown();
-        }
-    });
-</script>
