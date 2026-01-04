@@ -1,0 +1,105 @@
+{% comment %}
+Progress Component - Shadcn UI Style
+Barra de progresso para indicar andamento de tarefas
+
+Usage:
+{% include 'components/ui/progress.html' with
+    value=75
+    max=100
+    variant='default'
+    show_label=True
+    label='Processando...'
+    size='default'
+%}
+
+Props:
+- value: valor atual (required)
+- max: valor máximo (default: 100)
+- variant: default, primary, accent, success, warning, destructive
+- show_label: mostrar porcentagem (default: False)
+- label: texto descritivo opcional
+- size: sm, default, lg
+- indeterminate: True para loading indeterminado
+{% endcomment %}
+
+{% if indeterminate %}
+    <!-- Indeterminate Progress (Loading) -->
+    <div class="w-full space-y-2">
+        {% if label %}
+        <div class="flex items-center justify-between">
+            <span class="text-sm font-medium text-foreground">{{ label }}</span>
+        </div>
+        {% endif %}
+
+        <div class="relative w-full overflow-hidden rounded-full bg-muted
+            {% if size == 'sm' %}h-1{% elif size == 'lg' %}h-3{% else %}h-2{% endif %}">
+            <div class="h-full animate-indeterminate
+                {% if variant == 'primary' %}bg-primary
+                {% elif variant == 'accent' %}bg-accent
+                {% elif variant == 'success' %}bg-green-500
+                {% elif variant == 'warning' %}bg-yellow-500
+                {% elif variant == 'destructive' %}bg-destructive
+                {% else %}bg-primary{% endif %}">
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes indeterminate {
+            0% {
+                transform: translateX(-100%);
+                width: 30%;
+            }
+            50% {
+                width: 30%;
+            }
+            100% {
+                transform: translateX(400%);
+                width: 30%;
+            }
+        }
+
+        .animate-indeterminate {
+            animation: indeterminate 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+    </style>
+
+{% else %}
+    <!-- Determinate Progress -->
+    {% with percentage=value|default:0 max_value=max|default:100 %}
+    {% with percent_calc=percentage|floatformat:0 %}
+
+    <div class="w-full space-y-2">
+        {% if label or show_label %}
+        <div class="flex items-center justify-between">
+            {% if label %}
+                <span class="text-sm font-medium text-foreground">{{ label }}</span>
+            {% endif %}
+            {% if show_label %}
+                <span class="text-sm text-muted-foreground">{{ percent_calc }}%</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="relative w-full overflow-hidden rounded-full bg-muted
+            {% if size == 'sm' %}h-1{% elif size == 'lg' %}h-3{% else %}h-2{% endif %}">
+            <div
+                class="h-full transition-all duration-500 ease-out
+                    {% if variant == 'primary' %}bg-primary
+                    {% elif variant == 'accent' %}bg-accent
+                    {% elif variant == 'success' %}bg-green-500
+                    {% elif variant == 'warning' %}bg-yellow-500
+                    {% elif variant == 'destructive' %}bg-destructive
+                    {% else %}bg-primary{% endif %}"
+                style="width: {{ percent_calc }}%"
+                role="progressbar"
+                aria-valuenow="{{ percentage }}"
+                aria-valuemin="0"
+                aria-valuemax="{{ max_value }}"
+            ></div>
+        </div>
+    </div>
+
+    {% endwith %}
+    {% endwith %}
+{% endif %}
