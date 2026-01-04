@@ -11,6 +11,12 @@
     <link rel="icon" type="image/x-icon" href="{% static 'public/icone.ico' %}">
     <link rel="apple-touch-icon" href="{% static 'public/icone.png' %}">
 
+    <!-- Preconnect para CDNs -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+
     <!-- Fontes Google Fonts (Otimizado com preconnect) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,9 +37,6 @@
 
     <!-- Chart.js - Para gráficos (lazy load apenas quando necessário) -->
     {% block chart_js %}{% endblock %}
-
-    <!-- Lucide Icons - Sistema de ícones moderno -->
-    <script src="https://unpkg.com/lucide@latest" defer></script>
 
     <style>
         /* Loading performance optimization */
@@ -149,20 +152,25 @@
     <!-- Toast Container - Melhorado -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-md"></div>
 
+    <!-- Lucide Icons - Carregado antes dos scripts -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
     <!-- Scripts Core -->
     <script>
         // Função centralizada para inicializar Lucide Icons
-        function initializeLucideIcons() {
+        function initIcons() {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
                 console.log('✓ Lucide icons inicializados');
+            } else {
+                console.warn('⚠ Lucide ainda não carregado');
             }
         }
 
-        // Inicialização
+        // Inicialização quando DOM estiver pronto
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Lucide Icons
-            initializeLucideIcons();
+            initIcons();
 
             // Process Django messages as toasts
             {% if messages %}
@@ -181,46 +189,45 @@
         });
 
         // Reinicializar Lucide após mudanças no DOM (HTMX)
-        document.body.addEventListener('htmx:afterSwap', function(event) {
-            initializeLucideIcons();
-        });
-
-        document.body.addEventListener('htmx:afterSettle', function(event) {
-            initializeLucideIcons();
-        });
+        document.body.addEventListener('htmx:afterSwap', initIcons);
+        document.body.addEventListener('htmx:afterSettle', initIcons);
 
         // Reinicializar após Alpine.js estar pronto
-        document.addEventListener('alpine:initialized', function() {
-            initializeLucideIcons();
-        });
+        document.addEventListener('alpine:initialized', initIcons);
 
         // Observer para mudanças dinâmicas no DOM
-        const lucideObserver = new MutationObserver(function(mutations) {
-            let shouldUpdate = false;
+        const iconObserver = new MutationObserver(function(mutations) {
+            let shouldInit = false;
             mutations.forEach(function(mutation) {
                 if (mutation.addedNodes.length > 0) {
                     mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1) { // Element node
-                            if (node.querySelector('[data-lucide]') || node.hasAttribute('data-lucide')) {
-                                shouldUpdate = true;
-                            }
+                        if (node.nodeType === 1 && (node.hasAttribute('data-lucide') || node.querySelector('[data-lucide]'))) {
+                            shouldInit = true;
                         }
                     });
                 }
             });
-
-            if (shouldUpdate) {
-                initializeLucideIcons();
+            if (shouldInit) {
+                initIcons();
             }
         });
 
-        // Observar apenas após o DOM estar pronto
+        // Observar mudanças no DOM após carregamento
         document.addEventListener('DOMContentLoaded', function() {
-            lucideObserver.observe(document.body, {
+            iconObserver.observe(document.body, {
                 childList: true,
                 subtree: true
             });
         });
+
+        // Fallback: inicializar após 500ms se ainda houver ícones não renderizados
+        setTimeout(function() {
+            const unrenderedIcons = document.querySelectorAll('[data-lucide]:not(.lucide)');
+            if (unrenderedIcons.length > 0) {
+                console.log(`🔄 Reinicializando ${unrenderedIcons.length} ícones não renderizados`);
+                initIcons();
+            }
+        }, 500);
 
         // Toast System
         function showToast(message, type = 'info') {

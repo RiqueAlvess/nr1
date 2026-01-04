@@ -41,17 +41,23 @@ class DashboardService:
         respostas_concluidas = Resposta.objects.filter(
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         ).count()
-        
+
         # Taxa de adesão
         taxa_adesao = (
             (respostas_concluidas / total_colaboradores * 100)
             if total_colaboradores > 0
             else 0
         )
-        
-        # Scores
+
+        # Scores - Otimizado com select_related para evitar queries N+1
         respostas = Resposta.objects.filter(
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        ).select_related(
+            'magic_link',
+            'magic_link__colaborador',
+            'magic_link__colaborador__cargo',
+            'magic_link__colaborador__cargo__setor',
+            'magic_link__colaborador__cargo__setor__unidade'
         )
         
         # Se não houver respostas, retornar dados zerados mas ainda visualizáveis
@@ -149,21 +155,29 @@ class DashboardService:
         """
         Retorna dados agregados por unidade
         Aplica k-anonymity
-        
+
         Args:
             empresa_id: UUID da empresa
-        
+
         Returns:
             Dict com dados por unidade (apenas unidades que atendem k-anonymity)
         """
-        unidades = Unidade.objects.filter(empresa_id=empresa_id)
+        # Otimizado: select_related para empresa
+        unidades = Unidade.objects.filter(empresa_id=empresa_id).select_related('empresa')
         dados_unidades = []
-        
+
         for unidade in unidades:
+            # Otimizado: select_related para evitar queries N+1
             respostas = Resposta.objects.filter(
                 magic_link__colaborador__cargo__setor__unidade=unidade
+            ).select_related(
+                'magic_link',
+                'magic_link__colaborador',
+                'magic_link__colaborador__cargo',
+                'magic_link__colaborador__cargo__setor',
+                'magic_link__colaborador__cargo__setor__unidade'
             )
-            
+
             count = respostas.count()
 
             # Incluir todas as unidades, mesmo sem respostas
@@ -175,7 +189,7 @@ class DashboardService:
                 'total_respostas': count,
                 'score_medio': round(score_medio, 2) if score_medio else 0,
             })
-        
+
         return {
             'unidades': dados_unidades,
             'total_unidades_visiveis': len(dados_unidades)
@@ -189,26 +203,36 @@ class DashboardService:
         """
         Retorna dados agregados por setor
         Aplica k-anonymity
-        
+
         Args:
             empresa_id: UUID da empresa
             unidade_id: UUID da unidade (opcional)
-        
+
         Returns:
             Dict com dados por setor
         """
-        setores_query = Setor.objects.filter(unidade__empresa_id=empresa_id)
-        
+        # Otimizado: select_related para unidade e empresa
+        setores_query = Setor.objects.filter(
+            unidade__empresa_id=empresa_id
+        ).select_related('unidade', 'unidade__empresa')
+
         if unidade_id:
             setores_query = setores_query.filter(unidade_id=unidade_id)
-        
+
         dados_setores = []
-        
+
         for setor in setores_query:
+            # Otimizado: select_related para evitar queries N+1
             respostas = Resposta.objects.filter(
                 magic_link__colaborador__cargo__setor=setor
+            ).select_related(
+                'magic_link',
+                'magic_link__colaborador',
+                'magic_link__colaborador__cargo',
+                'magic_link__colaborador__cargo__setor',
+                'magic_link__colaborador__cargo__setor__unidade'
             )
-            
+
             count = respostas.count()
 
             # Incluir todos os setores, mesmo sem respostas
@@ -226,7 +250,7 @@ class DashboardService:
                 'score_medio': round(score_medio, 2) if score_medio else 0,
                 'nivel_risco_nr1': matriz_risco['classificacao'],
             })
-        
+
         return {
             'setores': dados_setores,
             'total_setores_visiveis': len(dados_setores)
@@ -235,15 +259,22 @@ class DashboardService:
     def get_dimensoes_criticas(self, empresa_id: str) -> Dict[str, Any]:
         """
         Identifica dimensões com maior criticidade
-        
+
         Args:
             empresa_id: UUID da empresa
-        
+
         Returns:
             Dict com dimensões ordenadas por criticidade
         """
+        # Otimizado: select_related para evitar queries N+1
         respostas = Resposta.objects.filter(
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        ).select_related(
+            'magic_link',
+            'magic_link__colaborador',
+            'magic_link__colaborador__cargo',
+            'magic_link__colaborador__cargo__setor',
+            'magic_link__colaborador__cargo__setor__unidade'
         )
         
         if respostas.count() == 0:
