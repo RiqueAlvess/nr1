@@ -151,12 +151,18 @@
 
     <!-- Scripts Core -->
     <script>
+        // Função centralizada para inicializar Lucide Icons
+        function initializeLucideIcons() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+                console.log('✓ Lucide icons inicializados');
+            }
+        }
+
         // Inicialização
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Lucide Icons
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+            initializeLucideIcons();
 
             // Process Django messages as toasts
             {% if messages %}
@@ -172,6 +178,48 @@
 
                 messages.forEach(msg => showToast(msg.text, msg.type));
             {% endif %}
+        });
+
+        // Reinicializar Lucide após mudanças no DOM (HTMX)
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            initializeLucideIcons();
+        });
+
+        document.body.addEventListener('htmx:afterSettle', function(event) {
+            initializeLucideIcons();
+        });
+
+        // Reinicializar após Alpine.js estar pronto
+        document.addEventListener('alpine:initialized', function() {
+            initializeLucideIcons();
+        });
+
+        // Observer para mudanças dinâmicas no DOM
+        const lucideObserver = new MutationObserver(function(mutations) {
+            let shouldUpdate = false;
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes.length > 0) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.querySelector('[data-lucide]') || node.hasAttribute('data-lucide')) {
+                                shouldUpdate = true;
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (shouldUpdate) {
+                initializeLucideIcons();
+            }
+        });
+
+        // Observar apenas após o DOM estar pronto
+        document.addEventListener('DOMContentLoaded', function() {
+            lucideObserver.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
         });
 
         // Toast System
@@ -208,9 +256,7 @@
             container.appendChild(toast);
 
             // Initialize Lucide icons in toast
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+            initializeLucideIcons();
 
             // Auto-remove após 5 segundos
             setTimeout(() => {

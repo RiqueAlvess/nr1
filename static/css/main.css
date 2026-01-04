@@ -59,36 +59,13 @@ a {
    CSS VARIABLES - ShadCN Theme
    ============================================ */
 
+/* IMPORTANTE: As cores principais estão definidas em design-tokens.css
+   Este arquivo NÃO deve redefinir variáveis de cor para evitar conflitos.
+   Caso precise customizar cores, edite design-tokens.css diretamente.
+*/
+
 :root {
-  /* Colors - Paleta Preto e Branco Minimalista (Lovable Style) */
-  --background: 0 0% 100%;           /* Branco puro */
-  --foreground: 0 0% 3.9%;           /* Preto profundo */
-
-  --card: 0 0% 100%;                 /* Branco puro */
-  --card-foreground: 0 0% 3.9%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 3.9%;
-
-  --primary: 0 0% 9%;                /* Preto suave #171717 */
-  --primary-foreground: 0 0% 98%;
-
-  --secondary: 0 0% 96.1%;           /* Cinza muito claro */
-  --secondary-foreground: 0 0% 9%;
-
-  --muted: 0 0% 96.1%;               /* Cinza muito claro */
-  --muted-foreground: 0 0% 45.1%;    /* Cinza médio */
-
-  --accent: 0 0% 9%;                 /* Preto suave para accent */
-  --accent-foreground: 0 0% 98%;
-
-  --destructive: 0 84.2% 60.2%;      /* Vermelho para erros */
-  --destructive-foreground: 0 0% 98%;
-
-  --border: 0 0% 89.8%;              /* Cinza claro para bordas */
-  --input: 0 0% 89.8%;
-  --ring: 0 0% 3.9%;                 /* Preto para focus ring */
-
+  /* Apenas variáveis de layout e espaçamento (cores vêm do design-tokens.css) */
   --radius: 0.5rem;
 
   /* Spacing */
