@@ -24,39 +24,29 @@
 
     {% if not kpis.pode_visualizar %}
     <!-- Bloqueio por K-Anonymity -->
-    <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-        <div class="flex items-start gap-3">
-            <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600 mt-0.5"></i>
-            <div>
-                <h3 class="font-semibold text-yellow-900">Dados Insuficientes para Garantir Anonimato</h3>
-                <p class="text-sm text-yellow-700 mt-1">{{ kpis.mensagem }}</p>
-            </div>
-        </div>
-    </div>
+    {% include 'components/ui/alert.html' with
+        variant='warning'
+        title='Dados Insuficientes para Garantir Anonimato'
+        message=kpis.mensagem
+    %}
 
     <!-- KPIs Básicos -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Colaboradores Convidados</p>
-                    <p class="text-3xl font-bold text-primary">{{ kpis.total_colaboradores }}</p>
-                    <p class="text-xs text-muted-foreground">Total de convites enviados</p>
-                </div>
-                <i data-lucide="users" class="w-8 h-8 text-primary/20"></i>
-            </div>
-        </div>
+        {% include 'components/dashboard/stat-card.html' with
+            title='Colaboradores Convidados'
+            value=kpis.total_colaboradores
+            description='Total de convites enviados'
+            icon='users'
+            variant='primary'
+        %}
 
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Taxa de Adesão</p>
-                    <p class="text-3xl font-bold text-accent">{{ kpis.taxa_adesao }}%</p>
-                    <p class="text-xs text-muted-foreground">{{ kpis.respostas_concluidas }} respostas recebidas</p>
-                </div>
-                <i data-lucide="percent" class="w-8 h-8 text-accent/20"></i>
-            </div>
-        </div>
+        {% include 'components/dashboard/stat-card.html' with
+            title='Taxa de Adesão'
+            value=kpis.taxa_adesao|add:'%'
+            description=kpis.respostas_concluidas|add:' respostas recebidas'
+            icon='percent'
+            variant='accent'
+        %}
     </div>
 
     {% else %}
@@ -64,52 +54,41 @@
     <!-- KPIs Principais -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- Taxa de Adesão -->
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Taxa de Adesão</p>
-                    <p class="text-3xl font-bold text-primary">{{ kpis.taxa_adesao }}%</p>
-                    <p class="text-xs text-muted-foreground">{{ kpis.respostas_concluidas }}/{{ kpis.total_colaboradores }}</p>
-                </div>
-                <i data-lucide="percent" class="w-8 h-8 text-primary/20"></i>
-            </div>
-        </div>
+        {% include 'components/dashboard/stat-card.html' with
+            title='Taxa de Adesão'
+            value=kpis.taxa_adesao|add:'%'
+            description=kpis.respostas_concluidas|add:' de '|add:kpis.total_colaboradores|add:' respostas'
+            icon='percent'
+            variant='primary'
+        %}
 
         <!-- IGRP -->
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">IGRP</p>
-                    <p class="text-3xl font-bold text-primary">{{ kpis.igrp }}</p>
-                    <p class="text-xs text-muted-foreground">Índice Geral de Risco</p>
-                </div>
-                <i data-lucide="activity" class="w-8 h-8 text-primary/20"></i>
-            </div>
-        </div>
+        {% include 'components/dashboard/stat-card.html' with
+            title='IGRP'
+            value=kpis.igrp
+            description='Índice Geral de Risco'
+            icon='activity'
+            variant='default'
+        %}
 
         <!-- Score Médio -->
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Score Médio</p>
-                    <p class="text-3xl font-bold text-accent">{{ kpis.score_medio_global }}</p>
-                    <p class="text-xs text-muted-foreground">de 140 pontos</p>
-                </div>
-                <i data-lucide="bar-chart-2" class="w-8 h-8 text-accent/20"></i>
-            </div>
-        </div>
+        {% include 'components/dashboard/stat-card.html' with
+            title='Score Médio'
+            value=kpis.score_medio_global
+            description='de 140 pontos'
+            icon='bar-chart-2'
+            variant='accent'
+        %}
 
         <!-- Risco Crítico -->
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex items-center justify-between">
-                <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Risco Crítico</p>
-                    <p class="text-3xl font-bold text-destructive">{{ kpis.percentual_alto_risco }}%</p>
-                    <p class="text-xs text-muted-foreground">Requer atenção</p>
-                </div>
-                <i data-lucide="alert-triangle" class="w-8 h-8 text-destructive/20"></i>
-            </div>
-        </div>
+        {% include 'components/dashboard/stat-card.html' with
+            title='Risco Crítico'
+            value=kpis.percentual_alto_risco|add:'%'
+            description='Requer atenção imediata'
+            icon='alert-triangle'
+            variant='default'
+            extra_classes='border-destructive/20 bg-gradient-to-br from-destructive/5 to-transparent'
+        %}
     </div>
 
     <!-- Distribuição de Risco -->
