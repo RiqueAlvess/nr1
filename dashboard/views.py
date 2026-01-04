@@ -30,8 +30,8 @@ def dashboard_principal_view(request):
         template = 'dashboard/sem_permissao_content.html' if request.htmx else 'dashboard/sem_permissao.html'
         return render(request, template)
 
-    # Obter empresas do usuário
-    empresas = perfil.get_empresas()
+    # Obter empresas do usuário com select_related para otimização
+    empresas = perfil.get_empresas().select_related('plano')
     if not empresas.exists():
         return render(request, 'dashboard/sem_empresa.html')
 
