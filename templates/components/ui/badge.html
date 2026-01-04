@@ -1,0 +1,76 @@
+{% comment %}
+===========================================
+BADGE COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de badge/tag padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+{% include 'components/ui/badge.html' with variant='primary' text='Active' %}
+
+PARAMETERS:
+-----------
+- text: Texto do badge (string, obrigatório)
+- variant: 'default', 'primary', 'secondary', 'accent', 'destructive', 'outline', 'success', 'warning'
+- icon: Nome do ícone Lucide (ex: 'check', 'x')
+- extra_classes: Classes CSS adicionais
+- href: Se fornecido, renderiza como link
+
+VARIANTS:
+---------
+- default/primary: Navy (padrão)
+- secondary: Cinza
+- accent: Verde
+- destructive: Vermelho
+- outline: Apenas borda
+- success: Verde (status positivo)
+- warning: Amarelo (atenção)
+
+EXAMPLES:
+---------
+Basic:
+{% include 'components/ui/badge.html' with text='New' %}
+
+Status badges:
+{% include 'components/ui/badge.html' with variant='success' text='Active' icon='check' %}
+{% include 'components/ui/badge.html' with variant='warning' text='Pending' icon='clock' %}
+{% include 'components/ui/badge.html' with variant='destructive' text='Expired' icon='x' %}
+
+As link:
+{% include 'components/ui/badge.html' with variant='outline' text='Documentation' href='/docs' %}
+
+Count badge:
+{% include 'components/ui/badge.html' with variant='accent' text='5' extra_classes='rounded-full w-6 h-6 p-0 flex items-center justify-center' %}
+{% endcomment %}
+
+{% if href %}
+<a href="{{ href }}"
+   class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+   {% if variant == 'primary' or variant == 'default' or not variant %}border-transparent bg-primary text-primary-foreground hover:bg-primary/80{% endif %}
+   {% if variant == 'secondary' %}border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80{% endif %}
+   {% if variant == 'accent' or variant == 'success' %}border-transparent bg-accent text-accent-foreground hover:bg-accent/80{% endif %}
+   {% if variant == 'destructive' %}border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80{% endif %}
+   {% if variant == 'warning' %}border-transparent bg-yellow-500 text-white hover:bg-yellow-600{% endif %}
+   {% if variant == 'outline' %}text-foreground border-border{% endif %}
+   {{ extra_classes }}">
+  {% if icon %}
+    <i data-lucide="{{ icon }}" class="w-3 h-3"></i>
+  {% endif %}
+  {{ text }}
+</a>
+{% else %}
+<span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
+   {% if variant == 'primary' or variant == 'default' or not variant %}border-transparent bg-primary text-primary-foreground hover:bg-primary/80{% endif %}
+   {% if variant == 'secondary' %}border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80{% endif %}
+   {% if variant == 'accent' or variant == 'success' %}border-transparent bg-accent text-accent-foreground hover:bg-accent/80{% endif %}
+   {% if variant == 'destructive' %}border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80{% endif %}
+   {% if variant == 'warning' %}border-transparent bg-yellow-500 text-white hover:bg-yellow-600{% endif %}
+   {% if variant == 'outline' %}text-foreground border-border{% endif %}
+   {{ extra_classes }}">
+  {% if icon %}
+    <i data-lucide="{{ icon }}" class="w-3 h-3"></i>
+  {% endif %}
+  {{ text }}
+</span>
+{% endif %}

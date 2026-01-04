@@ -1,0 +1,86 @@
+{% comment %}
+===========================================
+SKELETON COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de skeleton loader padronizado seguindo Shadcn UI design system.
+Usa a animação de pulse definida em animations.css.
+
+USAGE:
+------
+{% include 'components/ui/skeleton.html' with variant='text' %}
+
+PARAMETERS:
+-----------
+- variant: 'text', 'title', 'circle', 'rectangle', 'card', 'avatar', 'button'
+- width: Largura customizada (ex: 'w-32', '200px', '50%')
+- height: Altura customizada (ex: 'h-10', '100px')
+- extra_classes: Classes CSS adicionais
+- rounded: Nível de arredondamento ('none', 'sm', 'md', 'lg', 'full') - default: 'md'
+
+VARIANTS:
+---------
+- text: Linha de texto (h-4)
+- title: Título (h-6)
+- circle: Círculo perfeito (w-12 h-12)
+- avatar: Avatar/ícone redondo (w-10 h-10)
+- rectangle: Retângulo (h-20)
+- card: Card completo (h-32)
+- button: Botão (h-10 w-24)
+
+EXAMPLES:
+---------
+Text line:
+{% include 'components/ui/skeleton.html' with variant='text' %}
+
+Title:
+{% include 'components/ui/skeleton.html' with variant='title' width='w-64' %}
+
+Avatar:
+{% include 'components/ui/skeleton.html' with variant='avatar' %}
+
+Custom size:
+{% include 'components/ui/skeleton.html' with variant='rectangle' width='w-full' height='h-64' %}
+
+Multiple lines:
+<div class="space-y-2">
+  {% include 'components/ui/skeleton.html' with variant='text' %}
+  {% include 'components/ui/skeleton.html' with variant='text' width='w-5/6' %}
+  {% include 'components/ui/skeleton.html' with variant='text' width='w-4/6' %}
+</div>
+
+Card skeleton:
+<div class="space-y-3">
+  {% include 'components/ui/skeleton.html' with variant='title' width='w-48' %}
+  {% include 'components/ui/skeleton.html' with variant='text' %}
+  {% include 'components/ui/skeleton.html' with variant='text' width='w-5/6' %}
+  {% include 'components/ui/skeleton.html' with variant='rectangle' height='h-40' %}
+</div>
+{% endcomment %}
+
+{% comment %} Define default dimensions per variant {% endcomment %}
+<div
+  class="skeleton animate-pulse bg-muted
+  {% comment %} Rounded {% endcomment %}
+  {% if rounded == 'none' %}rounded-none{% endif %}
+  {% if rounded == 'sm' %}rounded-sm{% endif %}
+  {% if rounded == 'lg' %}rounded-lg{% endif %}
+  {% if rounded == 'full' %}rounded-full{% endif %}
+  {% if not rounded or rounded == 'md' %}rounded-md{% endif %}
+
+  {% comment %} Variant defaults {% endcomment %}
+  {% if variant == 'text' %}h-4 w-full{% endif %}
+  {% if variant == 'title' %}h-6 w-1/2{% endif %}
+  {% if variant == 'circle' %}w-12 h-12 rounded-full{% endif %}
+  {% if variant == 'avatar' %}w-10 h-10 rounded-full{% endif %}
+  {% if variant == 'rectangle' %}h-20 w-full{% endif %}
+  {% if variant == 'card' %}h-32 w-full{% endif %}
+  {% if variant == 'button' %}h-10 w-24{% endif %}
+
+  {% comment %} Custom overrides {% endcomment %}
+  {{ width }} {{ height }} {{ extra_classes }}"
+  aria-live="polite"
+  aria-busy="true"
+>
+  <span class="sr-only">Loading...</span>
+</div>

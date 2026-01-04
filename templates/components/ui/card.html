@@ -1,0 +1,77 @@
+{% comment %}
+===========================================
+CARD COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de card padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+{% include 'components/ui/card.html' with title='Card Title' content='Card content here' %}
+
+PARAMETERS:
+-----------
+- title: Título do card (string)
+- description: Descrição abaixo do título (string, opcional)
+- content: Conteúdo principal do card (string ou HTML)
+- footer: Conteúdo do footer (string ou HTML, opcional)
+- extra_classes: Classes CSS adicionais para o container
+- header_classes: Classes CSS adicionais para o header
+- content_classes: Classes CSS adicionais para o conteúdo
+- footer_classes: Classes CSS adicionais para o footer
+- no_padding: Remove padding do content (útil para tabelas)
+
+EXAMPLES:
+---------
+Basic card:
+{% include 'components/ui/card.html' with title='Dashboard' content='Welcome to your dashboard' %}
+
+With description:
+{% include 'components/ui/card.html' with
+  title='Statistics'
+  description='Overview of your metrics'
+  content='...'
+%}
+
+With footer:
+{% include 'components/ui/card.html' with
+  title='Settings'
+  content='...'
+  footer='<button>Save Changes</button>'
+%}
+
+Custom classes:
+{% include 'components/ui/card.html' with
+  title='Highlighted'
+  content='...'
+  extra_classes='border-accent shadow-lg'
+%}
+
+No padding (for tables):
+{% include 'components/ui/card.html' with
+  title='User List'
+  content='<table>...</table>'
+  no_padding=True
+%}
+{% endcomment %}
+
+<div class="rounded-lg border border-border bg-card text-card-foreground shadow-sm {{ extra_classes }}">
+  {% if title %}
+  <div class="flex flex-col space-y-1.5 p-6 {{ header_classes }}">
+    <h3 class="text-2xl font-semibold leading-none tracking-tight">{{ title }}</h3>
+    {% if description %}
+    <p class="text-sm text-muted-foreground">{{ description }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="{% if not no_padding %}p-6 {% if title %}pt-0{% endif %}{% endif %} {{ content_classes }}">
+    {{ content|safe }}
+  </div>
+
+  {% if footer %}
+  <div class="flex items-center p-6 pt-0 {{ footer_classes }}">
+    {{ footer|safe }}
+  </div>
+  {% endif %}
+</div>

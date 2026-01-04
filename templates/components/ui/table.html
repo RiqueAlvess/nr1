@@ -1,0 +1,124 @@
+{% comment %}
+===========================================
+TABLE COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de tabela padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+Método 1 - Wrapper simples (para uso com HTML manual):
+<div>
+  {% include 'components/ui/table.html' with mode='start' %}
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>John Doe</td>
+      <td>john@example.com</td>
+    </tr>
+  </tbody>
+  {% include 'components/ui/table.html' with mode='end' %}
+</div>
+
+Método 2 - Tabela completa (com dados):
+{% include 'components/ui/table.html' with
+  headers=headers
+  rows=data_rows
+  caption='User List'
+%}
+
+PARAMETERS (Método 2):
+----------------------
+- headers: Lista de headers ['Name', 'Email', 'Status']
+- rows: Lista de listas de dados [[row1_col1, row1_col2], [row2_col1, row2_col2]]
+- caption: Caption da tabela (string, opcional)
+- empty_message: Mensagem quando não há dados (default: 'No data available')
+- striped: true/false - Linhas alternadas (default: false)
+- hoverable: true/false - Efeito hover nas linhas (default: true)
+- extra_classes: Classes CSS adicionais
+
+EXAMPLES:
+---------
+Manual HTML:
+<div class="rounded-md border overflow-hidden">
+  {% include 'components/ui/table.html' with mode='start' %}
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>{{ product.name }}</td>
+        <td>${{ product.price }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  {% include 'components/ui/table.html' with mode='end' %}
+</div>
+
+Data-driven:
+{% include 'components/ui/table.html' with
+  headers=['Name', 'Email', 'Role', 'Status']
+  rows=users
+  caption='Team Members'
+  striped=True
+%}
+{% endcomment %}
+
+{% if mode == 'start' %}
+<div class="relative w-full overflow-auto">
+  <table class="w-full caption-bottom text-sm {{ extra_classes }}">
+{% elif mode == 'end' %}
+  </table>
+</div>
+{% else %}
+  {% comment %} Full table mode {% endcomment %}
+  <div class="relative w-full overflow-auto rounded-md border border-border">
+    <table class="w-full caption-bottom text-sm {{ extra_classes }}">
+      {% if caption %}
+      <caption class="mt-4 text-sm text-muted-foreground">{{ caption }}</caption>
+      {% endif %}
+
+      {% if headers %}
+      <thead class="border-b border-border bg-muted/50">
+        <tr class="transition-colors">
+          {% for header in headers %}
+          <th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground whitespace-nowrap">
+            {{ header }}
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      {% endif %}
+
+      <tbody>
+        {% if rows %}
+          {% for row in rows %}
+          <tr class="border-b border-border transition-colors {% if hoverable or hoverable == None %}hover:bg-muted/50{% endif %} {% if striped and forloop.counter|divisibleby:2 %}bg-muted/20{% endif %}">
+            {% for cell in row %}
+            <td class="p-4 align-middle">{{ cell|safe }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="{{ headers|length }}" class="p-8 text-center text-muted-foreground">
+              <div class="flex flex-col items-center gap-2">
+                <i data-lucide="inbox" class="w-12 h-12 opacity-50"></i>
+                <p>{{ empty_message|default:'No data available' }}</p>
+              </div>
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
