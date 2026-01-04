@@ -33,6 +33,9 @@
     <script src="https://unpkg.com/lucide@latest" defer></script>
 
     <style>
+        /* X-cloak para evitar flash de conteúdo */
+        [x-cloak] { display: none !important; }
+
         /* Login page specific styles */
         .login-container {
             background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
@@ -71,7 +74,7 @@
         }
     </style>
 </head>
-<body class="login-container min-h-screen flex items-center justify-center p-4" x-data="{ showPassword: false, loading: false }" x-cloak>
+<body class="login-container min-h-screen flex items-center justify-center p-4" x-data="{ showPassword: false }" x-cloak>
 
     <div class="w-full max-w-md animate-fadeIn">
         <!-- Card Principal -->
@@ -100,7 +103,7 @@
             {% endif %}
 
             <!-- Formulário -->
-            <form method="post" class="space-y-5" @submit="loading = true">
+            <form method="post" class="space-y-5" x-data="{ loading: false }" @submit="loading = true">
                 {% csrf_token %}
 
                 <!-- Campo E-mail/Usuário -->
@@ -164,13 +167,21 @@
                 <!-- Botão de Login -->
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground h-12 w-full text-base font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-primary/90"
-                    x-bind:disabled="loading">
-                    <span x-show="!loading">Acessar</span>
-                    <span x-show="loading" class="flex items-center gap-2">
-                        <div class="animate-spin rounded-full border-2 border-current border-t-transparent w-5 h-5"></div>
-                        Entrando...
-                    </span>
+                    class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-white h-12 w-full text-base font-medium transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="loading"
+                    :class="{ 'opacity-50 cursor-not-allowed': loading }">
+                    <template x-if="!loading">
+                        <span>Acessar</span>
+                    </template>
+                    <template x-if="loading">
+                        <span class="flex items-center gap-2">
+                            <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Entrando...
+                        </span>
+                    </template>
                 </button>
             </form>
 
