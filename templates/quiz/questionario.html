@@ -15,8 +15,8 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest" defer></script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -131,9 +131,9 @@
     <!-- Info Card -->
     <div class="container mx-auto px-4 max-w-3xl -mt-2 relative z-30">
         <div class="bg-gradient-to-r from-accent/20 to-primary/20 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm animate-in opacity-0">
-            <div class="flex items-start space-x-3">
+            <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-lock text-secondary"></i>
+                    <i data-lucide="lock" class="w-5 h-5 text-secondary"></i>
                 </div>
                 <div>
                     <h3 class="font-semibold text-secondary text-sm">Suas respostas são 100% anônimas</h3>
@@ -155,14 +155,14 @@
             <div class="question-card p-5 animate-in opacity-0" data-question="{{ pergunta.numero }}" style="animation-delay: {{ forloop.counter0|add:1 }}00ms">
                 <!-- Número e Dimensão -->
                 <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-secondary text-white text-xs font-bold flex items-center justify-center">
                             {{ pergunta.numero }}
                         </span>
                         <span class="text-xs text-base-content/50">de {{ perguntas|length }}</span>
                     </div>
                     <div class="dimension-badge">
-                        <i class="fas fa-brain text-accent"></i>
+                        <i data-lucide="brain" class="w-4 h-4 text-accent"></i>
                         {{ pergunta.dimensao.nome }}
                     </div>
                 </div>
@@ -228,10 +228,10 @@
                 type="submit"
                 form="quiz-form"
                 id="submit-btn"
-                class="btn btn-primary px-6 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn btn-primary px-6 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 disabled
             >
-                <i class="fas fa-paper-plane mr-2"></i>
+                <i data-lucide="send" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Enviar</span>
             </button>
         </div>
@@ -242,7 +242,7 @@
         <div class="modal-box bg-white shadow-2xl">
             <div class="text-center py-4">
                 <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-check-double text-primary text-2xl"></i>
+                    <i data-lucide="check-check" class="w-8 h-8 text-primary"></i>
                 </div>
                 <h3 class="font-bold text-xl text-secondary mb-2">Confirmar envio?</h3>
                 <p class="text-base-content/70">
@@ -251,12 +251,12 @@
                 </p>
             </div>
             <div class="modal-action justify-center gap-3">
-                <button type="button" class="btn btn-ghost" onclick="document.getElementById('confirm-modal').close()">
-                    <i class="fas fa-arrow-left mr-2"></i>
+                <button type="button" class="btn btn-ghost flex items-center gap-2" onclick="document.getElementById('confirm-modal').close()">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
                     Revisar
                 </button>
-                <button type="button" id="confirm-submit-btn" class="btn btn-primary">
-                    <i class="fas fa-paper-plane mr-2"></i>
+                <button type="button" id="confirm-submit-btn" class="btn btn-primary flex items-center gap-2">
+                    <i data-lucide="send" class="w-4 h-4"></i>
                     Confirmar Envio
                 </button>
             </div>
@@ -269,8 +269,21 @@
     <!-- Quiz Form Script -->
     <script src="{% static 'js/quiz-form.js' %}"></script>
     <script>
-        // O script foi movido para quiz-form.js
-        // Dados são passados via dataset
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        // Re-initialize icons after any DOM updates
+        const observer = new MutationObserver(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>

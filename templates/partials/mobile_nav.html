@@ -69,7 +69,7 @@
             <nav class="flex-1 p-4 space-y-2">
 
                 <!-- Principal Section -->
-                <div class="mb-6">
+                <div class="mb-4">
                     <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Principal</p>
 
                     <a href="{% url 'account:dashboard' %}"
@@ -82,7 +82,7 @@
 
                 {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
                 <!-- Análises Section -->
-                <div class="mb-6">
+                <div class="mb-4">
                     <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Análises</p>
 
                     <a href="{% url 'dashboard:principal' %}"
@@ -119,7 +119,7 @@
 
                 {% if user.perfil_acesso.is_rh %}
                 <!-- Gestão Section -->
-                <div class="mb-6">
+                <div class="mb-4">
                     <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Gestão</p>
 
                     <a href="{% url 'importacao:importacao' %}"
@@ -139,7 +139,7 @@
                 {% endif %}
 
                 <!-- Sistema Section -->
-                <div class="mb-6">
+                <div class="mb-4">
                     <p class="px-4 py-2 text-xs uppercase tracking-wider text-black font-semibold opacity-60">Sistema</p>
 
                     {% if user.is_superuser %}
