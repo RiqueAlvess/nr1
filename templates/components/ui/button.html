@@ -16,6 +16,7 @@ PARAMETERS:
 - text: Texto do botão (string)
 - type: 'button' (default), 'submit', 'reset'
 - disabled: true/false
+- loading: true/false - Mostra ícone de loading girando (substitui icon_left automaticamente)
 - icon_left: Nome do ícone Lucide à esquerda (ex: 'user')
 - icon_right: Nome do ícone Lucide à direita (ex: 'arrow-right')
 - extra_classes: Classes CSS adicionais
@@ -51,7 +52,10 @@ Submit form:
 {% include 'components/ui/button.html' with variant='primary' text='Submit' type='submit' %}
 
 Disabled:
-{% include 'components/ui/button.html' with variant='primary' text='Loading...' disabled=True icon_left='loader-2' extra_classes='animate-spin' %}
+{% include 'components/ui/button.html' with variant='primary' text='Disabled' disabled=True %}
+
+Loading state (CORRETO):
+{% include 'components/ui/button.html' with variant='primary' text='Carregando...' loading=True disabled=True %}
 {% endcomment %}
 
 {% if href %}
@@ -75,7 +79,9 @@ Disabled:
   {{ extra_classes }}"
   {{ attrs }}
 >
-  {% if icon_left %}
+  {% if loading %}
+    <i data-lucide="loader-2" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %} animate-spin"></i>
+  {% elif icon_left %}
     <i data-lucide="{{ icon_left }}" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}"></i>
   {% endif %}
 
@@ -107,7 +113,9 @@ Disabled:
   {% if disabled %}disabled{% endif %}
   {{ attrs }}
 >
-  {% if icon_left %}
+  {% if loading %}
+    <i data-lucide="loader-2" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %} animate-spin"></i>
+  {% elif icon_left %}
     <i data-lucide="{{ icon_left }}" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}"></i>
   {% endif %}
 
