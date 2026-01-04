@@ -534,11 +534,11 @@ a {
    ============================================ */
 
 .card {
-  background-color: hsl(var(--card));
-  color: hsl(var(--card-foreground));
-  border-radius: var(--radius);
-  border: 1px solid hsl(var(--border));
-  box-shadow: var(--shadow-sm);
+  background-color: white;
+  color: #000;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
 }
@@ -884,9 +884,9 @@ textarea.input {
   top: 0;
   height: 100vh;
   width: 16rem;
-  background-color: hsl(var(--primary));
-  border-right: 1px solid hsl(var(--border) / 0.1);
-  color: white;
+  background-color: white;
+  border-right: 1px solid #000;
+  color: #000;
   display: none;
   flex-direction: column;
   z-index: 40;
@@ -908,16 +908,16 @@ textarea.input {
   transition: all var(--transition-base);
   font-size: var(--text-sm);
   font-weight: var(--font-medium);
-  color: rgba(255, 255, 255, 0.9);
+  color: #000;
 }
 
 .sidebar-link:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #f3f4f6;
 }
 
 .sidebar-link.active {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-left: 2px solid hsl(var(--accent));
+  background-color: #f3f4f6;
+  font-weight: 600;
 }
 
 .main-with-sidebar {
