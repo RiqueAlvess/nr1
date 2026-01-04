@@ -1,11 +1,11 @@
 {% load static %}
-<!-- Header Desktop - Estilo Shadcn (Vanilla JS) -->
-<header class="sticky top-0 z-40 w-full border-b border-border bg-white/95 backdrop-blur">
-    <div class="flex h-16 items-center px-6">
+<!-- Header Desktop - Design Minimalista -->
+<header class="sticky top-0 z-40 w-full border-b border-black bg-white/95 backdrop-blur">
+    <div class="flex h-16 items-center px-6 gap-4">
         <!-- Breadcrumb ou título da página -->
         <div class="flex-1">
             {% block page_title %}
-            <h1 class="text-xl font-semibold text-foreground">
+            <h1 class="text-xl font-semibold text-black">
                 {% block page_title_text %}Dashboard{% endblock %}
             </h1>
             {% endblock %}
@@ -14,50 +14,50 @@
         <!-- User Menu -->
         <div class="flex items-center gap-4">
             <!-- Notificações (futuro) -->
-            <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted h-9 w-9">
-                {% include 'components/icons.html' with icon='info' class='w-5 h-5 text-muted-foreground' %}
+            <button class="inline-flex items-center justify-center rounded-md transition-colors hover:bg-gray-100 h-9 w-9">
+                <i data-lucide="bell" class="w-5 h-5 text-black opacity-60"></i>
             </button>
 
             <!-- User Dropdown -->
             <div class="relative">
                 <button onclick="toggleUserDropdown()"
-                        class="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-muted transition-colors">
-                    <div class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-                        <span class="font-semibold text-primary text-sm">{{ user.username|first|upper }}</span>
+                        class="flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 transition-colors">
+                    <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+                        <span class="font-semibold text-white text-sm">{{ user.username|first|upper }}</span>
                     </div>
                     <div class="hidden md:block text-left">
-                        <p class="text-sm font-medium text-foreground">{{ user.username }}</p>
+                        <p class="text-sm font-medium text-black">{{ user.username }}</p>
                         {% if user.perfil_acesso %}
-                        <p class="text-xs text-muted-foreground">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                        <p class="text-xs text-black opacity-60">{{ user.perfil_acesso.get_grupo_principal }}</p>
                         {% endif %}
                     </div>
-                    {% include 'components/icons.html' with icon='chevron-down' class='w-4 h-4 text-muted-foreground' %}
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-black opacity-60"></i>
                 </button>
 
                 <!-- Dropdown Menu -->
                 <div id="user-dropdown"
-                     class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-card border border-border shadow-lg hidden"
+                     class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white border border-black shadow-lg hidden"
                      style="opacity: 0; transform: scale(0.95);">
                     <div class="p-2">
-                        <div class="px-3 py-2 border-b border-border mb-2">
-                            <p class="text-sm font-medium text-foreground">{{ user.username }}</p>
+                        <div class="px-3 py-2 border-b border-gray-200 mb-2">
+                            <p class="text-sm font-medium text-black">{{ user.username }}</p>
                             {% if user.perfil_acesso %}
-                            <p class="text-xs text-muted-foreground">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                            <p class="text-xs text-black opacity-60">{{ user.perfil_acesso.get_grupo_principal }}</p>
                             {% endif %}
                         </div>
 
                         {% if user.is_superuser %}
                         <a href="/admin/"
-                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted transition-colors">
-                            {% include 'components/icons.html' with icon='settings' class='w-4 h-4' %}
-                            <span>Administração</span>
+                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-gray-100 transition-colors">
+                            <i data-lucide="settings" class="w-4 h-4 text-black"></i>
+                            <span class="text-black">Administração</span>
                         </a>
                         {% endif %}
 
                         <a href="{% url 'account:logout' %}"
-                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors">
-                            {% include 'components/icons.html' with icon='log-out' class='w-4 h-4' %}
-                            <span>Sair</span>
+                           class="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-red-50 transition-colors group">
+                            <i data-lucide="log-out" class="w-4 h-4 text-black group-hover:text-red-600"></i>
+                            <span class="text-black group-hover:text-red-600">Sair</span>
                         </a>
                     </div>
                 </div>
