@@ -204,4 +204,27 @@
     {% endif %}
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+
+    // Reinicializar quando Alpine termina de renderizar
+    document.addEventListener('alpine:initialized', () => {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
+});
+
+// Para HTMX: reinicializar após substituição de conteúdo
+document.body.addEventListener('htmx:afterSwap', function() {
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+});
+</script>
 {% endblock %}
