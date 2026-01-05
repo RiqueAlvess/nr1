@@ -200,7 +200,7 @@
 {# Passar dados de forma segura com json_script #}
 {{ dados|json_script:"dados-unidades-json" }}
 
-<script>
+<script nonce="{{ csp_nonce }}">
 document.addEventListener('DOMContentLoaded', function () {
   // parse seguro dos dados
   let unidadesData = [];

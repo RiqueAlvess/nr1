@@ -79,7 +79,7 @@ JAVASCRIPT USAGE:
 -----------------
 After including this component, initialize Chart.js:
 
-<script>
+<script nonce="{{ csp_nonce }}">
 const ctx = document.getElementById('sales-chart').getContext('2d');
 new Chart(ctx, {
   type: 'line',

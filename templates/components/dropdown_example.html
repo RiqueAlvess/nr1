@@ -74,7 +74,7 @@
 </div>
 
 <!-- Exemplo 3: Dropdown com ícones Lucide (após carregamento) -->
-<script>
+<script nonce="{{ csp_nonce }}">
   // Re-initialize Lucide icons após DOM updates
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();

@@ -13,7 +13,7 @@
 
     <!-- DaisyUI & Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         tailwind.config = {
             theme: {
                 extend: {
@@ -62,7 +62,7 @@
         }
     </script>
 
-    <style>
+    <style nonce="{{ csp_nonce }}">
         /* Estilos específicos da página de obrigado - o resto está em theme.css e animations.css */
         [data-theme="nr1theme"] {
             --p: 152 87% 52%;
@@ -192,6 +192,6 @@
     </div>
 
     <!-- Confetti Script -->
-    <script src="{% static 'js/confetti.js' %}"></script>
+    <script nonce="{{ csp_nonce }}" src="{% static 'js/confetti.js' %}"></script>
 </body>
 </html>

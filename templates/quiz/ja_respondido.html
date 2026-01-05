@@ -12,13 +12,13 @@
     <link rel="apple-touch-icon" href="{% static 'public/icone.png' %}">
 
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         tailwind.config = {
             theme: {
                 extend: {
@@ -52,7 +52,7 @@
         }
     </script>
 
-    <style>
+    <style nonce="{{ csp_nonce }}">
         [data-theme="nr1theme"] {
             --p: 152 87% 52%;
             --pf: 152 75% 44%;
