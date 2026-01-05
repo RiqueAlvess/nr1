@@ -3,12 +3,12 @@ Serviço para gerenciamento de redefinição de senha via magic link
 Utiliza Resend API para envio de emails
 """
 import logging
-import requests
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.auth.models import User
 from account.models import PasswordResetToken
+from emails.tasks import send_email_task
 
 logger = logging.getLogger('nr1')
 
@@ -72,39 +72,25 @@ class PasswordResetService:
             # Renderizar HTML do email
             html_message = render_to_string('account/emails/password_reset.html', context)
             text_message = strip_tags(html_message)
+            subject = 'Redefinição de Senha - Plataforma NR-1'
 
-            # Enviar email via Resend API
-            response = requests.post(
-                'https://api.resend.com/emails',
-                headers={
-                    'Authorization': f'Bearer {settings.API_RESEND}',
-                    'Content-Type': 'application/json'
-                },
-                json={
-                    'from': settings.DEFAULT_FROM_EMAIL,
-                    'to': [user.email],
-                    'subject': 'Redefinição de Senha - Plataforma NR-1',
-                    'html': html_message,
-                    'text': text_message
-                }
+            # Enfileirar envio via Celery
+            send_email_task.delay(
+                to_email=user.email,
+                subject=subject,
+                html_body=html_message,
+                text_body=text_message
             )
 
-            if response.status_code == 200:
-                logger.info(
-                    f"Email de redefinição enviado com sucesso para: {user.email} | "
-                    f"Token: {reset_token.token[:10]}..."
-                )
-                return True
-            else:
-                logger.error(
-                    f"Erro ao enviar email de redefinição para {user.email}: "
-                    f"Status {response.status_code} | {response.text}"
-                )
-                return False
+            logger.info(
+                f"Email de redefinição enfileirado para: {user.email} | "
+                f"Token: {reset_token.token[:10]}..."
+            )
+            return True
 
         except Exception as e:
             logger.error(
-                f"Erro ao enviar email de redefinição para {user.email}: {str(e)}",
+                f"Erro ao enfileirar email de redefinição para {user.email}: {str(e)}",
                 exc_info=True
             )
             return False

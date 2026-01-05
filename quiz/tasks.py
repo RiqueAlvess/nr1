@@ -3,12 +3,15 @@ Celery tasks para processamento assíncrono - Quiz
 """
 from celery import shared_task
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.urls import reverse
 import logging
-import time
 
 from quiz.services.magic_link_service import MagicLinkService
 from quiz.models import MagicLink
 from importacao.models import Colaborador
+from emails.tasks import send_email_task
 
 logger = logging.getLogger('nr1')
 
@@ -42,35 +45,49 @@ def send_magic_links_async(self, colaboradores_ids, base_url):
     enviados = 0
     erros = 0
 
-    logger.info(f'Iniciando envio de {total} emails')
+    logger.info(f'Iniciando enfileiramento de {total} emails')
 
     for idx, magic_link in enumerate(magic_links, 1):
         try:
-            # Rate limiting: delay entre envios (respeitar free tier da API)
-            # 100 emails/hora = 1 email a cada 36 segundos
-            if idx > 1:
-                time.sleep(36)  # Esperar 36 segundos entre cada envio
+            # Gerar novo token
+            token = MagicLink.gerar_token()
+            token_hash = MagicLink.hash_token(token)
 
-            # Gerar token para o link
-            token = MagicLinkService._gerar_token_para_magic_link(magic_link)
+            # Atualizar hash (para próximo uso)
+            magic_link.token_hash = token_hash
+            magic_link.save()
 
-            # Enviar email
-            sucesso = MagicLinkService.enviar_magic_link(
-                magic_link=magic_link,
-                token=token,
-                base_url=base_url
+            # Construir URL completa do magic link
+            quiz_path = reverse('quiz:responder', kwargs={'token': token})
+            magic_link_url = f"{base_url}{quiz_path}"
+
+            # Preparar contexto para renderizar o email
+            context = {
+                'magic_link': magic_link_url,
+                'expiration_hours': settings.MAGIC_LINK_EXPIRATION_HOURS,
+                'system_name': settings.SYSTEM_NAME,
+                'company_name': settings.COMPANY_NAME,
+            }
+
+            # Renderizar template do email
+            html_message = render_to_string('emails/magic_link_questionario.html', context)
+            text_message = strip_tags(html_message)
+            subject = "Convite para Avaliação de Riscos Psicossociais - NR-1"
+
+            # Enfileirar envio (não bloquear o worker)
+            send_email_task.delay(
+                to_email=magic_link.colaborador.email,
+                subject=subject,
+                html_body=html_message,
+                text_body=text_message
             )
 
-            if sucesso:
-                enviados += 1
-                logger.info(f'Email enviado [{idx}/{total}]: {magic_link.colaborador.email}')
-            else:
-                erros += 1
-                logger.error(f'Falha ao enviar email [{idx}/{total}]: {magic_link.colaborador.email}')
+            enviados += 1
+            logger.info(f'Enfileirado envio [{idx}/{total}]: {magic_link.colaborador.email}')
 
         except Exception as e:
             erros += 1
-            logger.error(f'Erro ao enviar email [{idx}/{total}]: {str(e)}')
+            logger.exception(f'Erro ao processar envio para [{idx}/{total}]: {magic_link.colaborador.email}')
 
     resultado = {
         'status': 'completed',
