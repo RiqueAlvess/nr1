@@ -1170,3 +1170,102 @@ textarea.input {
     margin-left: 0 !important;
   }
 }
+
+/* ============================================
+   PADRONIZAÇÃO - Botões, Avatares, Links
+   ============================================ */
+
+/* Botões Padrão - Preto com texto branco */
+.btn,
+button[type="submit"],
+.btn-primary {
+  background-color: #171717 !important; /* gray-900 */
+  color: white !important;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+  border: 1px solid #171717;
+}
+
+.btn:hover,
+button[type="submit"]:hover,
+.btn-primary:hover {
+  background-color: #262626 !important; /* gray-800 */
+  border-color: #262626;
+}
+
+.btn:disabled,
+button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Avatares - Fundo preto, sem cores */
+.avatar,
+.user-avatar {
+  background-color: #171717 !important;
+  color: white !important;
+}
+
+/* Remover bg-primary de avatares - forçar preto */
+.bg-primary {
+  background-color: #171717 !important;
+}
+
+.text-primary-foreground {
+  color: white !important;
+}
+
+/* Links e Textos */
+a {
+  color: #171717;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #404040;
+}
+
+/* Links de navegação ativos */
+.nav-link.active,
+.sidebar-link.active {
+  background-color: #f3f4f6;
+  color: #171717;
+  font-weight: 600;
+}
+
+/* Cards e Containers */
+.card {
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+/* Inputs */
+input, select, textarea {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #171717;
+  box-shadow: 0 0 0 3px rgba(23, 23, 23, 0.1);
+  outline: none;
+}
+
+/* Tailwind utilities específicas para garantir preto nos botões */
+.bg-gray-900 {
+  background-color: #171717 !important;
+}
+
+.text-white {
+  color: white !important;
+}
+
+/* Garantir que badges primary também sejam pretos */
+.badge-primary {
+  background-color: #171717 !important;
+  color: white !important;
+}
