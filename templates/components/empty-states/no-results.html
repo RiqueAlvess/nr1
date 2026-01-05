@@ -44,7 +44,7 @@ With suggestions:
 
 <div class="flex flex-col items-center justify-center py-12 px-4 text-center {{ extra_classes }}">
   <div class="rounded-full bg-muted p-6 mb-4">
-    <i data-lucide="search-x" class="w-12 h-12 text-muted-foreground"></i>
+    {% include 'components/icons/icon.html' with name='search-x' class='w-12 h-12 text-muted-foreground' %}
   </div>
 
   <h3 class="text-lg font-semibold mb-2">
@@ -74,12 +74,12 @@ With suggestions:
   <div class="flex gap-2">
     {% if clear_url %}
     <a href="{{ clear_url }}" class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-10 px-4 py-2 text-sm font-medium hover:bg-accent/10 transition-colors">
-      <i data-lucide="x" class="w-4 h-4"></i>
+      {% include 'components/icons/icon.html' with name='x' class='w-4 h-4' %}
       {% if clear_action %}{{ clear_action }}{% else %}Clear filters{% endif %}
     </a>
     {% elif clear_onclick %}
     <button onclick="{{ clear_onclick }}" class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background h-10 px-4 py-2 text-sm font-medium hover:bg-accent/10 transition-colors">
-      <i data-lucide="x" class="w-4 h-4"></i>
+      {% include 'components/icons/icon.html' with name='x' class='w-4 h-4' %}
       {% if clear_action %}{{ clear_action }}{% else %}Clear filters{% endif %}
     </button>
     {% endif %}

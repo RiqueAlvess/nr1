@@ -133,7 +133,7 @@
         <div class="bg-gradient-to-r from-accent/20 to-primary/20 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm animate-in opacity-0">
             <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center flex-shrink-0">
-                    <i data-lucide="lock" class="w-5 h-5 text-secondary"></i>
+                    {% include 'components/icons/icon.html' with name='lock' class='w-5 h-5 text-secondary' %}
                 </div>
                 <div>
                     <h3 class="font-semibold text-secondary text-sm">Suas respostas são 100% anônimas</h3>
@@ -162,7 +162,7 @@
                         <span class="text-xs text-base-content/50">de {{ perguntas|length }}</span>
                     </div>
                     <div class="dimension-badge">
-                        <i data-lucide="brain" class="w-4 h-4 text-accent"></i>
+                        {% include 'components/icons/icon.html' with name='brain' class='w-4 h-4 text-accent' %}
                         {{ pergunta.dimensao.nome }}
                     </div>
                 </div>
@@ -231,7 +231,7 @@
                 class="btn btn-primary px-6 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 disabled
             >
-                <i data-lucide="send" class="w-4 h-4"></i>
+                {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
                 <span class="hidden sm:inline">Enviar</span>
             </button>
         </div>
@@ -242,7 +242,7 @@
         <div class="modal-box bg-white shadow-2xl">
             <div class="text-center py-4">
                 <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <i data-lucide="check-check" class="w-8 h-8 text-primary"></i>
+                    {% include 'components/icons/icon.html' with name='check-check' class='w-8 h-8 text-primary' %}
                 </div>
                 <h3 class="font-bold text-xl text-secondary mb-2">Confirmar envio?</h3>
                 <p class="text-base-content/70">
@@ -252,11 +252,11 @@
             </div>
             <div class="modal-action justify-center gap-3">
                 <button type="button" class="btn btn-ghost flex items-center gap-2" onclick="document.getElementById('confirm-modal').close()">
-                    <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                    {% include 'components/icons/icon.html' with name='arrow-left' class='w-4 h-4' %}
                     Revisar
                 </button>
                 <button type="button" id="confirm-submit-btn" class="btn btn-primary flex items-center gap-2">
-                    <i data-lucide="send" class="w-4 h-4"></i>
+                    {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
                     Confirmar Envio
                 </button>
             </div>

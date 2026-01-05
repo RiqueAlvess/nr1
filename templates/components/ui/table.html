@@ -112,7 +112,7 @@ Data-driven:
           <tr>
             <td colspan="{{ headers|length }}" class="p-8 text-center text-muted-foreground">
               <div class="flex flex-col items-center gap-2">
-                <i data-lucide="inbox" class="w-12 h-12 opacity-50"></i>
+                {% include 'components/icons/icon.html' with name='inbox' class='w-12 h-12 opacity-50' %}
                 <p>{{ empty_message|default:'No data available' }}</p>
               </div>
             </td>

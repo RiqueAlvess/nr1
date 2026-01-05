@@ -103,7 +103,7 @@ Pre-selected:
 
   {% if error %}
   <p class="text-sm text-destructive mt-1.5 flex items-center gap-1">
-    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+    {% include 'components/icons/icon.html' with name='alert-circle' class='w-3.5 h-3.5' %}
     {{ error }}
   </p>
   {% endif %}

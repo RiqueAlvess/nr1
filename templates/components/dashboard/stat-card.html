@@ -122,7 +122,7 @@ Accent variant:
         {% if variant == 'accent' %}bg-accent/10 text-accent{% endif %}
         {% if variant == 'primary' %}bg-primary/10 text-primary{% endif %}
         {% if not variant or variant == 'default' %}bg-muted text-muted-foreground{% endif %}">
-        <i data-lucide="{{ icon }}" class="w-5 h-5"></i>
+        {% include 'components/icons/icon.html' with name=icon class='w-5 h-5' %}
       </div>
       {% endif %}
     </div>
@@ -133,13 +133,13 @@ Accent variant:
       {% if change %}
       <div class="flex items-center gap-1 text-xs">
         {% if trend == 'up' %}
-          <i data-lucide="trending-up" class="w-3 h-3 text-green-600"></i>
+          {% include 'components/icons/icon.html' with name='trending-up' class='w-3 h-3 text-green-600' %}
           <span class="font-medium text-green-600">{{ change }}</span>
         {% elif trend == 'down' %}
-          <i data-lucide="trending-down" class="w-3 h-3 text-red-600"></i>
+          {% include 'components/icons/icon.html' with name='trending-down' class='w-3 h-3 text-red-600' %}
           <span class="font-medium text-red-600">{{ change }}</span>
         {% else %}
-          <i data-lucide="minus" class="w-3 h-3 text-muted-foreground"></i>
+          {% include 'components/icons/icon.html' with name='minus' class='w-3 h-3 text-muted-foreground' %}
           <span class="font-medium text-muted-foreground">{{ change }}</span>
         {% endif %}
         <span class="text-muted-foreground">from last period</span>

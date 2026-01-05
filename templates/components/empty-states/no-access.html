@@ -15,7 +15,7 @@ Usage:
 <div class="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
     <!-- Icon -->
     <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
-        <i data-lucide="shield-off" class="h-10 w-10 text-destructive"></i>
+        {% include 'components/icons/icon.html' with name='shield-off' class='h-10 w-10 text-destructive' %}
     </div>
 
     <!-- Title -->
@@ -34,7 +34,7 @@ Usage:
         {% if button_url %}
         <a href="{{ button_url }}"
            class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+            {% include 'components/icons/icon.html' with name='arrow-left' class='h-4 w-4' %}
             {{ button_text|default:'Voltar ao Dashboard' }}
         </a>
         {% endif %}
@@ -42,7 +42,7 @@ Usage:
         {% if contact_email %}
         <a href="mailto:{{ contact_email }}"
            class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-            <i data-lucide="mail" class="h-4 w-4"></i>
+            {% include 'components/icons/icon.html' with name='mail' class='h-4 w-4' %}
             Solicitar Acesso
         </a>
         {% endif %}

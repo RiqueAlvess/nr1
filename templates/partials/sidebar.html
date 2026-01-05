@@ -24,7 +24,7 @@
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-label="Ir para Início"
                aria-current="{% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}page{% endif %}">
-                <i data-lucide="home" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='home' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}font-medium{% endif %}">Início</span>
             </a>
         </div>
@@ -38,7 +38,7 @@
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'principal' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-label="Ir para Dashboard"
                aria-current="{% if request.resolver_match.url_name == 'principal' %}page{% endif %}">
-                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='bar-chart-3' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.url_name == 'principal' %}font-medium{% endif %}">Dashboard</span>
             </a>
 
@@ -46,7 +46,7 @@
             <a href="{% url 'dashboard:unidades' %}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'unidades' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-current="{% if request.resolver_match.url_name == 'unidades' %}page{% endif %}">
-                <i data-lucide="building-2" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='building-2' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.url_name == 'unidades' %}font-medium{% endif %}">Unidades</span>
             </a>
             {% endif %}
@@ -54,14 +54,14 @@
             <a href="{% url 'dashboard:setores' %}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'setores' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-current="{% if request.resolver_match.url_name == 'setores' %}page{% endif %}">
-                <i data-lucide="network" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='network' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.url_name == 'setores' %}font-medium{% endif %}">Setores</span>
             </a>
 
             <a href="{% url 'dashboard:dimensoes' %}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dimensoes' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-current="{% if request.resolver_match.url_name == 'dimensoes' %}page{% endif %}">
-                <i data-lucide="brain" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='brain' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.url_name == 'dimensoes' %}font-medium{% endif %}">Dimensões</span>
             </a>
         </div>
@@ -75,14 +75,14 @@
             <a href="{% url 'importacao:importacao' %}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'importacao' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-current="{% if request.resolver_match.app_name == 'importacao' %}page{% endif %}">
-                <i data-lucide="file-input" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='file-input' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.app_name == 'importacao' %}font-medium{% endif %}">Importação</span>
             </a>
 
             <a href="{% url 'quiz:gerenciar_links' %}"
                class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'quiz' %}bg-accent text-accent-foreground font-medium{% endif %}"
                aria-current="{% if request.resolver_match.app_name == 'quiz' %}page{% endif %}">
-                <i data-lucide="send" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='send' class='w-5 h-5' %}
                 <span class="text-sm {% if request.resolver_match.app_name == 'quiz' %}font-medium{% endif %}">Enviar Pesquisas</span>
             </a>
         </div>
@@ -95,14 +95,14 @@
             {% if user.is_superuser %}
             <a href="/admin/"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                <i data-lucide="settings" class="w-5 h-5"></i>
+                {% include 'components/icons/icon.html' with name='settings' class='w-5 h-5' %}
                 <span class="text-sm">Administração</span>
             </a>
             {% endif %}
 
             <a href="{% url 'account:logout' %}"
                class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-destructive/10 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
-                <i data-lucide="log-out" class="w-5 h-5 text-foreground group-hover:text-destructive transition-colors"></i>
+                {% include 'components/icons/icon.html' with name='log-out' class='w-5 h-5 text-foreground group-hover:text-destructive transition-colors' %}
                 <span class="text-sm text-foreground group-hover:text-destructive transition-colors">Sair</span>
             </a>
         </div>

@@ -58,12 +58,12 @@ Custom icon:
   {% if action_text %}
     {% if action_url %}
     <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground h-10 px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
-      <i data-lucide="plus" class="w-4 h-4"></i>
+      {% include 'components/icons/icon.html' with name='plus' class='w-4 h-4' %}
       {{ action_text }}
     </a>
     {% elif action_onclick %}
     <button onclick="{{ action_onclick }}" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground h-10 px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
-      <i data-lucide="plus" class="w-4 h-4"></i>
+      {% include 'components/icons/icon.html' with name='plus' class='w-4 h-4' %}
       {{ action_text }}
     </button>
     {% endif %}

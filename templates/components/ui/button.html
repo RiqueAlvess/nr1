@@ -80,15 +80,15 @@ Loading state (CORRETO):
   {{ attrs }}
 >
   {% if loading %}
-    <i data-lucide="loader-2" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %} animate-spin"></i>
+    {% include 'components/icons/icon.html' with name='loader-2' class='{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %} animate-spin' %}
   {% elif icon_left %}
-    <i data-lucide="{{ icon_left }}" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}"></i>
+    {% include 'components/icons/icon.html' with name=icon_left class='{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}' %}
   {% endif %}
 
   {% if text %}{{ text }}{% endif %}
 
   {% if icon_right %}
-    <i data-lucide="{{ icon_right }}" class="w-4 h-4"></i>
+    {% include 'components/icons/icon.html' with name=icon_right class='w-4 h-4' %}
   {% endif %}
 </a>
 {% else %}
@@ -114,15 +114,15 @@ Loading state (CORRETO):
   {{ attrs }}
 >
   {% if loading %}
-    <i data-lucide="loader-2" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %} animate-spin"></i>
+    {% include 'components/icons/icon.html' with name='loader-2' class='{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %} animate-spin' %}
   {% elif icon_left %}
-    <i data-lucide="{{ icon_left }}" class="{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}"></i>
+    {% include 'components/icons/icon.html' with name=icon_left class='{% if size == 'icon' %}w-5 h-5{% else %}w-4 h-4{% endif %}' %}
   {% endif %}
 
   {% if text %}{{ text }}{% endif %}
 
   {% if icon_right %}
-    <i data-lucide="{{ icon_right }}" class="w-4 h-4"></i>
+    {% include 'components/icons/icon.html' with name=icon_right class='w-4 h-4' %}
   {% endif %}
 </button>
 {% endif %}
