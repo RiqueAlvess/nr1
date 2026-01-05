@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from django.db import transaction, IntegrityError
+from django.db.models import Q, Case, When, IntegerField, Value
 from django_ratelimit.decorators import ratelimit
 from quiz.models import Pergunta, Resposta, MagicLink
 from quiz.services.magic_link_service import MagicLinkService
@@ -25,13 +26,62 @@ def gerenciar_links_view(request):
         )
         return redirect('account:dashboard')
 
-    colaboradores_all = Colaborador.objects.filter(ativo=True).select_related(
+    # Buscar todos os colaboradores ativos
+    colaboradores_qs = Colaborador.objects.filter(ativo=True).select_related(
         'cargo__setor__unidade__empresa'
-    ).prefetch_related('magic_link').order_by('email')
+    ).prefetch_related('magic_link')
+
+    # Aplicar ordenação por prioridade de status
+    colaboradores_qs = colaboradores_qs.annotate(
+        status_prioridade=Case(
+            When(magic_link__isnull=True, then=Value(0)),  # SEM LINK = prioridade 0 (aparece primeiro)
+            When(magic_link__status='PENDING', then=Value(1)),  # PENDING = prioridade 1
+            When(magic_link__status='ACCESSED', then=Value(2)),  # ACCESSED = prioridade 2
+            When(magic_link__status='COMPLETED', then=Value(3)),  # COMPLETED = prioridade 3
+            When(magic_link__status='EXPIRED', then=Value(4)),  # EXPIRED = prioridade 4
+            default=Value(5),
+            output_field=IntegerField()
+        )
+    ).order_by('status_prioridade', 'email')
+
+    # Filtros
+    filtro_status = request.GET.get('status', '')
+    busca = request.GET.get('busca', '').strip()
+
+    # Aplicar filtro por status
+    if filtro_status == 'sem_link':
+        colaboradores_qs = colaboradores_qs.filter(magic_link__isnull=True)
+    elif filtro_status == 'enviado':
+        colaboradores_qs = colaboradores_qs.filter(magic_link__status='PENDING')
+    elif filtro_status == 'acessado':
+        colaboradores_qs = colaboradores_qs.filter(magic_link__status='ACCESSED')
+    elif filtro_status == 'concluido':
+        colaboradores_qs = colaboradores_qs.filter(magic_link__status='COMPLETED')
+    elif filtro_status == 'expirado':
+        colaboradores_qs = colaboradores_qs.filter(magic_link__status='EXPIRED')
+
+    # Aplicar busca por texto (email, empresa, unidade, setor)
+    if busca:
+        colaboradores_qs = colaboradores_qs.filter(
+            Q(email__icontains=busca) |
+            Q(cargo__setor__unidade__empresa__nome__icontains=busca) |
+            Q(cargo__setor__unidade__nome__icontains=busca) |
+            Q(cargo__setor__nome__icontains=busca)
+        )
+
+    # Calcular estatísticas ANTES de aplicar paginação (usando todos os colaboradores ativos)
+    todos_colaboradores = Colaborador.objects.filter(ativo=True).select_related('magic_link')
+
+    total = todos_colaboradores.count()
+    sem_link = todos_colaboradores.filter(magic_link__isnull=True).count()
+    com_link_pendente = todos_colaboradores.filter(magic_link__status='PENDING').count()
+    com_link_acessado = todos_colaboradores.filter(magic_link__status='ACCESSED').count()
+    com_link_concluido = todos_colaboradores.filter(magic_link__status='COMPLETED').count()
+    com_link_expirado = todos_colaboradores.filter(magic_link__status='EXPIRED').count()
 
     # Paginação
     page = request.GET.get('page', 1)
-    paginator = Paginator(colaboradores_all, 20)  # 20 itens por página
+    paginator = Paginator(colaboradores_qs, 20)  # 20 itens por página
 
     try:
         colaboradores = paginator.page(page)
@@ -42,8 +92,14 @@ def gerenciar_links_view(request):
 
     context = {
         'colaboradores': colaboradores,
-        'total': paginator.count,
-        'com_link': sum(1 for c in colaboradores_all if hasattr(c, 'magic_link')),
+        'total': total,
+        'sem_link': sem_link,
+        'com_link_pendente': com_link_pendente,
+        'com_link_acessado': com_link_acessado,
+        'com_link_concluido': com_link_concluido,
+        'com_link_expirado': com_link_expirado,
+        'filtro_status': filtro_status,
+        'busca': busca,
     }
 
     return render(request, 'quiz/gerenciar_links.html', context)

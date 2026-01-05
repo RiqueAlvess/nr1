@@ -17,39 +17,124 @@
 <div class="space-y-6">
 
     <!-- Estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <!-- Total -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+             onclick="window.location.href='{% url 'quiz:gerenciar_links' %}'">
             <div class="flex items-center justify-between">
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Total de Colaboradores</p>
+                    <p class="text-sm font-medium text-muted-foreground">Total</p>
                     <p class="text-3xl font-bold text-primary">{{ total }}</p>
-                    <p class="text-xs text-muted-foreground">Cadastrados no sistema</p>
+                    <p class="text-xs text-muted-foreground">Colaboradores</p>
                 </div>
                 {% include 'components/icons/icon.html' with name='users' class='w-8 h-8 text-primary/20' %}
             </div>
         </div>
 
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <!-- Sem Link -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+             onclick="window.location.href='?status=sem_link'">
             <div class="flex items-center justify-between">
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Com Magic Link</p>
-                    <p class="text-3xl font-bold text-accent">{{ com_link }}</p>
-                    <p class="text-xs text-muted-foreground">Links enviados</p>
+                    <p class="text-sm font-medium text-muted-foreground">Sem Link</p>
+                    <p class="text-3xl font-bold text-gray-600">{{ sem_link }}</p>
+                    <p class="text-xs text-muted-foreground">Aguardando</p>
                 </div>
-                {% include 'components/icons/icon.html' with name='link' class='w-8 h-8 text-accent/20' %}
+                {% include 'components/icons/icon.html' with name='minus' class='w-8 h-8 text-gray-600/20' %}
             </div>
         </div>
 
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <!-- Enviado (Pending) -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+             onclick="window.location.href='?status=enviado'">
             <div class="flex items-center justify-between">
                 <div class="space-y-1">
-                    <p class="text-sm font-medium text-muted-foreground">Pendentes</p>
-                    <p class="text-3xl font-bold text-yellow-600">{{ total|add:"-"|add:com_link }}</p>
-                    <p class="text-xs text-muted-foreground">Aguardando envio</p>
+                    <p class="text-sm font-medium text-muted-foreground">Enviado</p>
+                    <p class="text-3xl font-bold text-blue-600">{{ com_link_pendente }}</p>
+                    <p class="text-xs text-muted-foreground">Não acessado</p>
                 </div>
-                {% include 'components/icons/icon.html' with name='clock' class='w-8 h-8 text-yellow-600/20' %}
+                {% include 'components/icons/icon.html' with name='mail' class='w-8 h-8 text-blue-600/20' %}
             </div>
         </div>
+
+        <!-- Acessado -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+             onclick="window.location.href='?status=acessado'">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-sm font-medium text-muted-foreground">Acessado</p>
+                    <p class="text-3xl font-bold text-yellow-600">{{ com_link_acessado }}</p>
+                    <p class="text-xs text-muted-foreground">Não respondeu</p>
+                </div>
+                {% include 'components/icons/icon.html' with name='eye' class='w-8 h-8 text-yellow-600/20' %}
+            </div>
+        </div>
+
+        <!-- Concluído -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+             onclick="window.location.href='?status=concluido'">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-sm font-medium text-muted-foreground">Concluído</p>
+                    <p class="text-3xl font-bold text-green-600">{{ com_link_concluido }}</p>
+                    <p class="text-xs text-muted-foreground">Respondido</p>
+                </div>
+                {% include 'components/icons/icon.html' with name='check-circle-2' class='w-8 h-8 text-green-600/20' %}
+            </div>
+        </div>
+
+        <!-- Expirado -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+             onclick="window.location.href='?status=expirado'">
+            <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                    <p class="text-sm font-medium text-muted-foreground">Expirado</p>
+                    <p class="text-3xl font-bold text-red-600">{{ com_link_expirado }}</p>
+                    <p class="text-xs text-muted-foreground">Link vencido</p>
+                </div>
+                {% include 'components/icons/icon.html' with name='x-circle' class='w-8 h-8 text-red-600/20' %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <form method="get" action="{% url 'quiz:gerenciar_links' %}" class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <label for="busca" class="block text-sm font-medium text-muted-foreground mb-1">Buscar</label>
+                <input type="text"
+                       id="busca"
+                       name="busca"
+                       value="{{ busca }}"
+                       placeholder="Email, empresa, unidade ou setor..."
+                       class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+            </div>
+            <div class="flex-1">
+                <label for="status" class="block text-sm font-medium text-muted-foreground mb-1">Filtrar por Status</label>
+                <select id="status"
+                        name="status"
+                        class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="" {% if not filtro_status %}selected{% endif %}>Todos</option>
+                    <option value="sem_link" {% if filtro_status == 'sem_link' %}selected{% endif %}>Sem Link</option>
+                    <option value="enviado" {% if filtro_status == 'enviado' %}selected{% endif %}>Enviado (Não Acessado)</option>
+                    <option value="acessado" {% if filtro_status == 'acessado' %}selected{% endif %}>Acessado (Não Respondeu)</option>
+                    <option value="concluido" {% if filtro_status == 'concluido' %}selected{% endif %}>Concluído</option>
+                    <option value="expirado" {% if filtro_status == 'expirado' %}selected{% endif %}>Expirado</option>
+                </select>
+            </div>
+            <div class="flex items-end gap-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium transition-colors">
+                    {% include 'components/icons/icon.html' with name='filter' class='w-4 h-4' %}
+                    Aplicar
+                </button>
+                <a href="{% url 'quiz:gerenciar_links' %}"
+                   class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors">
+                    {% include 'components/icons/icon.html' with name='x' class='w-4 h-4' %}
+                    Limpar
+                </a>
+            </div>
+        </form>
     </div>
 
     <!-- Form para Enviar -->
@@ -79,8 +164,7 @@
                         <button type="submit" id="btn-enviar" disabled
                                 class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                             {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
-                            <span class="hidden sm:inline">Enviar Selecionados</span>
-                            <span class="sm:hidden">Enviar</span>
+                            <span id="btn-enviar-text">Enviar (0)</span>
                         </button>
                     </div>
                 </div>
@@ -180,7 +264,7 @@
                     </div>
                     <div class="flex items-center gap-2">
                         {% if colaboradores.has_previous %}
-                        <a href="?page={{ colaboradores.previous_page_number }}"
+                        <a href="?page={{ colaboradores.previous_page_number }}{% if filtro_status %}&status={{ filtro_status }}{% endif %}{% if busca %}&busca={{ busca }}{% endif %}"
                            class="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent/10 px-3 py-2 text-sm font-medium transition-colors">
                             {% include 'components/icons/icon.html' with name='chevron-left' class='w-4 h-4' %}
                         </a>
@@ -195,7 +279,7 @@
                         </span>
 
                         {% if colaboradores.has_next %}
-                        <a href="?page={{ colaboradores.next_page_number }}"
+                        <a href="?page={{ colaboradores.next_page_number }}{% if filtro_status %}&status={{ filtro_status }}{% endif %}{% if busca %}&busca={{ busca }}{% endif %}"
                            class="inline-flex items-center justify-center rounded-md border border-input bg-background hover:bg-accent/10 px-3 py-2 text-sm font-medium transition-colors">
                             {% include 'components/icons/icon.html' with name='chevron-right' class='w-4 h-4' %}
                         </a>
@@ -244,6 +328,7 @@
     const selectAll = document.getElementById('select-all');
     const checkboxes = document.querySelectorAll('.colaborador-checkbox:not([disabled])');
     const btnEnviar = document.getElementById('btn-enviar');
+    const btnEnviarText = document.getElementById('btn-enviar-text');
 
     if (selectAll) {
         selectAll.addEventListener('change', function() {
@@ -255,24 +340,57 @@
     checkboxes.forEach(cb => {
         cb.addEventListener('change', function() {
             updateButtonState();
+            updateSelectAllState();
         });
     });
 
     function selecionarTodos() {
         checkboxes.forEach(cb => cb.checked = true);
-        if (selectAll) selectAll.checked = true;
+        if (selectAll) {
+            selectAll.checked = true;
+            selectAll.indeterminate = false;
+        }
         updateButtonState();
     }
 
     function limparSelecao() {
         checkboxes.forEach(cb => cb.checked = false);
-        if (selectAll) selectAll.checked = false;
+        if (selectAll) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        }
         updateButtonState();
     }
 
     function updateButtonState() {
-        const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const anyChecked = checkedCount > 0;
+
+        // Atualizar estado do botão
         btnEnviar.disabled = !anyChecked;
+
+        // Atualizar texto do botão com contador
+        if (btnEnviarText) {
+            btnEnviarText.textContent = `Enviar (${checkedCount})`;
+        }
+    }
+
+    function updateSelectAllState() {
+        if (!selectAll) return;
+
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const totalCount = checkboxes.length;
+
+        if (checkedCount === 0) {
+            selectAll.checked = false;
+            selectAll.indeterminate = false;
+        } else if (checkedCount === totalCount) {
+            selectAll.checked = true;
+            selectAll.indeterminate = false;
+        } else {
+            selectAll.checked = false;
+            selectAll.indeterminate = true;
+        }
     }
 
     document.getElementById('enviar-form').addEventListener('submit', function(e) {
@@ -282,8 +400,10 @@
         }
     });
 
+    // Inicializar estado
     updateButtonState();
-    
+    updateSelectAllState();
+
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
