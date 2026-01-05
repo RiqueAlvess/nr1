@@ -53,42 +53,69 @@
 
     <!-- KPIs Principais -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Taxa de Adesão -->
-        {% include 'components/dashboard/stat-card.html' with
-            title='Taxa de Adesão'
-            value=kpis.taxa_adesao|add:'%'
-            description=kpis.respostas_concluidas|add:' de '|add:kpis.total_colaboradores|add:' respostas'
-            icon='percent'
-            variant='primary'
-        %}
+        <!-- KPI: Taxa de Adesão -->
+        <div class="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-transparent p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">Taxa de Adesão</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.taxa_adesao }}%</p>
+                    <p class="text-xs text-gray-400">{{ kpis.respostas_concluidas }} de {{ kpis.total_colaboradores }} respostas</p>
+                </div>
+                <div class="rounded-lg p-3 bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
 
-        <!-- IGRP -->
-        {% include 'components/dashboard/stat-card.html' with
-            title='IGRP'
-            value=kpis.igrp
-            description='Índice Geral de Risco'
-            icon='activity'
-            variant='default'
-        %}
+        <!-- KPI: IGRP -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">IGRP</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.igrp|default:"-" }}</p>
+                    <p class="text-xs text-gray-400">Índice Geral de Risco</p>
+                </div>
+                <div class="rounded-lg p-3 bg-gray-100 text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
 
-        <!-- Score Médio -->
-        {% include 'components/dashboard/stat-card.html' with
-            title='Score Médio'
-            value=kpis.score_medio_global
-            description='de 140 pontos'
-            icon='bar-chart-2'
-            variant='accent'
-        %}
+        <!-- KPI: Score Médio -->
+        <div class="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-transparent p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">Score Médio</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.score_medio_global|default:"-" }}</p>
+                    <p class="text-xs text-gray-400">de 140 pontos</p>
+                </div>
+                <div class="rounded-lg p-3 bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
 
-        <!-- Risco Crítico -->
-        {% include 'components/dashboard/stat-card.html' with
-            title='Risco Crítico'
-            value=kpis.percentual_alto_risco|add:'%'
-            description='Requer atenção imediata'
-            icon='alert-triangle'
-            variant='default'
-            extra_classes='border-destructive/20 bg-gradient-to-br from-destructive/5 to-transparent'
-        %}
+        <!-- KPI: Risco Crítico -->
+        <div class="rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-transparent p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">Risco Crítico</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.percentual_alto_risco|default:"0" }}%</p>
+                    <p class="text-xs text-gray-400">Requer atenção imediata</p>
+                </div>
+                <div class="rounded-lg p-3 bg-red-100 text-red-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Distribuição de Risco -->

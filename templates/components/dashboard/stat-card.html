@@ -21,12 +21,21 @@ PARAMETERS:
 - value: Valor principal (string/number, obrigatório)
 - change: Variação percentual (ex: '+12.5', '-5.2') (opcional)
 - trend: 'up', 'down', 'neutral' (opcional, usado com change)
-- icon: Nome do ícone Lucide (opcional)
+- icon: Nome do ícone (opcional) - pode ser Lucide ou SVG inline
 - description: Descrição adicional abaixo do título (opcional)
-- variant: 'default', 'accent', 'primary' (default: 'default')
+- variant: 'default', 'accent', 'primary', 'destructive' (default: 'default')
 - loading: true/false - Mostra skeleton loader (default: false)
 - href: Se fornecido, torna o card clicável (opcional)
 - extra_classes: Classes CSS adicionais
+- rounded: 'lg' ou 'xl' - Define arredondamento (default: 'lg')
+- shadow: true/false - Adiciona sombra hover (default: true)
+
+VARIANTS:
+---------
+- default: Bordas e fundo neutros (gray)
+- primary: Bordas e fundo azul
+- accent: Bordas e fundo verde
+- destructive: Bordas e fundo vermelho
 
 TRENDS:
 -------
@@ -86,10 +95,19 @@ Accent variant:
   icon='user-plus'
   variant='accent'
 %}
+
+Destructive variant with rounded xl:
+{% include 'components/dashboard/stat-card.html' with
+  title='Critical Issues'
+  value='12'
+  icon='alert-triangle'
+  variant='destructive'
+  rounded='xl'
+%}
 {% endcomment %}
 
 {% if loading %}
-  <div class="rounded-lg border border-border bg-card p-6 shadow-sm {{ extra_classes }}">
+  <div class="rounded-{% if rounded == 'xl' %}xl{% else %}lg{% endif %} border border-border bg-card p-6 shadow-sm {{ extra_classes }}">
     <div class="space-y-3">
       <div class="flex items-center justify-between">
         {% include 'components/ui/skeleton.html' with variant='text' width='w-24' %}
@@ -101,11 +119,13 @@ Accent variant:
   </div>
 {% else %}
   {% if href %}
-  <a href="{{ href }}" class="block rounded-lg border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-accent/50 {{ extra_classes }}">
+  <a href="{{ href }}" class="block rounded-{% if rounded == 'xl' %}xl{% else %}lg{% endif %} border border-border bg-card p-6 shadow-sm transition-all {% if shadow != false %}hover:shadow-md{% endif %} hover:border-accent/50 {{ extra_classes }}">
   {% else %}
-  <div class="rounded-lg border border-border bg-card p-6 shadow-sm
-    {% if variant == 'accent' %}border-accent/20 bg-gradient-to-br from-accent/5 to-transparent{% endif %}
+  <div class="rounded-{% if rounded == 'xl' %}xl{% else %}lg{% endif %} border bg-white p-6 shadow-sm {% if shadow != false %}transition-all hover:shadow-md{% endif %}
     {% if variant == 'primary' %}border-primary/20 bg-gradient-to-br from-primary/5 to-transparent{% endif %}
+    {% if variant == 'accent' %}border-accent/20 bg-gradient-to-br from-accent/5 to-transparent{% endif %}
+    {% if variant == 'destructive' %}border-destructive/20 bg-gradient-to-br from-destructive/5 to-transparent{% endif %}
+    {% if not variant or variant == 'default' %}border-border bg-card{% endif %}
     {{ extra_classes }}">
   {% endif %}
 
@@ -119,8 +139,9 @@ Accent variant:
 
       {% if icon %}
       <div class="rounded-full p-2
-        {% if variant == 'accent' %}bg-accent/10 text-accent{% endif %}
         {% if variant == 'primary' %}bg-primary/10 text-primary{% endif %}
+        {% if variant == 'accent' %}bg-accent/10 text-accent{% endif %}
+        {% if variant == 'destructive' %}bg-destructive/10 text-destructive{% endif %}
         {% if not variant or variant == 'default' %}bg-muted text-muted-foreground{% endif %}">
         {% include 'components/icons/icon.html' with name=icon class='w-5 h-5' %}
       </div>
