@@ -76,7 +76,15 @@ Error:
 >
   <div class="flex gap-3">
     <div class="shrink-0 mt-0.5">
-      <i data-lucide="{% if variant == 'info' or not variant %}info{% endif %}{% if variant == 'success' %}check-circle{% endif %}{% if variant == 'warning' %}alert-triangle{% endif %}{% if variant == 'error' %}alert-circle{% endif %}" class="w-5 h-5"></i>
+      {% if variant == 'success' %}
+        {% include 'components/icons/icon.html' with name='check-circle' class='w-5 h-5' %}
+      {% elif variant == 'warning' %}
+        {% include 'components/icons/icon.html' with name='alert-triangle' class='w-5 h-5' %}
+      {% elif variant == 'error' %}
+        {% include 'components/icons/icon.html' with name='alert-circle' class='w-5 h-5' %}
+      {% else %}
+        {% include 'components/icons/icon.html' with name='info' class='w-5 h-5' %}
+      {% endif %}
     </div>
 
     <div class="flex-1">
