@@ -149,26 +149,10 @@
         </main>
     {% endif %}
 
-    <!-- Lucide Icons - Carregado antes dos scripts -->
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
     <!-- Scripts Core -->
     <script>
-        // Função centralizada para inicializar Lucide Icons
-        function initIcons() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-                console.log('✓ Lucide icons inicializados');
-            } else {
-                console.warn('⚠ Lucide ainda não carregado');
-            }
-        }
-
         // Inicialização quando DOM estiver pronto
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Lucide Icons
-            initIcons();
-
             // Process Django messages as toasts
             {% if messages %}
                 const messages = [
@@ -184,47 +168,6 @@
                 messages.forEach(msg => showToast(msg.text, msg.type));
             {% endif %}
         });
-
-        // Reinicializar Lucide após mudanças no DOM (HTMX)
-        document.body.addEventListener('htmx:afterSwap', initIcons);
-        document.body.addEventListener('htmx:afterSettle', initIcons);
-
-        // Reinicializar após Alpine.js estar pronto
-        document.addEventListener('alpine:initialized', initIcons);
-
-        // Observer para mudanças dinâmicas no DOM
-        const iconObserver = new MutationObserver(function(mutations) {
-            let shouldInit = false;
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes.length > 0) {
-                    mutation.addedNodes.forEach(function(node) {
-                        if (node.nodeType === 1 && (node.hasAttribute('data-lucide') || node.querySelector('[data-lucide]'))) {
-                            shouldInit = true;
-                        }
-                    });
-                }
-            });
-            if (shouldInit) {
-                initIcons();
-            }
-        });
-
-        // Observar mudanças no DOM após carregamento
-        document.addEventListener('DOMContentLoaded', function() {
-            iconObserver.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-
-        // Fallback: inicializar após 500ms se ainda houver ícones não renderizados
-        setTimeout(function() {
-            const unrenderedIcons = document.querySelectorAll('[data-lucide]:not(.lucide)');
-            if (unrenderedIcons.length > 0) {
-                console.log(`🔄 Reinicializando ${unrenderedIcons.length} ícones não renderizados`);
-                initIcons();
-            }
-        }, 500);
 
         // Toast System - integrado com Alpine.js
         function showToast(message, type = 'info') {

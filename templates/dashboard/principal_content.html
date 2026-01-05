@@ -97,7 +97,7 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-medium text-red-900">Crítico</span>
-                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-600"></i>
+                    {% include 'components/icons/icon.html' with name='alert-circle' class='w-4 h-4 text-red-600' %}
                 </div>
                 <p class="text-2xl font-bold text-red-900">{{ kpis.distribuicao_risco.critico }}</p>
                 <div class="w-full bg-red-200 rounded-full h-2">
@@ -110,7 +110,7 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-medium text-yellow-900">Atenção</span>
-                    <i data-lucide="alert-triangle" class="w-4 h-4 text-yellow-600"></i>
+                    {% include 'components/icons/icon.html' with name='alert-triangle' class='w-4 h-4 text-yellow-600' %}
                 </div>
                 <p class="text-2xl font-bold text-yellow-900">{{ kpis.distribuicao_risco.atencao }}</p>
                 <div class="w-full bg-yellow-200 rounded-full h-2">
@@ -123,7 +123,7 @@
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <span class="text-sm font-medium text-green-900">Satisfatório</span>
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-green-600"></i>
+                    {% include 'components/icons/icon.html' with name='check-circle-2' class='w-4 h-4 text-green-600' %}
                 </div>
                 <p class="text-2xl font-bold text-green-900">{{ kpis.distribuicao_risco.satisfatorio }}</p>
                 <div class="w-full bg-green-200 rounded-full h-2">
@@ -136,7 +136,7 @@
     <!-- Matriz NR-1 -->
     <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
         <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <i data-lucide="grid-3x3" class="w-5 h-5 text-primary"></i>
+            {% include 'components/icons/icon.html' with name='grid-3x3' class='w-5 h-5 text-primary' %}
             Matriz de Risco NR-1
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -163,7 +163,7 @@
     <!-- Estatísticas Avançadas -->
     <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
         <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-            <i data-lucide="trending-up" class="w-5 h-5 text-primary"></i>
+            {% include 'components/icons/icon.html' with name='trending-up' class='w-5 h-5 text-primary' %}
             Estatísticas Avançadas
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -195,7 +195,7 @@
     <div class="rounded-xl border border-accent/20 bg-accent/5 p-6">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div class="flex items-start gap-3">
-                <i data-lucide="lightbulb" class="w-6 h-6 text-accent mt-0.5"></i>
+                {% include 'components/icons/icon.html' with name='lightbulb' class='w-6 h-6 text-accent mt-0.5' %}
                 <div>
                     <h3 class="font-semibold text-foreground">Próximas Ações</h3>
                     <p class="text-sm text-muted-foreground mt-1">Identifique áreas críticas e planeje intervenções específicas</p>
@@ -207,7 +207,7 @@
                    hx-target="#main-content"
                    hx-push-url="true"
                    class="inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 px-4 py-2 text-sm font-medium transition-colors">
-                    <i data-lucide="send" class="w-4 h-4"></i>
+                    {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
                     Enviar Pesquisas
                 </a>
                 <a href="{% url 'importacao:importacao' %}"
@@ -215,7 +215,7 @@
                    hx-target="#main-content"
                    hx-push-url="true"
                    class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors">
-                    <i data-lucide="file-input" class="w-4 h-4"></i>
+                    {% include 'components/icons/icon.html' with name='file-input' class='w-4 h-4' %}
                     Importar Colaboradores
                 </a>
             </div>

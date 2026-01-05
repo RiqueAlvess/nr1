@@ -12,7 +12,7 @@
     <!-- Alerta de perfil não configurado -->
     <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <div class="flex items-start gap-3">
-            <i data-lucide="alert-triangle" class="w-5 h-5 text-yellow-600 mt-0.5"></i>
+            {% include 'components/icons/icon.html' with name='alert-triangle' class='w-5 h-5 text-yellow-600 mt-0.5' %}
             <div>
                 <h3 class="font-semibold text-yellow-900">Perfil não configurado</h3>
                 <p class="text-sm text-yellow-700 mt-1">Seu usuário ainda não possui um perfil de acesso configurado. Contate o administrador do sistema.</p>
@@ -29,7 +29,7 @@
         <div class="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                    <i data-lucide="file-input" class="w-6 h-6 text-accent"></i>
+                    {% include 'components/icons/icon.html' with name='file-input' class='w-6 h-6 text-accent' %}
                 </div>
                 <span class="inline-flex items-center rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">Passo 1</span>
             </div>
@@ -43,7 +43,7 @@
                hx-push-url="true"
                class="inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 px-4 py-2 text-sm font-medium transition-colors w-full">
                 Acessar
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
             </a>
         </div>
 
@@ -51,7 +51,7 @@
         <div class="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <i data-lucide="send" class="w-6 h-6 text-primary"></i>
+                    {% include 'components/icons/icon.html' with name='send' class='w-6 h-6 text-primary' %}
                 </div>
                 <span class="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">Passo 2</span>
             </div>
@@ -65,7 +65,7 @@
                hx-push-url="true"
                class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors w-full">
                 Acessar
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
             </a>
         </div>
         {% endif %}
@@ -75,7 +75,7 @@
         <div class="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
-                    <i data-lucide="line-chart" class="w-6 h-6 text-accent"></i>
+                    {% include 'components/icons/icon.html' with name='line-chart' class='w-6 h-6 text-accent' %}
                 </div>
                 {% if user.perfil_acesso.is_rh %}
                 <span class="inline-flex items-center rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">Passo 3</span>
@@ -93,7 +93,7 @@
                hx-push-url="true"
                class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors w-full">
                 Acessar
-                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
             </a>
         </div>
         {% endif %}
@@ -105,7 +105,7 @@
         <!-- Sobre NR-1 -->
         <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h3 class="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                {% include 'components/icons/icon.html' with name='info' class='w-5 h-5 text-blue-600' %}
                 Sobre a NR-1
             </h3>
             <div class="space-y-3 text-sm text-muted-foreground">
@@ -123,7 +123,7 @@
         <!-- Anonimato -->
         <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
             <h3 class="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                <i data-lucide="shield-check" class="w-5 h-5 text-green-600"></i>
+                {% include 'components/icons/icon.html' with name='shield-check' class='w-5 h-5 text-green-600' %}
                 Garantia de Anonimato
             </h3>
             <div class="space-y-3 text-sm text-muted-foreground">
@@ -142,7 +142,7 @@
     <!-- Seu acesso -->
     <div class="rounded-xl border border-primary/20 bg-primary p-6 shadow-sm text-white">
         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-            <i data-lucide="id-card" class="w-5 h-5"></i>
+            {% include 'components/icons/icon.html' with name='id-card' class='w-5 h-5' %}
             Seu Acesso
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -78,7 +78,7 @@ Number input:
   <div class="relative">
     {% if icon_left %}
     <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-      <i data-lucide="{{ icon_left }}" class="w-4 h-4"></i>
+      {% include 'components/icons/icon.html' with name=icon_left class='w-4 h-4' %}
     </div>
     {% endif %}
 
@@ -101,14 +101,14 @@ Number input:
 
     {% if icon_right %}
     <div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
-      <i data-lucide="{{ icon_right }}" class="w-4 h-4"></i>
+      {% include 'components/icons/icon.html' with name=icon_right class='w-4 h-4' %}
     </div>
     {% endif %}
   </div>
 
   {% if error %}
   <p class="text-sm text-destructive mt-1.5 flex items-center gap-1">
-    <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+    {% include 'components/icons/icon.html' with name='alert-circle' class='w-3.5 h-3.5' %}
     {{ error }}
   </p>
   {% endif %}

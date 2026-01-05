@@ -9,7 +9,7 @@
         <!-- Ícone de erro -->
         <div class="mb-6">
             <div class="inline-flex items-center justify-center w-24 h-24 bg-black rounded-2xl">
-                <i data-lucide="alert-triangle" class="w-12 h-12 text-white"></i>
+                {% include 'components/icons/icon.html' with name='alert-triangle' class='w-12 h-12 text-white' %}
             </div>
         </div>
 
@@ -31,13 +31,13 @@
         <div class="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="{% url 'account:dashboard' %}"
                class="btn btn-primary bg-black text-white hover:bg-neutral-800 border-0">
-                <i data-lucide="home" class="w-4 h-4"></i>
+                {% include 'components/icons/icon.html' with name='home' class='w-4 h-4' %}
                 Voltar ao Início
             </a>
 
             <button onclick="window.location.reload()"
                     class="btn btn-outline">
-                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                {% include 'components/icons/icon.html' with name='refresh-cw' class='w-4 h-4' %}
                 Tentar Novamente
             </button>
         </div>

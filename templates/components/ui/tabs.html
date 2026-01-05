@@ -47,7 +47,7 @@ Variants: default, pills, underline
             aria-controls="panel-{{ tab.id }}"
         >
             {% if tab.icon %}
-                <i data-lucide="{{ tab.icon }}" class="w-4 h-4 mr-2"></i>
+                {% include 'components/icons/icon.html' with name=tab.icon class='w-4 h-4 mr-2' %}
             {% endif %}
             {{ tab.label }}
             {% if tab.badge %}
@@ -82,11 +82,3 @@ Variants: default, pills, underline
     </div>
 </div>
 
-<script>
-    // Initialize Lucide icons after Alpine renders
-    document.addEventListener('alpine:initialized', () => {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
-    });
-</script>
