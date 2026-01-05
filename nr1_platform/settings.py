@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'importacao',
     'quiz',
     'dashboard',
+    'usercompany',
+    'emails',
 ]
 
 MIDDLEWARE = [
@@ -250,12 +252,18 @@ CELERY_ENABLE_UTC = True
 # Task routing
 CELERY_TASK_ROUTES = {
     'quiz.tasks.send_magic_links_async': {'queue': 'emails'},
+    'emails.tasks.send_email_task': {'queue': 'emails'},
+    'usercompany.tasks.atualizar_contador_notificacoes_empresa_task': {'queue': 'default'},
     'core.tasks.purge_expired_data': {'queue': 'maintenance'},
 }
+
+# Rate limiting configurável via env (padrão: 100 emails por hora)
+SEND_RATE_LIMIT = config('SEND_RATE_LIMIT', default='100/h')
 
 # Rate limiting para tarefas de email (respeitar free tier da API)
 CELERY_TASK_ANNOTATIONS = {
     'quiz.tasks.send_magic_links_async': {'rate_limit': '100/h'},  # 100 emails por hora
+    'emails.tasks.send_email_task': {'rate_limit': SEND_RATE_LIMIT},  # Rate limit configurável
 }
 
 # Retry policy
