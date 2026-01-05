@@ -13,10 +13,10 @@
 
     <!-- DaisyUI & Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
 
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest" defer></script>
+    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/lucide@latest" defer></script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <link rel="stylesheet" href="{% static 'css/components.css' %}">
 
-    <script>
+    <script nonce="{{ csp_nonce }}">
         tailwind.config = {
             theme: {
                 extend: {
@@ -62,7 +62,7 @@
         }
     </script>
 
-    <style>
+    <style nonce="{{ csp_nonce }}">
         /* Estilos específicos do questionário - o resto está em theme.css e components.css */
         [data-theme="nr1theme"] {
             --p: 152 87% 52%;
@@ -267,8 +267,8 @@
     </dialog>
 
     <!-- Quiz Form Script -->
-    <script src="{% static 'js/quiz-form.js' %}"></script>
-    <script>
+    <script nonce="{{ csp_nonce }}" src="{% static 'js/quiz-form.js' %}"></script>
+    <script nonce="{{ csp_nonce }}">
         // Initialize Lucide Icons
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof lucide !== 'undefined') {

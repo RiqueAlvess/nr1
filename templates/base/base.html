@@ -23,7 +23,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN - Utilitários Base -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
 
     <!-- CSS Local - Sistema de Design Shadcn UI -->
     <link rel="stylesheet" href="{% static 'css/design-tokens.css' %}">
@@ -33,15 +33,56 @@
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
 
     <!-- Alpine.JS - Framework reativo -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script nonce="{{ csp_nonce }}" defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
 
     <!-- Lucide Icons - DEPOIS do Alpine -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/lucide@latest"></script>
 
     <!-- Chart.js - Para gráficos (lazy load apenas quando necessário) -->
     {% block chart_js %}{% endblock %}
 
-    <style>
+    <!-- Toast System - Definir ANTES do Alpine.js -->
+    <script nonce="{{ csp_nonce }}">
+        // Sistema de Toast - Compatível com Alpine.js
+        function toastSystem() {
+            return {
+                toasts: [],
+                addToast(detail) {
+                    const id = Date.now();
+                    const toast = {
+                        id,
+                        type: detail.type || 'info',
+                        message: detail.message,
+                        visible: true
+                    };
+                    this.toasts.push(toast);
+
+                    // Auto-remove após 5 segundos
+                    setTimeout(() => {
+                        this.removeToast(id);
+                    }, detail.duration || 5000);
+                },
+                removeToast(id) {
+                    const index = this.toasts.findIndex(t => t.id === id);
+                    if (index > -1) {
+                        this.toasts[index].visible = false;
+                        setTimeout(() => {
+                            this.toasts = this.toasts.filter(t => t.id !== id);
+                        }, 300);
+                    }
+                }
+            };
+        }
+
+        // Função helper global
+        window.showToast = function(type, message, duration = 5000) {
+            window.dispatchEvent(new CustomEvent('show-toast', {
+                detail: { type, message, duration }
+            }));
+        };
+    </script>
+
+    <style nonce="{{ csp_nonce }}">
         /* Loading performance optimization */
         [x-cloak] { display: none !important; }
 
@@ -153,7 +194,7 @@
     {% endif %}
 
     <!-- Scripts Core -->
-    <script>
+    <script nonce="{{ csp_nonce }}">
         // Inicialização quando DOM estiver pronto
         document.addEventListener('DOMContentLoaded', function() {
             // Process Django messages as toasts

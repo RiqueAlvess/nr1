@@ -8,5 +8,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dashboard-charts.js' %}"></script>
+<script nonce="{{ csp_nonce }}" src="{% static 'js/dashboard-charts.js' %}"></script>
 {% endblock %}

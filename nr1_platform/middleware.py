@@ -50,8 +50,9 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
         # font-src: permite fontes do próprio domínio e Google Fonts
         csp_directives.append("font-src 'self' https://fonts.gstatic.com")
 
-        # connect-src: permite conexões apenas para o próprio domínio
-        csp_directives.append("connect-src 'self'")
+        # connect-src: permite conexões para o próprio domínio e CDNs para sourcemaps
+        # Nota: sourcemaps (.map) não são carregados em produção, mas são úteis para desenvolvimento
+        csp_directives.append("connect-src 'self' https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com")
 
         # frame-ancestors: impede que a página seja incorporada em frames (equivalente a X-Frame-Options: DENY)
         csp_directives.append("frame-ancestors 'none'")
