@@ -1,10 +1,10 @@
 {% load static %}
 <!-- Mobile Header - Apenas visível em telas < lg -->
 <header class="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-card border-b border-border shadow-sm">
-    <div class="flex h-full items-center justify-between px-4">
+    <div class="flex h-full items-center justify-between px-4" x-data="{ menuOpen: false }">
 
         <!-- Botão Menu Hamburger -->
-        <button id="mobile-menu-btn"
+        <button @click="menuOpen = true"
                 class="p-2 rounded-lg hover:bg-accent/10 transition-colors"
                 aria-label="Abrir menu">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -22,13 +22,30 @@
         <div class="w-10"></div>
 
         <!-- Sidebar Overlay -->
-        <div id="mobile-overlay"
-             class="fixed inset-0 bg-black/50 z-40 opacity-0 invisible transition-opacity duration-300">
+        <div x-show="menuOpen"
+             x-transition:enter="transition-opacity ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="menuOpen = false"
+             class="fixed inset-0 bg-black/50 z-40"
+             x-cloak>
         </div>
 
         <!-- Sidebar Mobile -->
-        <aside id="mobile-sidebar"
-               class="fixed top-0 left-0 bottom-0 w-72 bg-card border-r border-border z-50 overflow-y-auto transform -translate-x-full transition-transform duration-300 ease-out">
+        <aside x-show="menuOpen"
+               x-transition:enter="transition ease-out duration-300 transform"
+               x-transition:enter-start="-translate-x-full"
+               x-transition:enter-end="translate-x-0"
+               x-transition:leave="transition ease-in duration-200 transform"
+               x-transition:leave-start="translate-x-0"
+               x-transition:leave-end="-translate-x-full"
+               @click.outside="menuOpen = false"
+               @keydown.escape.window="menuOpen = false"
+               class="fixed top-0 left-0 bottom-0 w-72 bg-card border-r border-border z-50 overflow-y-auto"
+               x-cloak>
 
             <!-- Header do Sidebar -->
             <div class="flex items-center justify-between p-4 border-b border-border">
@@ -36,7 +53,7 @@
                     <img src="{% static 'public/icone.png' %}" alt="Logo" class="w-10 h-10">
                     <span class="font-semibold">Vivamente360</span>
                 </div>
-                <button id="mobile-close-btn" class="p-2 rounded-lg hover:bg-accent/10">
+                <button @click="menuOpen = false" class="p-2 rounded-lg hover:bg-accent/10">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
@@ -144,39 +161,3 @@
 
 <!-- Espaçador para o bottom nav não sobrepor conteúdo -->
 <div class="lg:hidden h-16"></div>
-
-<script>
-    // Mobile Menu JavaScript (sem Alpine.js)
-    (function() {
-        const menuBtn = document.getElementById('mobile-menu-btn');
-        const closeBtn = document.getElementById('mobile-close-btn');
-        const overlay = document.getElementById('mobile-overlay');
-        const sidebar = document.getElementById('mobile-sidebar');
-
-        function openMenu() {
-            overlay.classList.remove('invisible', 'opacity-0');
-            sidebar.classList.remove('-translate-x-full');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeMenu() {
-            overlay.classList.add('opacity-0');
-            sidebar.classList.add('-translate-x-full');
-            setTimeout(() => {
-                overlay.classList.add('invisible');
-                document.body.style.overflow = '';
-            }, 300);
-        }
-
-        if (menuBtn) menuBtn.addEventListener('click', openMenu);
-        if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-        if (overlay) overlay.addEventListener('click', closeMenu);
-
-        // Fechar com ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !sidebar.classList.contains('-translate-x-full')) {
-                closeMenu();
-            }
-        });
-    })();
-</script>

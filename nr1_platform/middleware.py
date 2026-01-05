@@ -33,16 +33,13 @@ class SecurityHeadersMiddleware(MiddlewareMixin):
             "default-src 'self'",
         ]
 
-        # script-src: permite scripts do próprio domínio, nonce dinâmico, CDNs específicos
+        # script-src: permite scripts do próprio domínio, nonce dinâmico, CDNs específicos, Alpine.js
         # NOTA: Alpine.js requer 'unsafe-eval' para funcionar (avalia expressões JavaScript dinamicamente)
-        # Para habilitar Alpine.js, adicione 'unsafe-eval' à linha abaixo:
-        # Exemplo: f"script-src 'self' 'nonce-{nonce}' 'unsafe-eval' https://cdn.jsdelivr.net ..."
-        # ATENÇÃO: 'unsafe-eval' reduz a segurança do CSP. Use com cautela.
         if nonce:
-            csp_directives.append(f"script-src 'self' 'nonce-{nonce}' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com")
+            csp_directives.append(f"script-src 'self' 'nonce-{nonce}' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com")
         else:
             # Fallback se não houver nonce (não deveria acontecer)
-            csp_directives.append("script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com")
+            csp_directives.append("script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com https://cdnjs.cloudflare.com")
 
         # style-src: permite estilos do próprio domínio, inline (necessário para estilos dinâmicos), Google Fonts e DaisyUI
         csp_directives.append("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com")
