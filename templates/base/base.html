@@ -149,9 +149,6 @@
         </main>
     {% endif %}
 
-    <!-- Toast Container - Melhorado -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-md"></div>
-
     <!-- Lucide Icons - Carregado antes dos scripts -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
@@ -229,48 +226,14 @@
             }
         }, 500);
 
-        // Toast System
+        // Toast System - integrado com Alpine.js
         function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-
-            const colorMap = {
-                error: 'border-red-500 bg-red-50 text-red-900',
-                success: 'border-green-500 bg-green-50 text-green-900',
-                warning: 'border-yellow-500 bg-yellow-50 text-yellow-900',
-                info: 'border-blue-500 bg-blue-50 text-blue-900'
-            };
-
-            const iconMap = {
-                error: 'alert-circle',
-                success: 'check-circle',
-                warning: 'alert-triangle',
-                info: 'info'
-            };
-
-            toast.className = `${colorMap[type]} border-l-4 rounded-lg shadow-lg p-4 animate-slideDown flex items-center justify-between gap-3 min-w-[300px]`;
-
-            toast.innerHTML = `
-                <div class="flex items-center gap-3 flex-1">
-                    <i data-lucide="${iconMap[type]}" class="w-5 h-5"></i>
-                    <span class="text-sm font-medium">${message}</span>
-                </div>
-                <button onclick="this.parentElement.remove()" class="hover:opacity-70 transition-opacity p-1">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            `;
-
-            container.appendChild(toast);
-
-            // Initialize Lucide icons in toast
-            initializeLucideIcons();
-
-            // Auto-remove após 5 segundos
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(400px)';
-                setTimeout(() => toast.remove(), 300);
-            }, 5000);
+            // Mantém compatibilidade com código antigo, mas inverte os parâmetros
+            if (typeof message === 'string' && typeof type === 'string') {
+                window.dispatchEvent(new CustomEvent('show-toast', {
+                    detail: { type: type, message: message }
+                }));
+            }
         }
 
         // Performance logging
@@ -284,5 +247,8 @@
     </script>
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Toast Component -->
+    {% include 'components/ui/toast.html' %}
 </body>
 </html>
