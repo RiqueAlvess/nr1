@@ -29,6 +29,12 @@ def send_magic_links_async(self, colaboradores_ids, base_url):
     Returns:
         dict: Status do envio com contadores
     """
+    logger.info(
+        f'[CELERY TASK] send_magic_links_async INICIADA | '
+        f'task_id={self.request.id} | '
+        f'colaboradores_count={len(colaboradores_ids)} | '
+        f'base_url={base_url}'
+    )
     logger.info(f'Iniciando envio assíncrono de {len(colaboradores_ids)} magic links')
 
     # Primeiro, gerar os magic links se necessário
@@ -75,7 +81,12 @@ def send_magic_links_async(self, colaboradores_ids, base_url):
             subject = "Convite para Avaliação de Riscos Psicossociais - NR-1"
 
             # Enfileirar envio (não bloquear o worker)
-            send_email_task.delay(
+            logger.info(
+                f'[CELERY DEBUG] Enfileirando send_email_task [{idx}/{total}] | '
+                f'to_email={magic_link.colaborador.email}'
+            )
+
+            task_result = send_email_task.delay(
                 to_email=magic_link.colaborador.email,
                 subject=subject,
                 html_body=html_message,
@@ -83,7 +94,11 @@ def send_magic_links_async(self, colaboradores_ids, base_url):
             )
 
             enviados += 1
-            logger.info(f'Enfileirado envio [{idx}/{total}]: {magic_link.colaborador.email}')
+            logger.info(
+                f'[CELERY DEBUG] Email task enfileirada [{idx}/{total}] | '
+                f'task_id={task_result.id} | '
+                f'to_email={magic_link.colaborador.email}'
+            )
 
         except Exception as e:
             erros += 1

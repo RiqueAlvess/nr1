@@ -10,6 +10,9 @@ from quiz.models import Pergunta, Resposta, MagicLink
 from quiz.services.magic_link_service import MagicLinkService
 from core.services.audit_service import AuditService
 from importacao.models import Colaborador
+import logging
+
+logger = logging.getLogger('nr1')
 
 
 @login_required
@@ -132,7 +135,28 @@ def enviar_links_view(request):
     base_url = request.build_absolute_uri('/').rstrip('/')
 
     from quiz.tasks import send_magic_links_async
-    send_magic_links_async.delay(colaboradores_ids, base_url)
+
+    logger.info(
+        f'[CELERY DEBUG] Disparando task send_magic_links_async | '
+        f'colaboradores_ids={colaboradores_ids} | '
+        f'base_url={base_url} | '
+        f'user={request.user.username}'
+    )
+
+    try:
+        task_result = send_magic_links_async.delay(colaboradores_ids, base_url)
+        logger.info(
+            f'[CELERY DEBUG] Task enfileirada com sucesso | '
+            f'task_id={task_result.id} | '
+            f'colaboradores_count={len(colaboradores_ids)}'
+        )
+    except Exception as e:
+        logger.error(
+            f'[CELERY DEBUG] ERRO ao enfileirar task: {str(e)}',
+            exc_info=True
+        )
+        messages.error(request, f'Erro ao enfileirar envio de emails: {str(e)}')
+        return redirect('quiz:gerenciar_links')
 
     messages.success(
         request,

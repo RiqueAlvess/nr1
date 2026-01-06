@@ -1,0 +1,63 @@
+# Celery Worker Service for NR1 Platform
+#
+# Instalação:
+# 1. Copiar este arquivo para /etc/systemd/system/
+#    sudo cp celery_worker.service /etc/systemd/system/
+#
+# 2. Editar as variáveis abaixo conforme seu ambiente
+#
+# 3. Habilitar e iniciar o serviço:
+#    sudo systemctl daemon-reload
+#    sudo systemctl enable celery_worker
+#    sudo systemctl start celery_worker
+#
+# 4. Verificar status:
+#    sudo systemctl status celery_worker
+#
+# 5. Ver logs:
+#    sudo journalctl -u celery_worker -f
+
+[Unit]
+Description=Celery Worker for NR1 Platform
+After=network.target redis.target postgresql.target
+Requires=redis.target
+
+[Service]
+Type=forking
+User=www-data
+Group=www-data
+
+# IMPORTANTE: Ajustar estes caminhos conforme seu ambiente
+WorkingDirectory=/var/www/nr1
+Environment="PATH=/var/www/nr1/venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+# Variáveis de ambiente (ajustar conforme necessário)
+EnvironmentFile=/var/www/nr1/.env
+
+# Comando para iniciar o worker
+ExecStart=/var/www/nr1/venv/bin/celery -A nr1_platform worker \
+    --loglevel=info \
+    -Q emails,celery,default,maintenance \
+    -n worker@%h \
+    --pidfile=/var/run/celery/worker.pid \
+    --logfile=/var/log/celery/worker.log \
+    --detach
+
+# Comando para parar o worker
+ExecStop=/var/www/nr1/venv/bin/celery -A nr1_platform control shutdown
+
+# Restart policy
+Restart=always
+RestartSec=10
+
+# Permissões e limites
+PIDFile=/var/run/celery/worker.pid
+RuntimeDirectory=celery
+LogsDirectory=celery
+
+# Security
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

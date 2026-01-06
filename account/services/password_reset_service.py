@@ -75,17 +75,32 @@ class PasswordResetService:
             subject = 'Redefinição de Senha - Plataforma NR-1'
 
             # Enfileirar envio via Celery
-            send_email_task.delay(
-                to_email=user.email,
-                subject=subject,
-                html_body=html_message,
-                text_body=text_message
+            logger.info(
+                f"[CELERY DEBUG] Disparando task send_email_task | "
+                f"to_email={user.email} | subject={subject}"
             )
 
-            logger.info(
-                f"Email de redefinição enfileirado para: {user.email} | "
-                f"Token: {reset_token.token[:10]}..."
-            )
+            try:
+                task_result = send_email_task.delay(
+                    to_email=user.email,
+                    subject=subject,
+                    html_body=html_message,
+                    text_body=text_message
+                )
+
+                logger.info(
+                    f"[CELERY DEBUG] Task enfileirada com sucesso | "
+                    f"task_id={task_result.id} | to_email={user.email} | "
+                    f"Token: {reset_token.token[:10]}..."
+                )
+            except Exception as e:
+                logger.error(
+                    f"[CELERY DEBUG] ERRO ao enfileirar task: {str(e)} | "
+                    f"to_email={user.email}",
+                    exc_info=True
+                )
+                return False
+
             return True
 
         except Exception as e:

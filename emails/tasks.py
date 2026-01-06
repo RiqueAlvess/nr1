@@ -16,6 +16,12 @@ def send_email_task(self, to_email: str, subject: str, html_body: str, text_body
     - Aceita qualquer 2xx como sucesso (response.ok).
     - Retries com backoff exponencial em 429/5xx.
     """
+    logger.info(
+        f'[CELERY TASK] send_email_task INICIADA | '
+        f'task_id={self.request.id} | '
+        f'to_email={to_email} | '
+        f'subject={subject}'
+    )
     try:
         from_email = from_email or settings.DEFAULT_FROM_EMAIL
         api_key = getattr(settings, 'API_RESEND', None)
