@@ -4,11 +4,25 @@ from quiz.models import Dimensao, Pergunta, MagicLink, Resposta
 
 @admin.register(Dimensao)
 class DimensaoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'polaridade', 'ordem', 'ativa']
-    list_filter = ['polaridade', 'ativa']
+    list_display = ['nome', 'icon_name', 'icon_color', 'polaridade', 'ordem', 'ativa']
+    list_filter = ['polaridade', 'ativa', 'icon_color']
     search_fields = ['nome']
     readonly_fields = ['id', 'created_at', 'updated_at']
     ordering = ['ordem', 'nome']
+
+    fieldsets = (
+        ('Informações Básicas', {
+            'fields': ('nome', 'descricao', 'polaridade', 'ordem', 'ativa')
+        }),
+        ('Ícone (Lucide)', {
+            'fields': ('icon_name', 'icon_color', 'icon_path'),
+            'description': 'Configurações do ícone Lucide para exibição visual da dimensão'
+        }),
+        ('Sistema', {
+            'fields': ('id', 'created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
 
 
 @admin.register(Pergunta)

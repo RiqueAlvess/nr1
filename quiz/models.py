@@ -9,17 +9,22 @@ from importacao.models import Colaborador
 
 class Dimensao(TimeStampedModel):
     """Dimensão psicossocial do questionário HSE-IT"""
-    
+
     POLARIDADE_CHOICES = [
         ('POSITIVA', 'Positiva (menor pontuação = maior risco)'),
         ('NEGATIVA', 'Negativa (maior pontuação = maior risco)'),
     ]
-    
+
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField()
     polaridade = models.CharField(max_length=10, choices=POLARIDADE_CHOICES)
     ordem = models.IntegerField(default=0)
     ativa = models.BooleanField(default=True)
+
+    # Campos para ícones Lucide
+    icon_name = models.CharField(max_length=50, blank=True, default='lightbulb', help_text='Nome do ícone Lucide')
+    icon_color = models.CharField(max_length=20, blank=True, default='blue', help_text='Cor do ícone (classe Tailwind)')
+    icon_path = models.TextField(blank=True, help_text='SVG path do ícone Lucide')
     
     class Meta:
         db_table = 'dimensoes'
