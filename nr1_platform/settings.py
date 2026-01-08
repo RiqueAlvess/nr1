@@ -114,7 +114,11 @@ LOGOUT_REDIRECT_URL = 'account:login'
 
 # Email (Resend API)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
-API_RESEND = config('API_RESEND')
+# Configurações Resend - Usar biblioteca oficial resend
+RESEND_API_KEY = config('RESEND_API_KEY', default=config('API_RESEND', default=''))
+RESEND_FROM_EMAIL = config('RESEND_FROM_EMAIL', default=DEFAULT_FROM_EMAIL)
+# Manter API_RESEND para compatibilidade com código legacy
+API_RESEND = RESEND_API_KEY
 
 # Magic Link
 MAGIC_LINK_EXPIRATION_HOURS = config('MAGIC_LINK_EXPIRATION_HOURS', default=48, cast=int)
