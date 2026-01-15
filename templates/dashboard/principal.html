@@ -6,7 +6,3 @@
 {% block content %}
     {% include 'dashboard/principal_content.html' %}
 {% endblock %}
-
-{% block extra_js %}
-<script nonce="{{ csp_nonce }}" src="{% static 'js/dashboard-charts.js' %}"></script>
-{% endblock %}
