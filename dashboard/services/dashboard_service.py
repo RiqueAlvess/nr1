@@ -1338,3 +1338,266 @@ class DashboardService:
             }
             for c in cargos
         ]
+
+    def get_evolucao_temporal(
+        self,
+        empresa_id: str,
+        unidade_id: Optional[str] = None,
+        setor_id: Optional[str] = None,
+        periodo: str = 'mensal'
+    ) -> Dict[str, Any]:
+        """
+        Retorna evolução temporal dos scores globais e por dimensão.
+
+        Args:
+            empresa_id: UUID da empresa
+            unidade_id: UUID da unidade (opcional)
+            setor_id: UUID do setor (opcional)
+            periodo: 'diario', 'semanal' ou 'mensal'
+
+        Returns:
+            Dict com evolução temporal dos scores
+        """
+        from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+        from datetime import datetime, timedelta
+
+        # Query base
+        respostas_query = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        ).select_related('magic_link')
+
+        # Aplicar filtros hierárquicos
+        if setor_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor_id=setor_id
+            )
+        elif unidade_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+            )
+
+        respostas = respostas_query.order_by('created_at')
+
+        if not respostas.exists():
+            return {
+                'labels': [],
+                'scores_globais': [],
+                'scores_dimensoes': {},
+                'periodo': periodo,
+                'total_respostas': 0
+            }
+
+        # Definir truncamento baseado no período
+        trunc_func = {
+            'diario': TruncDay,
+            'semanal': TruncWeek,
+            'mensal': TruncMonth
+        }.get(periodo, TruncMonth)
+
+        # Agrupar respostas por período
+        periodos_scores = defaultdict(lambda: {
+            'scores_globais': [],
+            'scores_dimensoes': defaultdict(list)
+        })
+
+        for resposta in respostas:
+            if resposta.score_global is None:
+                continue
+
+            # Truncar data para o período
+            if periodo == 'diario':
+                periodo_key = resposta.created_at.date()
+            elif periodo == 'semanal':
+                # Primeira segunda-feira da semana
+                periodo_key = resposta.created_at.date() - timedelta(
+                    days=resposta.created_at.weekday()
+                )
+            else:  # mensal
+                periodo_key = resposta.created_at.replace(day=1).date()
+
+            periodos_scores[periodo_key]['scores_globais'].append(resposta.score_global)
+
+            # Adicionar scores por dimensão
+            for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                periodos_scores[periodo_key]['scores_dimensoes'][dimensao_nome].append(
+                    dados['score']
+                )
+
+        # Ordenar períodos
+        periodos_ordenados = sorted(periodos_scores.keys())
+
+        # Calcular médias por período
+        labels = []
+        scores_globais = []
+        scores_dimensoes = defaultdict(list)
+
+        for periodo_key in periodos_ordenados:
+            dados_periodo = periodos_scores[periodo_key]
+
+            # Formatar label
+            if periodo == 'diario':
+                label = periodo_key.strftime('%d/%m/%Y')
+            elif periodo == 'semanal':
+                label = periodo_key.strftime('Sem %d/%m')
+            else:  # mensal
+                label = periodo_key.strftime('%b/%Y')
+
+            labels.append(label)
+
+            # Calcular média global
+            media_global = self.stats_service.calcular_media(
+                dados_periodo['scores_globais']
+            )
+            scores_globais.append(round(media_global, 2))
+
+            # Calcular médias por dimensão
+            for dimensao_nome, scores in dados_periodo['scores_dimensoes'].items():
+                media_dimensao = self.stats_service.calcular_media(scores)
+                scores_dimensoes[dimensao_nome].append(round(media_dimensao, 2))
+
+        return {
+            'labels': labels,
+            'scores_globais': scores_globais,
+            'scores_dimensoes': dict(scores_dimensoes),
+            'periodo': periodo,
+            'total_respostas': respostas.count()
+        }
+
+    def get_matriz_nr1_completa(
+        self,
+        empresa_id: str,
+        unidade_id: Optional[str] = None,
+        setor_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Retorna dados para matriz NR-1 (Probabilidade × Severidade) com
+        distribuição de respondentes em cada célula da matriz.
+
+        Args:
+            empresa_id: UUID da empresa
+            unidade_id: UUID da unidade (opcional)
+            setor_id: UUID do setor (opcional)
+
+        Returns:
+            Dict com matriz de risco completa
+        """
+        # Query base
+        respostas_query = Resposta.objects.filter(
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        )
+
+        # Aplicar filtros hierárquicos
+        if setor_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor_id=setor_id
+            )
+        elif unidade_id:
+            respostas_query = respostas_query.filter(
+                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+            )
+
+        respostas = respostas_query.all()
+
+        if not respostas.exists():
+            return {
+                'matriz': [[0] * 5 for _ in range(5)],
+                'labels_probabilidade': ['Raro', 'Improvável', 'Possível', 'Provável', 'Quase Certo'],
+                'labels_severidade': ['Insignificante', 'Menor', 'Moderado', 'Maior', 'Catastrófico'],
+                'total_respostas': 0,
+                'distribuicao_niveis': {
+                    'BAIXO': 0,
+                    'MÉDIO': 0,
+                    'ALTO': 0,
+                    'CRÍTICO': 0
+                }
+            }
+
+        # Criar matriz 5x5
+        matriz = [[0 for _ in range(5)] for _ in range(5)]
+        distribuicao_niveis = {'BAIXO': 0, 'MÉDIO': 0, 'ALTO': 0, 'CRÍTICO': 0}
+
+        for resposta in respostas:
+            if resposta.score_global is None:
+                continue
+
+            # Calcular índices de probabilidade e severidade baseado no score (0-140)
+            score = resposta.score_global
+
+            # Severidade: Quanto menor o score, maior a severidade
+            # 0-28: Catastrófico (índice 4)
+            # 28-56: Maior (índice 3)
+            # 56-84: Moderado (índice 2)
+            # 84-112: Menor (índice 1)
+            # 112-140: Insignificante (índice 0)
+            if score <= 28:
+                severidade = 4
+            elif score <= 56:
+                severidade = 3
+            elif score <= 84:
+                severidade = 2
+            elif score <= 112:
+                severidade = 1
+            else:
+                severidade = 0
+
+            # Probabilidade: Baseado no percentual de dimensões críticas
+            dimensoes_criticas = sum(
+                1 for d in resposta.scores_dimensoes.values()
+                if self.calc_service._interpretar_dimensao(d['score'], d['polaridade']) == 'CRÍTICO'
+            )
+            total_dimensoes = len(resposta.scores_dimensoes)
+
+            if total_dimensoes > 0:
+                percentual_critico = dimensoes_criticas / total_dimensoes
+
+                # Mapear para índice de probabilidade (0-4)
+                if percentual_critico >= 0.8:
+                    probabilidade = 4  # Quase Certo
+                elif percentual_critico >= 0.6:
+                    probabilidade = 3  # Provável
+                elif percentual_critico >= 0.4:
+                    probabilidade = 2  # Possível
+                elif percentual_critico >= 0.2:
+                    probabilidade = 1  # Improvável
+                else:
+                    probabilidade = 0  # Raro
+            else:
+                probabilidade = 0
+
+            # Incrementar célula da matriz
+            matriz[probabilidade][severidade] += 1
+
+            # Calcular nível de risco da célula
+            nivel_risco = self._calcular_nivel_risco_matriz(probabilidade, severidade)
+            distribuicao_niveis[nivel_risco] += 1
+
+        return {
+            'matriz': matriz,
+            'labels_probabilidade': ['Raro', 'Improvável', 'Possível', 'Provável', 'Quase Certo'],
+            'labels_severidade': ['Insignificante', 'Menor', 'Moderado', 'Maior', 'Catastrófico'],
+            'total_respostas': respostas.count(),
+            'distribuicao_niveis': distribuicao_niveis
+        }
+
+    def _calcular_nivel_risco_matriz(self, probabilidade: int, severidade: int) -> str:
+        """
+        Calcula o nível de risco baseado na posição na matriz NR-1.
+
+        Args:
+            probabilidade: Índice de probabilidade (0-4)
+            severidade: Índice de severidade (0-4)
+
+        Returns:
+            Nível de risco: 'BAIXO', 'MÉDIO', 'ALTO' ou 'CRÍTICO'
+        """
+        # Soma dos índices para determinar nível
+        soma = probabilidade + severidade
+
+        if soma >= 7:
+            return 'CRÍTICO'
+        elif soma >= 5:
+            return 'ALTO'
+        elif soma >= 3:
+            return 'MÉDIO'
+        else:
+            return 'BAIXO'
