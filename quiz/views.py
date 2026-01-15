@@ -128,41 +128,50 @@ def enviar_links_view(request):
         messages.error(request, 'Selecione pelo menos um colaborador.')
         return redirect('quiz:gerenciar_links')
 
-    # Gerar links imediatamente (síncrono)
-    gerados, ja_existentes = MagicLinkService.gerar_magic_links_bulk(colaboradores_ids)
-
-    # Enviar emails de forma assíncrona via Celery
+    # Construir URL base
     base_url = request.build_absolute_uri('/').rstrip('/')
 
-    from quiz.tasks import send_magic_links_async
+    # Importar serviço de envio de e-mails
+    from quiz.services.email_service import EmailService
 
     logger.info(
-        f'[CELERY DEBUG] Disparando task send_magic_links_async | '
+        f'Enviando magic links de forma síncrona | '
         f'colaboradores_ids={colaboradores_ids} | '
         f'base_url={base_url} | '
         f'user={request.user.username}'
     )
 
     try:
-        task_result = send_magic_links_async.delay(colaboradores_ids, base_url)
+        # Enviar emails de forma síncrona
+        resultado = EmailService.send_magic_links(colaboradores_ids, base_url)
+
         logger.info(
-            f'[CELERY DEBUG] Task enfileirada com sucesso | '
-            f'task_id={task_result.id} | '
-            f'colaboradores_count={len(colaboradores_ids)}'
+            f'Envio concluído | '
+            f'total={resultado["total"]} | '
+            f'enviados={resultado["enviados"]} | '
+            f'erros={resultado["erros"]}'
         )
+
+        if resultado['erros'] > 0:
+            messages.warning(
+                request,
+                f'Magic links processados: {resultado["gerados"]} gerados, {resultado["ja_existentes"]} já existiam. '
+                f'{resultado["enviados"]} emails enviados com sucesso, {resultado["erros"]} falharam.'
+            )
+        else:
+            messages.success(
+                request,
+                f'Magic links processados: {resultado["gerados"]} gerados, {resultado["ja_existentes"]} já existiam. '
+                f'{resultado["enviados"]} emails enviados com sucesso!'
+            )
+
     except Exception as e:
         logger.error(
-            f'[CELERY DEBUG] ERRO ao enfileirar task: {str(e)}',
+            f'ERRO ao enviar emails: {str(e)}',
             exc_info=True
         )
-        messages.error(request, f'Erro ao enfileirar envio de emails: {str(e)}')
+        messages.error(request, f'Erro ao enviar emails: {str(e)}')
         return redirect('quiz:gerenciar_links')
-
-    messages.success(
-        request,
-        f'Magic links processados: {gerados} gerados, {ja_existentes} já existiam. '
-        f'{len(colaboradores_ids)} emails serão enviados em segundo plano.'
-    )
 
     return redirect('quiz:gerenciar_links')
 
