@@ -1,0 +1,173 @@
+<!-- Página Inicial Content - Estilo Shadcn UI -->
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-3xl font-bold tracking-tight text-foreground">
+            Bem-vindo, {{ user.get_full_name|default:user.username }}!
+        </h1>
+        <p class="text-muted-foreground mt-1">Vivamente360 - Gestão de Riscos Psicossociais</p>
+    </div>
+
+    {% if not has_perfil %}
+    <!-- Alerta de perfil não configurado -->
+    <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+        <div class="flex items-start gap-3">
+            {% include 'components/icons/icon.html' with name='alert-triangle' class='w-5 h-5 text-yellow-600 mt-0.5' %}
+            <div>
+                <h3 class="font-semibold text-yellow-900">Perfil não configurado</h3>
+                <p class="text-sm text-yellow-700 mt-1">Seu usuário ainda não possui um perfil de acesso configurado. Contate o administrador do sistema.</p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        {% if user.perfil_acesso.is_rh %}
+        <!-- Card 1: Importação -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+                    {% include 'components/icons/icon.html' with name='file-input' class='w-6 h-6 text-accent' %}
+                </div>
+                <span class="inline-flex items-center rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">Passo 1</span>
+            </div>
+            <h3 class="text-lg font-semibold text-foreground mb-2">Importar Dados</h3>
+            <p class="text-sm text-muted-foreground mb-4">
+                Importe a hierarquia organizacional e lista de colaboradores
+            </p>
+            <a href="{% url 'importacao:importacao' %}"
+               hx-get="{% url 'importacao:importacao' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 px-4 py-2 text-sm font-medium transition-colors w-full">
+                Acessar
+                {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
+            </a>
+        </div>
+
+        <!-- Card 2: Enviar Pesquisas -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    {% include 'components/icons/icon.html' with name='send' class='w-6 h-6 text-primary' %}
+                </div>
+                <span class="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">Passo 2</span>
+            </div>
+            <h3 class="text-lg font-semibold text-foreground mb-2">Enviar Pesquisas</h3>
+            <p class="text-sm text-muted-foreground mb-4">
+                Envie questionários anônimos para os colaboradores
+            </p>
+            <a href="{% url 'quiz:gerenciar_links' %}"
+               hx-get="{% url 'quiz:gerenciar_links' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors w-full">
+                Acessar
+                {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
+            </a>
+        </div>
+        {% endif %}
+
+        {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
+        <!-- Card 3: Dashboard -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+                    {% include 'components/icons/icon.html' with name='line-chart' class='w-6 h-6 text-accent' %}
+                </div>
+                {% if user.perfil_acesso.is_rh %}
+                <span class="inline-flex items-center rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">Passo 3</span>
+                {% else %}
+                <span class="inline-flex items-center rounded-full border border-accent/20 bg-accent/10 px-2.5 py-0.5 text-xs font-semibold text-accent">Principal</span>
+                {% endif %}
+            </div>
+            <h3 class="text-lg font-semibold text-foreground mb-2">Ver Dashboard</h3>
+            <p class="text-sm text-muted-foreground mb-4">
+                Visualize análises e indicadores de risco psicossocial
+            </p>
+            <a href="{% url 'dashboard:principal' %}"
+               hx-get="{% url 'dashboard:principal' %}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors w-full">
+                Acessar
+                {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
+            </a>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Informações -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Sobre NR-1 -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                {% include 'components/icons/icon.html' with name='info' class='w-5 h-5 text-blue-600' %}
+                Sobre a NR-1
+            </h3>
+            <div class="space-y-3 text-sm text-muted-foreground">
+                <p>
+                    A NR-1 estabelece diretrizes para o Gerenciamento de Riscos Ocupacionais (GRO)
+                    e Programa de Gerenciamento de Riscos (PGR), incluindo riscos psicossociais.
+                </p>
+                <p>
+                    Este sistema oferece uma solução completa e auditável para identificação,
+                    avaliação e gestão de riscos psicossociais no trabalho.
+                </p>
+            </div>
+        </div>
+
+        <!-- Anonimato -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h3 class="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                {% include 'components/icons/icon.html' with name='shield-check' class='w-5 h-5 text-green-600' %}
+                Garantia de Anonimato
+            </h3>
+            <div class="space-y-3 text-sm text-muted-foreground">
+                <p>
+                    Todos os dados são processados com <strong class="text-foreground">k-anonymity</strong>,
+                    garantindo que nenhum colaborador possa ser identificado.
+                </p>
+                <p>
+                    Os dashboards só exibem dados agregados de grupos com no mínimo
+                    <strong class="text-foreground">5 respondentes</strong>, em conformidade com a LGPD.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seu acesso -->
+    <div class="rounded-xl border border-primary/20 bg-primary p-6 shadow-sm text-white">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+            {% include 'components/icons/icon.html' with name='id-card' class='w-5 h-5' %}
+            Seu Acesso
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+                <p class="text-white/70 text-sm mb-1">Grupo</p>
+                <p class="font-semibold">{{ user.perfil_acesso.get_grupo_principal|default:"Não definido" }}</p>
+            </div>
+            <div>
+                <p class="text-white/70 text-sm mb-1">Nível de Acesso</p>
+                <p class="font-semibold">{{ user.perfil_acesso.get_nivel_acesso_display }}</p>
+            </div>
+            <div>
+                <p class="text-white/70 text-sm mb-1">Escopo</p>
+                <p class="font-semibold">{{ user.perfil_acesso.get_resumo_acesso }}</p>
+            </div>
+        </div>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<!-- Reinitialize Lucide Icons -->
+<script nonce="{{ csp_nonce }}">
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>

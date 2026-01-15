@@ -1,0 +1,153 @@
+{% comment %}
+===========================================
+DIALOG/MODAL COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de modal/dialog padronizado seguindo Shadcn UI design system.
+Usa Alpine.js para controle de estado.
+
+USAGE:
+------
+{% include 'components/ui/dialog.html' with
+  id='confirm-delete'
+  title='Confirm Deletion'
+  content='Are you sure you want to delete this item?'
+  footer_buttons='...'
+%}
+
+PARAMETERS:
+-----------
+- id: ID único do dialog (obrigatório)
+- title: Título do dialog (string)
+- description: Descrição abaixo do título (string, opcional)
+- content: Conteúdo principal do dialog (HTML)
+- footer_buttons: Botões do footer (HTML, opcional)
+- size: 'sm', 'default', 'lg', 'xl' (default: 'default')
+- extra_classes: Classes CSS adicionais
+
+SIZES:
+------
+- sm: max-w-sm (384px)
+- default: max-w-lg (512px)
+- lg: max-w-2xl (672px)
+- xl: max-w-4xl (896px)
+
+EXAMPLES:
+---------
+Basic dialog:
+{% include 'components/ui/dialog.html' with
+  id='welcome-dialog'
+  title='Welcome!'
+  content='<p>Thanks for joining us.</p>'
+%}
+
+Confirmation dialog:
+{% include 'components/ui/dialog.html' with
+  id='delete-confirm'
+  title='Confirm Deletion'
+  description='This action cannot be undone'
+  content='<p>Are you sure you want to delete this item?</p>'
+  footer_buttons='
+    <button @click="open = false" class="...">Cancel</button>
+    <button class="...">Delete</button>
+  '
+%}
+
+Large dialog:
+{% include 'components/ui/dialog.html' with
+  id='user-details'
+  title='User Details'
+  size='lg'
+  content='<div>...</div>'
+%}
+
+HOW TO TRIGGER:
+---------------
+Add a button with Alpine.js @click to open:
+<button @click="$dispatch('open-dialog-{{ id }}')">Open Dialog</button>
+
+Or use Alpine.js x-data in parent:
+<div x-data="{ showDialog: false }">
+  <button @click="showDialog = true">Open</button>
+  {% include 'components/ui/dialog.html' with id='my-dialog' ... %}
+</div>
+{% endcomment %}
+
+<div
+  x-data="{ open: false }"
+  @open-dialog-{{ id }}.window="open = true"
+  @keydown.escape.window="open = false"
+  x-show="open"
+  x-cloak
+  class="relative z-50"
+  aria-labelledby="dialog-title-{{ id }}"
+  role="dialog"
+  aria-modal="true"
+>
+  <!-- Backdrop -->
+  <div
+    x-show="open"
+    x-transition:enter="transition-opacity ease-linear duration-300"
+    x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100"
+    x-transition:leave="transition-opacity ease-linear duration-300"
+    x-transition:leave-start="opacity-100"
+    x-transition:leave-end="opacity-0"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm"
+    @click="open = false"
+  ></div>
+
+  <!-- Dialog Panel -->
+  <div class="fixed inset-0 overflow-y-auto">
+    <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
+      <div
+        x-show="open"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+        @click.away="open = false"
+        class="relative transform overflow-hidden rounded-lg border border-border bg-card text-left shadow-xl transition-all w-full
+        {% if size == 'sm' %}max-w-sm{% endif %}
+        {% if size == 'lg' %}max-w-2xl{% endif %}
+        {% if size == 'xl' %}max-w-4xl{% endif %}
+        {% if not size or size == 'default' %}max-w-lg{% endif %}
+        {{ extra_classes }}"
+      >
+        <!-- Header -->
+        <div class="flex flex-col space-y-1.5 px-6 pt-6">
+          <div class="flex items-center justify-between">
+            <h2 id="dialog-title-{{ id }}" class="text-lg font-semibold leading-none tracking-tight">
+              {{ title }}
+            </h2>
+            <button
+              type="button"
+              @click="open = false"
+              class="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none p-1"
+            >
+              {% include 'components/icons/icon.html' with name='x' class='h-4 w-4' %}
+              <span class="sr-only">Close</span>
+            </button>
+          </div>
+          {% if description %}
+          <p class="text-sm text-muted-foreground">{{ description }}</p>
+          {% endif %}
+        </div>
+
+        <!-- Content -->
+        <div class="px-6 py-4">
+          {{ content|safe }}
+        </div>
+
+        <!-- Footer -->
+        {% if footer_buttons %}
+        <div class="flex items-center justify-end gap-2 px-6 pb-6 pt-0">
+          {{ footer_buttons|safe }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

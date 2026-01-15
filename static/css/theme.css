@@ -1,0 +1,205 @@
+/**
+ * Theme Configuration - Vivamente360
+ * Centraliza a configuração de tema, cores e variáveis CSS
+ */
+
+/* ============================================
+   DaisyUI Theme Variables
+   ============================================ */
+[data-theme="nr1theme"] {
+    --p: 152 87% 52%;           /* primary */
+    --pf: 152 75% 44%;          /* primary-focus */
+    --pc: 0 0% 100%;            /* primary-content */
+    --s: 199 69% 19%;           /* secondary */
+    --sf: 199 69% 13%;          /* secondary-focus */
+    --sc: 0 0% 100%;            /* secondary-content */
+    --a: 162 58% 64%;           /* accent */
+    --af: 162 58% 55%;          /* accent-focus */
+    --ac: 199 69% 19%;          /* accent-content */
+    --n: 207 24% 16%;           /* neutral */
+    --nf: 207 24% 11%;          /* neutral-focus */
+    --nc: 0 0% 100%;            /* neutral-content */
+    --b1: 0 0% 100%;            /* base-100 */
+    --b2: 210 40% 98%;          /* base-200 */
+    --b3: 214 32% 91%;          /* base-300 */
+    --bc: 207 24% 16%;          /* base-content */
+    --in: 198 93% 60%;          /* info */
+    --su: 142 71% 45%;          /* success */
+    --wa: 48 96% 53%;           /* warning */
+    --er: 0 84% 60%;            /* error */
+    --rounded-box: 0.75rem;
+    --rounded-btn: 0.5rem;
+    --rounded-badge: 1.9rem;
+    --animation-btn: 0.25s;
+    --animation-input: .2s;
+    --btn-focus-scale: 0.95;
+    --border-btn: 1px;
+    --tab-border: 1px;
+    --tab-radius: 0.5rem;
+}
+
+/* ============================================
+   Design System - Grid de Espaçamento (8px)
+   ============================================ */
+:root {
+    /* Espaçamentos baseados em grid de 8px */
+    --spacing-xs: 0.5rem;      /* 8px */
+    --spacing-sm: 1rem;        /* 16px */
+    --spacing-md: 1.5rem;      /* 24px */
+    --spacing-lg: 2rem;        /* 32px */
+    --spacing-xl: 3rem;        /* 48px */
+
+    /* Sombras padronizadas */
+    --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.02);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.06);
+}
+
+/* ============================================
+   Tipografia Padronizada
+   ============================================ */
+.text-h1 {
+    font-size: 1.875rem;    /* 30px */
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.text-h2 {
+    font-size: 1.5rem;      /* 24px */
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.text-h3 {
+    font-size: 1.25rem;     /* 20px */
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.text-body {
+    font-size: 1rem;        /* 16px */
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.text-small {
+    font-size: 0.875rem;    /* 14px */
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.text-caption {
+    font-size: 0.75rem;     /* 12px */
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+* {
+    max-width: 100%;
+}
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Garantir que elementos não extrapolem */
+.container, .card, .table-container {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+/* ============================================
+   Cards Padronizados
+   ============================================ */
+/* Card padrão */
+.card-standard {
+    background: white;
+    box-shadow: var(--shadow-soft);
+    padding: var(--spacing-md);
+    border-radius: 0.75rem;
+}
+
+/* Card interativo */
+.card-interactive {
+    background: white;
+    box-shadow: var(--shadow-soft);
+    padding: var(--spacing-md);
+    border-radius: 0.75rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.card-interactive:hover {
+    box-shadow: var(--shadow-md);
+}
+
+/* ============================================
+   Scrollbar Customizada
+   ============================================ */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* ============================================
+   Focus Visible (Acessibilidade)
+   ============================================ */
+.btn:focus-visible,
+.input:focus-visible,
+.select:focus-visible,
+.textarea:focus-visible,
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid #1EEB88;
+    outline-offset: 2px;
+}
+
+/* ============================================
+   Canvas Responsivo
+   ============================================ */
+canvas {
+    max-width: 100%;
+    height: auto !important;
+}
+
+/* ============================================
+   Toast Container
+   ============================================ */
+.toast-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    max-width: 90vw;
+}
+
+@media (max-width: 640px) {
+    .toast-container {
+        top: auto;
+        bottom: 5.5rem;
+        right: 0.5rem;
+        left: 0.5rem;
+    }
+}

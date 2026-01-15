@@ -1,0 +1,46 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Página não encontrada - Vivamente360{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh] px-4">
+    <div class="text-center max-w-md">
+        <!-- Ícone de erro -->
+        <div class="mb-6">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-black rounded-2xl">
+                {% include 'components/icons/icon.html' with name='search-x' class='w-12 h-12 text-white' %}
+            </div>
+        </div>
+
+        <!-- Código de erro -->
+        <h1 class="text-6xl font-bold text-foreground mb-2">404</h1>
+
+        <!-- Mensagem principal -->
+        <h2 class="text-2xl font-semibold text-foreground mb-4">
+            Página não encontrada
+        </h2>
+
+        <!-- Mensagem descritiva -->
+        <p class="text-muted-foreground mb-8">
+            Desculpe, a página que você está procurando não existe ou foi movida.
+            Verifique o endereço ou retorne à página inicial.
+        </p>
+
+        <!-- Ações -->
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <a href="{% url 'account:dashboard' %}"
+               class="btn btn-primary bg-black text-white hover:bg-neutral-800 border-0">
+                {% include 'components/icons/icon.html' with name='home' class='w-4 h-4' %}
+                Voltar ao Início
+            </a>
+
+            <button onclick="window.history.back()"
+                    class="btn btn-outline">
+                {% include 'components/icons/icon.html' with name='arrow-left' class='w-4 h-4' %}
+                Voltar
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

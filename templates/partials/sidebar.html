@@ -1,0 +1,125 @@
+{% load static %}
+<!-- Sidebar Desktop - Shadcn UI Design System -->
+<aside class="sidebar hidden lg:flex lg:flex-col fixed left-0 top-0 h-screen w-64 bg-card border-r border-border shadow-sm"
+       x-data="{ openSection: '' }">
+
+    <!-- Logo -->
+    <div class="p-6 border-b border-border">
+        <a href="{% url 'account:dashboard' %}"
+           class="flex items-center gap-3 group transition-all duration-200 hover:opacity-80"
+           aria-label="Ir para página inicial">
+            <img src="{% static 'public/icone.png' %}" alt="Logo Vivamente360" class="w-10 h-10 flex-shrink-0 transition-transform group-hover:scale-105">
+            <span class="font-semibold text-foreground text-lg">Vivamente360</span>
+        </a>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 p-4 space-y-2 overflow-y-auto" role="navigation" aria-label="Menu principal">
+
+        <!-- Principal Section -->
+        <div class="mb-4">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Principal</p>
+
+            <a href="{% url 'account:dashboard' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-label="Ir para Início"
+               aria-current="{% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='home' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}font-medium{% endif %}">Início</span>
+            </a>
+        </div>
+
+        {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
+        <!-- Análises Section -->
+        <div class="mb-4">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Análises</p>
+
+            <a href="{% url 'dashboard:principal' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'principal' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-label="Ir para Dashboard"
+               aria-current="{% if request.resolver_match.url_name == 'principal' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='bar-chart-3' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.url_name == 'principal' %}font-medium{% endif %}">Dashboard</span>
+            </a>
+
+            {% if user.perfil_acesso.nivel_acesso in 'EMPRESA,UNIDADE' %}
+            <a href="{% url 'dashboard:unidades' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'unidades' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-current="{% if request.resolver_match.url_name == 'unidades' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='building-2' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.url_name == 'unidades' %}font-medium{% endif %}">Unidades</span>
+            </a>
+            {% endif %}
+
+            <a href="{% url 'dashboard:setores' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'setores' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-current="{% if request.resolver_match.url_name == 'setores' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='network' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.url_name == 'setores' %}font-medium{% endif %}">Setores</span>
+            </a>
+
+            <a href="{% url 'dashboard:dimensoes' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.url_name == 'dimensoes' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-current="{% if request.resolver_match.url_name == 'dimensoes' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='brain' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.url_name == 'dimensoes' %}font-medium{% endif %}">Dimensões</span>
+            </a>
+        </div>
+        {% endif %}
+
+        {% if user.perfil_acesso.is_rh %}
+        <!-- Gestão Section -->
+        <div class="mb-4">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Gestão</p>
+
+            <a href="{% url 'importacao:importacao' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'importacao' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-current="{% if request.resolver_match.app_name == 'importacao' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='file-input' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.app_name == 'importacao' %}font-medium{% endif %}">Importação</span>
+            </a>
+
+            <a href="{% url 'quiz:gerenciar_links' %}"
+               class="sidebar-link flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 {% if request.resolver_match.app_name == 'quiz' %}bg-accent text-accent-foreground font-medium{% endif %}"
+               aria-current="{% if request.resolver_match.app_name == 'quiz' %}page{% endif %}">
+                {% include 'components/icons/icon.html' with name='send' class='w-5 h-5' %}
+                <span class="text-sm {% if request.resolver_match.app_name == 'quiz' %}font-medium{% endif %}">Enviar Pesquisas</span>
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Sistema Section -->
+        <div class="mb-4">
+            <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Sistema</p>
+
+            {% if user.is_superuser %}
+            <a href="/admin/"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                {% include 'components/icons/icon.html' with name='settings' class='w-5 h-5' %}
+                <span class="text-sm">Administração</span>
+            </a>
+            {% endif %}
+
+            <a href="{% url 'account:logout' %}"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-destructive/10 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                {% include 'components/icons/icon.html' with name='log-out' class='w-5 h-5 text-foreground group-hover:text-destructive transition-colors' %}
+                <span class="text-sm text-foreground group-hover:text-destructive transition-colors">Sair</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- User Profile -->
+    <div class="p-4 border-t border-border">
+        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-accent transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2" tabindex="0" role="button" aria-label="Perfil do usuário">
+            <div class="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span class="font-semibold text-white text-sm">{{ user.username|first|upper }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-foreground truncate">{{ user.username }}</p>
+                {% if user.perfil_acesso %}
+                <p class="text-xs text-muted-foreground truncate">{{ user.perfil_acesso.get_grupo_principal }}</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</aside>

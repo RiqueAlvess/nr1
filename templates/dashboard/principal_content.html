@@ -1,0 +1,287 @@
+<!-- Dashboard Principal Content - Estilo Shadcn UI -->
+{% load static %}
+
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight text-foreground">Dashboard de Riscos Psicossociais</h1>
+                <p class="text-muted-foreground mt-1">{{ empresa.nome }}</p>
+            </div>
+
+            {% if tem_multiplas_empresas %}
+            <div class="flex items-center gap-2">
+                <select class="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    {% for emp in empresas %}
+                    <option value="{{ emp.id }}" {% if emp.id == empresa.id %}selected{% endif %}>{{ emp.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if not kpis.pode_visualizar %}
+    <!-- Bloqueio por K-Anonymity -->
+    {% include 'components/ui/alert.html' with
+        variant='warning'
+        title='Dados Insuficientes para Garantir Anonimato'
+        message=kpis.mensagem
+    %}
+
+    <!-- KPIs Básicos -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% include 'components/dashboard/stat-card.html' with
+            title='Colaboradores Convidados'
+            value=kpis.total_colaboradores
+            description='Total de convites enviados'
+            icon='users'
+            variant='primary'
+        %}
+
+        {% include 'components/dashboard/stat-card.html' with
+            title='Taxa de Adesão'
+            value=kpis.taxa_adesao|add:'%'
+            description=kpis.respostas_concluidas|add:' respostas recebidas'
+            icon='percent'
+            variant='accent'
+        %}
+    </div>
+
+    {% else %}
+
+    <!-- KPIs Principais -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- KPI: Taxa de Adesão -->
+        <div class="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-transparent p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">Taxa de Adesão</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.taxa_adesao }}%</p>
+                    <p class="text-xs text-gray-400">{{ kpis.respostas_concluidas }} de {{ kpis.total_colaboradores }} respostas</p>
+                </div>
+                <div class="rounded-lg p-3 bg-blue-100 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: IGRP -->
+        <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">IGRP</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.igrp|default:"-" }}</p>
+                    <p class="text-xs text-gray-400">Índice Geral de Risco</p>
+                </div>
+                <div class="rounded-lg p-3 bg-gray-100 text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: Score Médio -->
+        <div class="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-transparent p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">Score Médio</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.score_medio_global|default:"-" }}</p>
+                    <p class="text-xs text-gray-400">de 140 pontos</p>
+                </div>
+                <div class="rounded-lg p-3 bg-green-100 text-green-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI: Risco Crítico -->
+        <div class="rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-transparent p-6 shadow-sm transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+                <div class="flex-1 space-y-1">
+                    <p class="text-sm font-medium text-gray-500">Risco Crítico</p>
+                    <p class="text-3xl font-bold tracking-tight text-gray-900">{{ kpis.percentual_alto_risco|default:"0" }}%</p>
+                    <p class="text-xs text-gray-400">Requer atenção imediata</p>
+                </div>
+                <div class="rounded-lg p-3 bg-red-100 text-red-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acesso Rápido -->
+    <div class="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-sm hover:shadow-md transition-all">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="rounded-lg p-3 bg-blue-100 text-blue-600">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-foreground">Gráficos Interativos</h3>
+                    <p class="text-sm text-muted-foreground mt-1">7 tipos de visualizações com filtros avançados</p>
+                    <ul class="text-xs text-muted-foreground mt-2 space-y-1">
+                        <li>✓ Radar de Dimensões</li>
+                        <li>✓ Evolução Temporal</li>
+                        <li>✓ Matriz NR-1</li>
+                        <li>✓ Pirâmide Etária</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="{% url 'dashboard:graficos' %}?empresa={{ empresa.id }}"
+               hx-get="{% url 'dashboard:graficos' %}?empresa={{ empresa.id }}"
+               hx-target="#main-content"
+               hx-push-url="true"
+               class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-sm font-medium transition-colors">
+                Ver Gráficos
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Distribuição de Risco -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="rounded-xl border border-red-200 bg-red-50/50 p-6">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-red-900">Crítico</span>
+                    {% include 'components/icons/icon.html' with name='alert-circle' class='w-4 h-4 text-red-600' %}
+                </div>
+                <p class="text-2xl font-bold text-red-900">{{ kpis.distribuicao_risco.critico }}</p>
+                <div class="w-full bg-red-200 rounded-full h-2">
+                    <div class="bg-red-600 h-2 rounded-full transition-all" style="width: {% widthratio kpis.distribuicao_risco.critico kpis.respostas_concluidas 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-yellow-200 bg-yellow-50/50 p-6">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-yellow-900">Atenção</span>
+                    {% include 'components/icons/icon.html' with name='alert-triangle' class='w-4 h-4 text-yellow-600' %}
+                </div>
+                <p class="text-2xl font-bold text-yellow-900">{{ kpis.distribuicao_risco.atencao }}</p>
+                <div class="w-full bg-yellow-200 rounded-full h-2">
+                    <div class="bg-yellow-600 h-2 rounded-full transition-all" style="width: {% widthratio kpis.distribuicao_risco.atencao kpis.respostas_concluidas 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-green-200 bg-green-50/50 p-6">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-green-900">Satisfatório</span>
+                    {% include 'components/icons/icon.html' with name='check-circle-2' class='w-4 h-4 text-green-600' %}
+                </div>
+                <p class="text-2xl font-bold text-green-900">{{ kpis.distribuicao_risco.satisfatorio }}</p>
+                <div class="w-full bg-green-200 rounded-full h-2">
+                    <div class="bg-green-600 h-2 rounded-full transition-all" style="width: {% widthratio kpis.distribuicao_risco.satisfatorio kpis.respostas_concluidas 100 %}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Matriz NR-1 -->
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            {% include 'components/icons/icon.html' with name='grid-3x3' class='w-5 h-5 text-primary' %}
+            Matriz de Risco NR-1
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Classificação</p>
+                <p class="text-lg font-bold text-foreground mt-1">{{ kpis.matriz_nr1.classificacao }}</p>
+            </div>
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Nível de Risco</p>
+                <p class="text-lg font-bold text-foreground mt-1">{{ kpis.matriz_nr1.nivel_risco }}</p>
+            </div>
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Probabilidade</p>
+                <p class="text-lg font-bold text-foreground mt-1">{{ kpis.matriz_nr1.probabilidade }}%</p>
+                <p class="text-xs text-muted-foreground mt-0.5">{{ kpis.matriz_nr1.probabilidade_nivel }}</p>
+            </div>
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Severidade</p>
+                <p class="text-lg font-bold text-foreground mt-1">{{ kpis.matriz_nr1.severidade }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas Avançadas -->
+    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <h2 class="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+            {% include 'components/icons/icon.html' with name='trending-up' class='w-5 h-5 text-primary' %}
+            Estatísticas Avançadas
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Mediana</p>
+                <p class="text-xl font-bold text-primary mt-1">{{ kpis.mediana_score }}</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Score central</p>
+            </div>
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Desvio Padrão</p>
+                <p class="text-xl font-bold text-primary mt-1">{{ kpis.desvio_padrao }}</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Dispersão</p>
+            </div>
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">CV%</p>
+                <p class="text-xl font-bold text-primary mt-1">{{ kpis.cv_percent }}%</p>
+                <p class="text-xs text-muted-foreground mt-0.5">Coef. Variação</p>
+            </div>
+            <div class="rounded-lg border border-border bg-muted p-4">
+                <p class="text-xs text-muted-foreground font-medium">Tempo Médio</p>
+                <p class="text-xl font-bold text-primary mt-1">{{ kpis.tempo_medio_minutos }}</p>
+                <p class="text-xs text-muted-foreground mt-0.5">minutos</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações (apenas RH) -->
+    {% if perfil.is_rh %}
+    <div class="rounded-xl border border-accent/20 bg-accent/5 p-6">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div class="flex items-start gap-3">
+                {% include 'components/icons/icon.html' with name='lightbulb' class='w-6 h-6 text-accent mt-0.5' %}
+                <div>
+                    <h3 class="font-semibold text-foreground">Próximas Ações</h3>
+                    <p class="text-sm text-muted-foreground mt-1">Identifique áreas críticas e planeje intervenções específicas</p>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <a href="{% url 'quiz:gerenciar_links' %}"
+                   hx-get="{% url 'quiz:gerenciar_links' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true"
+                   class="inline-flex items-center justify-center gap-2 rounded-md bg-accent text-accent-foreground hover:bg-accent/90 px-4 py-2 text-sm font-medium transition-colors">
+                    {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
+                    Enviar Pesquisas
+                </a>
+                <a href="{% url 'importacao:importacao' %}"
+                   hx-get="{% url 'importacao:importacao' %}"
+                   hx-target="#main-content"
+                   hx-push-url="true"
+                   class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent/10 px-4 py-2 text-sm font-medium transition-colors">
+                    {% include 'components/icons/icon.html' with name='file-input' class='w-4 h-4' %}
+                    Importar Colaboradores
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+</div>

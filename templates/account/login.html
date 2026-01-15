@@ -1,105 +1,161 @@
-{% extends 'base/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Vivamente360</title>
 
-{% block title %}Login - Plataforma NR-1{% endblock %}
+    <!-- Tailwind CSS -->
+    <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
 
-{% block public_content %}
-<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-base-200 via-base-100 to-base-200 px-4 py-8">
+
+    <style nonce="{{ csp_nonce }}">
+        :root {
+            --primary: #0F3D52;
+            --primary-light: #1a5a75;
+            --accent: #1EEB88;
+            --background: #f8fafc;
+            --foreground: #0f172a;
+            --muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+        }
+
+        .login-card {
+            background: white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .input-field {
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(15, 61, 82, 0.1);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
     <div class="w-full max-w-md">
-        <!-- Logo e Título -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl shadow-soft mb-4">
-                <i class="fas fa-shield-alt text-white text-3xl"></i>
+        <!-- Card Principal -->
+        <div class="login-card rounded-2xl p-8 md:p-10">
+
+            <!-- Logo e Título -->
+            <div class="text-center mb-8">
+                <!-- Logo SEM background -->
+                <div class="flex justify-center mb-4">
+                    <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-16 h-16">
+                </div>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">Vivamente360</h1>
+                <p class="text-gray-500 text-sm">Acesse sua conta</p>
             </div>
-            <h1 class="text-3xl font-bold text-neutral">Plataforma NR-1</h1>
-            <p class="text-neutral/60 mt-2">
-                Gestão de Riscos Psicossociais
-            </p>
+
+            <!-- Django Messages -->
+            {% if messages %}
+            <div class="mb-6 space-y-2">
+                {% for message in messages %}
+                <div class="p-3 rounded-lg text-sm
+                    {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+                    {% elif message.tags == 'success' %}bg-green-50 text-green-700 border border-green-200
+                    {% else %}bg-blue-50 text-blue-700 border border-blue-200{% endif %}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Formulário -->
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                <!-- Campo Usuário -->
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+                        E-mail ou Usuário
+                    </label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="Digite seu e-mail ou usuário"
+                        class="input-field w-full h-11 px-4 rounded-lg text-gray-900 placeholder-gray-400"
+                        required
+                        autocomplete="username"
+                        autofocus
+                    />
+                </div>
+
+                <!-- Campo Senha -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        Senha
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="••••••••"
+                        class="input-field w-full h-11 px-4 rounded-lg text-gray-900 placeholder-gray-400"
+                        required
+                        autocomplete="current-password"
+                    />
+                </div>
+
+                <!-- Link Esqueci Senha -->
+                <div class="text-right">
+                    <a href="{% url 'account:password_reset_request' %}"
+                       class="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+                        Esqueceu a senha?
+                    </a>
+                </div>
+
+                <!-- Botão de Login -->
+                <button
+                    type="submit"
+                    class="btn-primary w-full h-12 rounded-lg font-semibold text-base">
+                    Entrar
+                </button>
+            </form>
+
+            <!-- Footer -->
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <p class="text-center text-xs text-gray-400">
+                    Conformidade: <span class="font-medium text-gray-500">NR-1 • LGPD • HSE-IT</span>
+                </p>
+            </div>
         </div>
 
-        <!-- Card de Login -->
-        <div class="card bg-base-100 shadow-soft">
-            <div class="card-body p-6 sm:p-8">
-                <form method="post" class="space-y-5">
-                    {% csrf_token %}
-
-                    <!-- Campo Usuário -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-neutral">Usuário</span>
-                        </label>
-                        <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-neutral/40">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input
-                                type="text"
-                                name="username"
-                                placeholder="Digite seu usuário"
-                                class="input input-bordered w-full pl-11 focus:input-primary"
-                                required
-                                autofocus
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Campo Senha -->
-                    <div class="form-control">
-                        <label class="label">
-                            <span class="label-text font-semibold text-neutral">Senha</span>
-                        </label>
-                        <div class="relative" x-data="{ showPassword: false }">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-neutral/40">
-                                <i class="fas fa-lock"></i>
-                            </span>
-                            <input
-                                :type="showPassword ? 'text' : 'password'"
-                                name="password"
-                                placeholder="Digite sua senha"
-                                class="input input-bordered w-full pl-11 pr-11 focus:input-primary"
-                                required
-                            />
-                            <button
-                                type="button"
-                                @click="showPassword = !showPassword"
-                                class="absolute inset-y-0 right-0 flex items-center pr-4 text-neutral/40 hover:text-neutral transition-smooth"
-                            >
-                                <i class="fas" :class="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Botão de Login -->
-                    <div class="form-control pt-2">
-                        <button type="submit" class="btn btn-primary w-full h-12 text-base font-semibold">
-                            <i class="fas fa-sign-in-alt mr-2"></i>
-                            Entrar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Informações Adicionais -->
-        <div class="mt-8 space-y-4">
-            <div class="flex items-center justify-center space-x-6 text-sm text-neutral/50">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-check-circle text-success"></i>
-                    <span>NR-1 Compliant</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-shield-alt text-primary"></i>
-                    <span>LGPD</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-user-shield text-accent"></i>
-                    <span>HSE-IT</span>
-                </div>
-            </div>
-
-            <p class="text-center text-xs text-neutral/40">
-                Sistema fundamentado na NR-1 (GRO/PGR) com garantia de anonimato k-anonymity
+        <!-- Info adicional -->
+        <div class="mt-6 text-center">
+            <p class="text-xs text-gray-400">
+                Problemas para acessar? Contate o <span class="font-medium text-gray-500">Suporte TI</span>
             </p>
         </div>
     </div>
-</div>
-{% endblock public_content %}
+
+</body>
+</html>

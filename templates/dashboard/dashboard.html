@@ -1,135 +1,154 @@
 {% extends 'base/base.html' %}
 
-{% block title %}Dashboard - Plataforma NR-1{% endblock %}
+{% block title %}Dashboard - Vivamente360{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="bg-base-100 rounded-lg shadow-lg p-6">
-        <h1 class="text-3xl font-bold">
-            <i class="fas fa-home text-primary mr-2"></i>
-            Bem-vindo, {{ user.get_full_name|default:user.username }}!
-        </h1>
-        <p class="text-base-content/70 mt-2">
-            Plataforma NR-1 - Gestão de Riscos Psicossociais
-        </p>
-    </div>
-    
-    <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Card 1: Importação -->
-        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-            <div class="card-body">
-                <div class="flex items-center justify-between">
-                    <h2 class="card-title">
-                        <i class="fas fa-file-import text-primary text-2xl"></i>
-                    </h2>
-                    <div class="badge badge-primary">Passo 1</div>
-                </div>
-                <h3 class="text-xl font-bold mt-2">Importar Dados</h3>
-                <p class="text-sm text-base-content/70">
-                    Importe a hierarquia organizacional e colaboradores
-                </p>
-                <div class="card-actions justify-end mt-4">
-                    <a href="{% url 'importacao:importacao' %}" class="btn btn-primary btn-sm">
-                        Acessar
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
-                </div>
+<div class="space-y-8">
+    <!-- Welcome Header -->
+    <div class="bg-gradient-to-r from-black to-neutral-800 rounded-2xl p-8 text-white">
+        <div class="flex items-center gap-4 mb-4">
+            <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+                {% include 'components/icons/icon.html' with name='home' class='w-6 h-6 text-black' %}
             </div>
-        </div>
-        
-        <!-- Card 2: Enviar Links -->
-        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-            <div class="card-body">
-                <div class="flex items-center justify-between">
-                    <h2 class="card-title">
-                        <i class="fas fa-envelope text-secondary text-2xl"></i>
-                    </h2>
-                    <div class="badge badge-secondary">Passo 2</div>
-                </div>
-                <h3 class="text-xl font-bold mt-2">Enviar Questionários</h3>
-                <p class="text-sm text-base-content/70">
-                    Envie magic links para coleta de respostas
+            <div>
+                <h1 class="text-3xl font-bold">
+                    Olá, {{ user.get_full_name|default:user.username }}!
+                </h1>
+                <p class="text-white/80 mt-1">
+                    Bem-vindo ao painel de gestão de riscos psicossociais
                 </p>
-                <div class="card-actions justify-end mt-4">
-                    <a href="{% url 'quiz:gerenciar_links' %}" class="btn btn-secondary btn-sm">
-                        Acessar
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Card 3: Dashboard -->
-        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-            <div class="card-body">
-                <div class="flex items-center justify-between">
-                    <h2 class="card-title">
-                        <i class="fas fa-chart-line text-accent text-2xl"></i>
-                    </h2>
-                    <div class="badge badge-accent">Passo 3</div>
-                </div>
-                <h3 class="text-xl font-bold mt-2">Visualizar Análises</h3>
-                <p class="text-sm text-base-content/70">
-                    Acesse dashboards e análises de risco
-                </p>
-                <div class="card-actions justify-end mt-4">
-                    <a href="{% url 'dashboard:principal' %}" class="btn btn-accent btn-sm">
-                        Acessar
-                        <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
-                </div>
             </div>
         </div>
     </div>
-    
+
+    <!-- Quick Actions Cards -->
+    <div>
+        <h2 class="text-lg font-semibold text-foreground mb-4">Acesso Rápido</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Card 1: Importação -->
+            <div class="card bg-white border border-border hover:shadow-lg transition-all duration-300 group">
+                <div class="card-body p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            {% include 'components/icons/icon.html' with name='file-input' class='w-6 h-6 text-white' %}
+                        </div>
+                        <span class="badge badge-default text-xs">Passo 1</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-foreground mb-2">Importar Dados</h3>
+                    <p class="text-sm text-muted-foreground mb-4">
+                        Importe a hierarquia organizacional e colaboradores
+                    </p>
+                    <a href="{% url 'importacao:importacao' %}"
+                       class="btn btn-outline w-full">
+                        {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
+                        Acessar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 2: Enviar Links -->
+            <div class="card bg-white border border-border hover:shadow-lg transition-all duration-300 group">
+                <div class="card-body p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            {% include 'components/icons/icon.html' with name='send' class='w-6 h-6 text-white' %}
+                        </div>
+                        <span class="badge badge-default text-xs">Passo 2</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-foreground mb-2">Enviar Questionários</h3>
+                    <p class="text-sm text-muted-foreground mb-4">
+                        Envie magic links para coleta de respostas
+                    </p>
+                    <a href="{% url 'quiz:gerenciar_links' %}"
+                       class="btn btn-outline w-full">
+                        {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
+                        Acessar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Card 3: Dashboard -->
+            <div class="card bg-white border border-border hover:shadow-lg transition-all duration-300 group">
+                <div class="card-body p-6">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="w-12 h-12 bg-black rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            {% include 'components/icons/icon.html' with name='bar-chart-3' class='w-6 h-6 text-white' %}
+                        </div>
+                        <span class="badge badge-default text-xs">Passo 3</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-foreground mb-2">Visualizar Análises</h3>
+                    <p class="text-sm text-muted-foreground mb-4">
+                        Acesse dashboards e análises de risco
+                    </p>
+                    <a href="{% url 'dashboard:principal' %}"
+                       class="btn btn-outline w-full">
+                        {% include 'components/icons/icon.html' with name='arrow-right' class='w-4 h-4' %}
+                        Acessar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Info Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Sobre NR-1 -->
-        <div class="card bg-base-100 shadow-lg">
-            <div class="card-body">
-                <h3 class="card-title">
-                    <i class="fas fa-info-circle text-info mr-2"></i>
-                    Sobre a NR-1
-                </h3>
-                <p class="text-sm">
-                    A NR-1 estabelece diretrizes para o Gerenciamento de Riscos Ocupacionais (GRO) 
-                    e Programa de Gerenciamento de Riscos (PGR), incluindo riscos psicossociais.
-                </p>
-                <p class="text-sm mt-2">
-                    Este sistema oferece uma solução completa e auditável para identificação, 
-                    avaliação e gestão de riscos psicossociais no trabalho.
-                </p>
+    <div>
+        <h2 class="text-lg font-semibold text-foreground mb-4">Informações Importantes</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Sobre NR-1 -->
+            <div class="card bg-white border border-border">
+                <div class="card-body p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                            {% include 'components/icons/icon.html' with name='info' class='w-5 h-5 text-blue-600' %}
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground">Sobre a NR-1</h3>
+                    </div>
+                    <div class="space-y-3 text-sm text-muted-foreground">
+                        <p>
+                            A NR-1 estabelece diretrizes para o Gerenciamento de Riscos Ocupacionais (GRO)
+                            e Programa de Gerenciamento de Riscos (PGR), incluindo riscos psicossociais.
+                        </p>
+                        <p>
+                            Este sistema oferece uma solução completa e auditável para identificação,
+                            avaliação e gestão de riscos psicossociais no trabalho.
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <!-- Anonimato -->
-        <div class="card bg-base-100 shadow-lg">
-            <div class="card-body">
-                <h3 class="card-title">
-                    <i class="fas fa-user-shield text-success mr-2"></i>
-                    Garantia de Anonimato
-                </h3>
-                <p class="text-sm">
-                    Todos os dados são processados com <strong>k-anonymity</strong>, 
-                    garantindo que nenhum colaborador possa ser identificado.
-                </p>
-                <p class="text-sm mt-2">
-                    Os dashboards só exibem dados agregados de grupos com no mínimo 
-                    <strong>5 respondentes</strong>, em conformidade com a LGPD.
-                </p>
+
+            <!-- Anonimato -->
+            <div class="card bg-white border border-border">
+                <div class="card-body p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                            {% include 'components/icons/icon.html' with name='shield-check' class='w-5 h-5 text-green-600' %}
+                        </div>
+                        <h3 class="text-lg font-semibold text-foreground">Garantia de Anonimato</h3>
+                    </div>
+                    <div class="space-y-3 text-sm text-muted-foreground">
+                        <p>
+                            Todos os dados são processados com <strong class="text-foreground">k-anonymity</strong>,
+                            garantindo que nenhum colaborador possa ser identificado.
+                        </p>
+                        <p>
+                            Os dashboards só exibem dados agregados de grupos com no mínimo
+                            <strong class="text-foreground">5 respondentes</strong>, em conformidade com a LGPD.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
+
     {% if not has_perfil %}
-    <div class="alert alert-warning">
-        <i class="fas fa-exclamation-triangle"></i>
-        <span>
-            Seu usuário ainda não possui um perfil de acesso configurado. 
-            Contate o administrador do sistema.
-        </span>
+    <div class="alert alert-warning bg-yellow-50 border-yellow-200 text-yellow-900 rounded-xl">
+        <div class="flex items-center gap-3">
+            {% include 'components/icons/icon.html' with name='alert-triangle' class='w-5 h-5' %}
+            <span class="text-sm font-medium">
+                Seu usuário ainda não possui um perfil de acesso configurado.
+                Contate o administrador do sistema.
+            </span>
+        </div>
     </div>
     {% endif %}
 </div>

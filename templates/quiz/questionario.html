@@ -1,18 +1,34 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="nr1theme">
 <head>
+    {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Questionário HSE-IT - Plataforma NR-1</title>
+    <title>Questionário HSE-IT - Vivamente360</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'public/icone.png' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'public/icone.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'public/icone.png' %}">
+
+    <!-- DaisyUI & Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script nonce="{{ csp_nonce }}" src="https://unpkg.com/lucide@latest" defer></script>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
+    <link rel="stylesheet" href="{% static 'css/components.css' %}">
+
+    <script nonce="{{ csp_nonce }}">
         tailwind.config = {
             theme: {
                 extend: {
@@ -46,7 +62,8 @@
         }
     </script>
 
-    <style>
+    <style nonce="{{ csp_nonce }}">
+        /* Estilos específicos do questionário - o resto está em theme.css e components.css */
         [data-theme="nr1theme"] {
             --p: 152 87% 52%;
             --pf: 152 75% 44%;
@@ -79,245 +96,14 @@
 
         * {
             -webkit-tap-highlight-color: transparent;
-            max-width: 100%;
-        }
-
-        /* Prevenção de scroll horizontal em mobile */
-        html, body {
-            overflow-x: hidden;
-            max-width: 100vw;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
             min-height: 100vh;
         }
 
-        /* Garantir que containers não extrapolem */
-        .container, .card, .question-card {
-            max-width: 100%;
-            box-sizing: border-box;
-        }
-
-        /* Header gradiente */
-        .header-gradient {
-            background: linear-gradient(135deg, #0F3D52 0%, #1a5a75 100%);
-        }
-
-        /* Card com animação suave */
-        .question-card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.04);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(226, 232, 240, 0.8);
-        }
-
-        .question-card:hover {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07), 0 10px 24px rgba(0,0,0,0.08);
-        }
-
-        .question-card.answered {
-            border-color: #1EEB88;
-            box-shadow: 0 0 0 1px rgba(30, 235, 136, 0.2), 0 4px 12px rgba(30, 235, 136, 0.1);
-        }
-
-        /* Opções de resposta */
-        .option-label {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 0.875rem 0.5rem;
-            border-radius: 0.75rem;
-            border: 2px solid #E2E8F0;
-            background: #F8FAFC;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            min-height: 4.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .option-label::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(30, 235, 136, 0.1) 0%, rgba(110, 219, 193, 0.1) 100%);
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-
-        .option-label:hover {
-            border-color: #6EDBC1;
-            background: white;
-        }
-
-        .option-label:hover::before {
-            opacity: 1;
-        }
-
-        .option-label.selected {
-            border-color: #1EEB88;
-            background: linear-gradient(135deg, rgba(30, 235, 136, 0.08) 0%, rgba(30, 235, 136, 0.04) 100%);
-        }
-
-        .option-label.selected::before {
-            opacity: 1;
-        }
-
-        .option-label input[type="radio"] {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .option-icon {
-            width: 1.5rem;
-            height: 1.5rem;
-            border-radius: 50%;
-            border: 2px solid #CBD5E1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 0.375rem;
-            transition: all 0.2s ease;
-            background: white;
-        }
-
-        .option-label.selected .option-icon {
-            border-color: #1EEB88;
-            background: #1EEB88;
-        }
-
-        .option-label.selected .option-icon::after {
-            content: '';
-            width: 0.5rem;
-            height: 0.5rem;
-            background: white;
-            border-radius: 50%;
-        }
-
-        .option-text {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #64748B;
-            text-align: center;
-            transition: color 0.2s ease;
-        }
-
-        .option-label.selected .option-text {
-            color: #0F3D52;
-            font-weight: 600;
-        }
-
-        /* Barra de progresso customizada */
-        .progress-bar-container {
-            height: 6px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #1EEB88 0%, #6EDBC1 100%);
-            border-radius: 3px;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Footer sticky */
-        .sticky-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            border-top: 1px solid #E2E8F0;
-            padding: 1rem;
-            z-index: 50;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-        }
-
-        @media (min-width: 768px) {
-            .sticky-footer {
-                position: sticky;
-                bottom: 1.5rem;
-                left: auto;
-                right: auto;
-                border-radius: 1rem;
-                max-width: 48rem;
-                margin: 0 auto;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-            }
-        }
-
-        /* Animação de entrada */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: fadeInUp 0.5s ease forwards;
-        }
-
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-
-        /* Confetti animation */
-        @keyframes confetti-fall {
-            0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* Badge de dimensão */
-        .dimension-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.375rem;
-            padding: 0.25rem 0.75rem;
-            background: linear-gradient(135deg, rgba(15, 61, 82, 0.08) 0%, rgba(15, 61, 82, 0.04) 100%);
-            border-radius: 2rem;
-            font-size: 0.7rem;
-            color: #0F3D52;
-            font-weight: 500;
-        }
-
-        /* Scrollbar customizada */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #CBD5E1;
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94A3B8;
-        }
-
-        /* Pulse animation para botão */
-        @keyframes pulse-green {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(30, 235, 136, 0.4); }
-            50% { box-shadow: 0 0 0 12px rgba(30, 235, 136, 0); }
-        }
-
-        .btn-submit-ready {
-            animation: pulse-green 2s infinite;
-        }
+        /* Estilos específicos do questionário já movidos para components.css e animations.css */
     </style>
 </head>
 <body>
@@ -326,13 +112,8 @@
         <div class="container mx-auto px-4 py-4 max-w-3xl">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
-                        <i class="fas fa-shield-alt text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="font-bold text-lg">Plataforma NR-1</h1>
-                        <p class="text-accent text-xs">Avaliação de Riscos Psicossociais</p>
-                    </div>
+                    <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-10 h-10">
+                    <span class="font-semibold text-white">Vivamente360</span>
                 </div>
                 <div class="text-right">
                     <div class="text-xs text-white/70">Progresso</div>
@@ -350,9 +131,9 @@
     <!-- Info Card -->
     <div class="container mx-auto px-4 max-w-3xl -mt-2 relative z-30">
         <div class="bg-gradient-to-r from-accent/20 to-primary/20 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm animate-in opacity-0">
-            <div class="flex items-start space-x-3">
+            <div class="flex items-start gap-3">
                 <div class="w-10 h-10 rounded-full bg-white/80 flex items-center justify-center flex-shrink-0">
-                    <i class="fas fa-lock text-secondary"></i>
+                    {% include 'components/icons/icon.html' with name='lock' class='w-5 h-5 text-secondary' %}
                 </div>
                 <div>
                     <h3 class="font-semibold text-secondary text-sm">Suas respostas são 100% anônimas</h3>
@@ -374,14 +155,14 @@
             <div class="question-card p-5 animate-in opacity-0" data-question="{{ pergunta.numero }}" style="animation-delay: {{ forloop.counter0|add:1 }}00ms">
                 <!-- Número e Dimensão -->
                 <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center space-x-2">
+                    <div class="flex items-center gap-2">
                         <span class="w-7 h-7 rounded-lg bg-secondary text-white text-xs font-bold flex items-center justify-center">
                             {{ pergunta.numero }}
                         </span>
                         <span class="text-xs text-base-content/50">de {{ perguntas|length }}</span>
                     </div>
                     <div class="dimension-badge">
-                        <i class="fas fa-brain text-accent"></i>
+                        {% include 'components/icons/icon.html' with name='brain' class='w-4 h-4 text-accent' %}
                         {{ pergunta.dimensao.nome }}
                     </div>
                 </div>
@@ -429,7 +210,7 @@
     </form>
 
     <!-- Footer Sticky com progresso e botão -->
-    <div class="sticky-footer">
+    <div class="sticky-footer" role="region" aria-label="Progresso e envio do questionário">
         <div class="flex items-center justify-between gap-4">
             <div class="flex-1">
                 <div class="flex items-center justify-between mb-1.5">
@@ -447,10 +228,10 @@
                 type="submit"
                 form="quiz-form"
                 id="submit-btn"
-                class="btn btn-primary px-6 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                class="btn btn-primary px-6 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 disabled
             >
-                <i class="fas fa-paper-plane mr-2"></i>
+                {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
                 <span class="hidden sm:inline">Enviar</span>
             </button>
         </div>
@@ -461,7 +242,7 @@
         <div class="modal-box bg-white shadow-2xl">
             <div class="text-center py-4">
                 <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-check-double text-primary text-2xl"></i>
+                    {% include 'components/icons/icon.html' with name='check-check' class='w-8 h-8 text-primary' %}
                 </div>
                 <h3 class="font-bold text-xl text-secondary mb-2">Confirmar envio?</h3>
                 <p class="text-base-content/70">
@@ -470,12 +251,12 @@
                 </p>
             </div>
             <div class="modal-action justify-center gap-3">
-                <button type="button" class="btn btn-ghost" onclick="document.getElementById('confirm-modal').close()">
-                    <i class="fas fa-arrow-left mr-2"></i>
+                <button type="button" class="btn btn-ghost flex items-center gap-2" onclick="document.getElementById('confirm-modal').close()">
+                    {% include 'components/icons/icon.html' with name='arrow-left' class='w-4 h-4' %}
                     Revisar
                 </button>
-                <button type="button" id="confirm-submit-btn" class="btn btn-primary">
-                    <i class="fas fa-paper-plane mr-2"></i>
+                <button type="button" id="confirm-submit-btn" class="btn btn-primary flex items-center gap-2">
+                    {% include 'components/icons/icon.html' with name='send' class='w-4 h-4' %}
                     Confirmar Envio
                 </button>
             </div>
@@ -485,133 +266,24 @@
         </form>
     </dialog>
 
-    <script>
-        // Configurações
-        const totalQuestions = {{ perguntas|length }};
-        const form = document.getElementById('quiz-form');
-        const headerProgressBar = document.getElementById('header-progress-bar');
-        const footerProgressBar = document.getElementById('footer-progress-bar');
-        const progressPercent = document.getElementById('progress-percent');
-        const countDisplay = document.getElementById('answered-count');
-        const remainingText = document.getElementById('remaining-text');
-        const submitBtn = document.getElementById('submit-btn');
-        const confirmModal = document.getElementById('confirm-modal');
-        const confirmSubmitBtn = document.getElementById('confirm-submit-btn');
-
-        // Atualiza o estado visual das opções
-        function updateOptionStyles(radioInput) {
-            const container = radioInput.closest('.question-card');
-            const allLabels = container.querySelectorAll('.option-label');
-
-            allLabels.forEach(label => {
-                const input = label.querySelector('input[type="radio"]');
-                if (input.checked) {
-                    label.classList.add('selected');
-                } else {
-                    label.classList.remove('selected');
-                }
-            });
-
-            // Marca o card como respondido
-            container.classList.add('answered');
-        }
-
-        // Atualiza o progresso
-        function updateProgress() {
-            const answered = new Set();
-            form.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-                answered.add(radio.name);
-            });
-
-            const count = answered.size;
-            const percent = Math.round((count / totalQuestions) * 100);
-            const remaining = totalQuestions - count;
-
-            // Atualiza displays
-            headerProgressBar.style.width = percent + '%';
-            footerProgressBar.style.width = percent + '%';
-            progressPercent.textContent = percent;
-            countDisplay.textContent = count;
-
-            // Atualiza texto de restantes
-            if (remaining === 0) {
-                remainingText.innerHTML = '<span class="text-success font-medium">✓ Completo!</span>';
-            } else if (remaining === 1) {
-                remainingText.textContent = '1 restante';
-            } else {
-                remainingText.textContent = remaining + ' restantes';
+    <!-- Quiz Form Script -->
+    <script nonce="{{ csp_nonce }}" src="{% static 'js/quiz-form.js' %}"></script>
+    <script nonce="{{ csp_nonce }}">
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
             }
+        });
 
-            // Habilita/desabilita botão de enviar
-            if (count === totalQuestions) {
-                submitBtn.disabled = false;
-                submitBtn.classList.add('btn-submit-ready');
-            } else {
-                submitBtn.disabled = true;
-                submitBtn.classList.remove('btn-submit-ready');
+        // Re-initialize icons after any DOM updates
+        const observer = new MutationObserver(() => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
             }
-        }
-
-        // Event listeners para os radio buttons
-        form.querySelectorAll('input[type="radio"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                updateOptionStyles(this);
-                updateProgress();
-
-                // Scroll suave para próxima pergunta após responder (mobile)
-                if (window.innerWidth < 768) {
-                    const currentCard = this.closest('.question-card');
-                    const nextCard = currentCard.nextElementSibling;
-
-                    if (nextCard && !nextCard.classList.contains('answered')) {
-                        setTimeout(() => {
-                            nextCard.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center'
-                            });
-                        }, 300);
-                    }
-                }
-            });
         });
 
-        // Ao clicar no label, marcar o radio
-        document.querySelectorAll('.option-label').forEach(label => {
-            label.addEventListener('click', function(e) {
-                if (e.target.tagName !== 'INPUT') {
-                    const radio = this.querySelector('input[type="radio"]');
-                    radio.checked = true;
-                    radio.dispatchEvent(new Event('change'));
-                }
-            });
-        });
-
-        // Intercepta o submit para mostrar modal de confirmação
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            confirmModal.showModal();
-        });
-
-        // Confirma o envio
-        confirmSubmitBtn.addEventListener('click', function() {
-            confirmModal.close();
-            form.removeEventListener('submit', arguments.callee);
-
-            // Mostra loading no botão
-            this.innerHTML = '<span class="loading loading-spinner loading-sm mr-2"></span> Enviando...';
-            this.disabled = true;
-
-            // Envia o formulário
-            form.submit();
-        });
-
-        // Restaurar estado se usuário voltar na página
-        window.addEventListener('load', function() {
-            form.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
-                updateOptionStyles(radio);
-            });
-            updateProgress();
-        });
+        observer.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>

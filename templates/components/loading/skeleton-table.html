@@ -1,0 +1,100 @@
+{% comment %}
+Skeleton Table Component - Shadcn UI Style
+Loading placeholder para tabelas
+
+Usage:
+{% include 'components/loading/skeleton-table.html' with
+    rows=5
+    columns=4
+    show_header=True
+    show_actions=True
+%}
+
+Props:
+- rows: número de linhas (default: 5)
+- columns: número de colunas (default: 4)
+- show_header: mostrar header skeleton (default: True)
+- show_actions: mostrar coluna de ações (default: False)
+{% endcomment %}
+
+{% with num_rows=rows|default:5 num_cols=columns|default:4 %}
+
+<div class="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+    <div class="w-full">
+        <!-- Table Header Skeleton -->
+        {% if show_header %}
+        <div class="border-b border-border bg-muted/50">
+            <div class="flex items-center h-12 px-4 gap-4">
+                {% for i in "x"|rjust:num_cols %}
+                <div class="flex-1">
+                    <div class="h-4 w-24 bg-muted rounded animate-pulse"></div>
+                </div>
+                {% endfor %}
+                {% if show_actions %}
+                <div class="w-20">
+                    <div class="h-4 w-16 bg-muted rounded animate-pulse"></div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Table Body Skeleton -->
+        <div class="divide-y divide-border">
+            {% for row in "x"|rjust:num_rows %}
+            <div class="flex items-center h-16 px-4 gap-4 hover:bg-muted/50 transition-colors">
+                {% for col in "x"|rjust:num_cols %}
+                <div class="flex-1">
+                    {% if forloop.first %}
+                        <!-- First column - usually more prominent -->
+                        <div class="h-4 w-32 bg-muted rounded animate-pulse"></div>
+                    {% else %}
+                        <div class="h-3 w-20 bg-muted rounded animate-pulse" style="animation-delay: {{ forloop.counter|add:'00' }}ms;"></div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                {% if show_actions %}
+                <!-- Actions column -->
+                <div class="w-20 flex gap-2">
+                    <div class="h-8 w-8 bg-muted rounded animate-pulse"></div>
+                    <div class="h-8 w-8 bg-muted rounded animate-pulse" style="animation-delay: 100ms;"></div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Skeleton -->
+        {% if show_pagination %}
+        <div class="border-t border-border bg-muted/30 px-4 py-3">
+            <div class="flex items-center justify-between">
+                <div class="h-4 w-40 bg-muted rounded animate-pulse"></div>
+                <div class="flex gap-2">
+                    <div class="h-8 w-20 bg-muted rounded animate-pulse"></div>
+                    <div class="h-8 w-8 bg-muted rounded animate-pulse"></div>
+                    <div class="h-8 w-8 bg-muted rounded animate-pulse"></div>
+                    <div class="h-8 w-20 bg-muted rounded animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endwith %}
+
+<style nonce="{{ csp_nonce }}">
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+</style>

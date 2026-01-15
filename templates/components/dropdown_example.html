@@ -1,0 +1,82 @@
+{% comment %}
+  Dropdown Component Example - Vivamente360
+  Exemplo de uso do componente dropdown
+
+  Usage:
+  <button onclick="toggleDropdown('my-dropdown')" class="btn btn-primary">
+    Abrir Menu
+  </button>
+  <div id="my-dropdown" class="dropdown">
+    <div class="dropdown-content">
+      <a href="#" class="dropdown-item">Item 1</a>
+      <a href="#" class="dropdown-item">Item 2</a>
+      <div class="dropdown-divider"></div>
+      <a href="#" class="dropdown-item">Item 3</a>
+    </div>
+  </div>
+{% endcomment %}
+
+<!-- Exemplo 1: Dropdown com botão -->
+<div class="relative inline-block">
+  <button onclick="toggleDropdown('dropdown-example-1')" class="btn btn-outline flex items-center gap-2">
+    {% include 'components/icons/icon.html' with name='more-vertical' class='w-4 h-4' %}
+    Menu
+    {% include 'components/icons/icon.html' with name='chevron-down' class='w-4 h-4' %}
+  </button>
+  <div id="dropdown-example-1" class="dropdown">
+    <div class="dropdown-content">
+      <a href="#" class="dropdown-item">
+        {% include 'components/icons/icon.html' with name='edit' class='w-4 h-4' %}
+        Editar
+      </a>
+      <a href="#" class="dropdown-item">
+        {% include 'components/icons/icon.html' with name='copy' class='w-4 h-4' %}
+        Duplicar
+      </a>
+      <div class="dropdown-divider"></div>
+      <a href="#" class="dropdown-item text-destructive">
+        {% include 'components/icons/icon.html' with name='trash-2' class='w-4 h-4' %}
+        Excluir
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Exemplo 2: Dropdown de Usuário -->
+<div class="relative inline-block ml-4">
+  <button onclick="toggleDropdown('dropdown-user')" class="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors">
+    <div class="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+      <span class="font-semibold text-primary text-sm">U</span>
+    </div>
+    {% include 'components/icons/icon.html' with name='chevron-down' class='w-4 h-4 text-muted-foreground' %}
+  </button>
+  <div id="dropdown-user" class="dropdown">
+    <div class="dropdown-content">
+      <div class="px-3 py-2 border-b border-border">
+        <p class="text-sm font-medium">Usuario</p>
+        <p class="text-xs text-muted-foreground">usuario@exemplo.com</p>
+      </div>
+      <a href="#" class="dropdown-item">
+        {% include 'components/icons/icon.html' with name='user' class='w-4 h-4' %}
+        Perfil
+      </a>
+      <a href="#" class="dropdown-item">
+        {% include 'components/icons/icon.html' with name='settings' class='w-4 h-4' %}
+        Configurações
+      </a>
+      <div class="dropdown-divider"></div>
+      <a href="#" class="dropdown-item">
+        {% include 'components/icons/icon.html' with name='log-out' class='w-4 h-4' %}
+        Sair
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Exemplo 3: Dropdown com ícones Lucide (após carregamento) -->
+<script nonce="{{ csp_nonce }}">
+  // Re-initialize Lucide icons após DOM updates
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+</script>

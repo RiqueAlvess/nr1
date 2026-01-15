@@ -40,6 +40,10 @@ urlpatterns = [
 ]
 
 # Customizar Admin
-admin.site.site_header = "Plataforma NR-1 - Administração"
-admin.site.site_title = "NR-1 Admin"
+admin.site.site_header = "Vivamente360 - Administração"
+admin.site.site_title = "Vivamente360 Admin"
 admin.site.index_title = "Gestão de Riscos Psicossociais"
+
+# Handlers de erro customizados
+handler404 = 'nr1_platform.views.handler404'
+handler500 = 'nr1_platform.views.handler500'

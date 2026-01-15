@@ -9,17 +9,22 @@ from importacao.models import Colaborador
 
 class Dimensao(TimeStampedModel):
     """Dimensão psicossocial do questionário HSE-IT"""
-    
+
     POLARIDADE_CHOICES = [
         ('POSITIVA', 'Positiva (menor pontuação = maior risco)'),
         ('NEGATIVA', 'Negativa (maior pontuação = maior risco)'),
     ]
-    
+
     nome = models.CharField(max_length=100, unique=True)
     descricao = models.TextField()
     polaridade = models.CharField(max_length=10, choices=POLARIDADE_CHOICES)
     ordem = models.IntegerField(default=0)
     ativa = models.BooleanField(default=True)
+
+    # Campos para ícones Lucide
+    icon_name = models.CharField(max_length=50, blank=True, default='lightbulb', help_text='Nome do ícone Lucide')
+    icon_color = models.CharField(max_length=20, blank=True, default='blue', help_text='Cor do ícone (classe Tailwind)')
+    icon_path = models.TextField(blank=True, help_text='SVG path do ícone Lucide')
     
     class Meta:
         db_table = 'dimensoes'
@@ -111,22 +116,40 @@ class MagicLink(TimeStampedModel):
     
     def marcar_acessado(self):
         """Marca o link como acessado"""
+        now = timezone.now()
+        update_fields = {'status': 'ACCESSED', 'updated_at': now}
         if not self.first_accessed_at:
-            self.first_accessed_at = timezone.now()
+            update_fields['first_accessed_at'] = now
+            self.first_accessed_at = now
+        # Usar update() diretamente para garantir persistência
+        MagicLink.objects.filter(id=self.id).update(**update_fields)
+        # Atualizar também a instância em memória
         self.status = 'ACCESSED'
-        self.save()
     
     def marcar_iniciado(self):
         """Marca questionário como iniciado"""
         if not self.started_at:
-            self.started_at = timezone.now()
-        self.save()
+            now = timezone.now()
+            # Usar update() diretamente para garantir persistência
+            MagicLink.objects.filter(id=self.id).update(
+                started_at=now,
+                updated_at=now
+            )
+            # Atualizar também a instância em memória
+            self.started_at = now
     
     def marcar_concluido(self):
         """Marca questionário como concluído"""
-        self.completed_at = timezone.now()
+        now = timezone.now()
+        # Usar update() diretamente para garantir persistência
+        MagicLink.objects.filter(id=self.id).update(
+            completed_at=now,
+            status='COMPLETED',
+            updated_at=now
+        )
+        # Atualizar também a instância em memória
+        self.completed_at = now
         self.status = 'COMPLETED'
-        self.save()
 
 
 class Resposta(TimeStampedModel):
@@ -171,10 +194,43 @@ class Resposta(TimeStampedModel):
         """Retorna nível de risco global"""
         if self.score_global is None:
             return 'NÃO CALCULADO'
-        
+
         if self.score_global <= 35:
             return 'CRÍTICO'
         elif self.score_global <= 70:
             return 'ATENÇÃO'
         else:
             return 'SATISFATÓRIO'
+
+
+class ConsentimentoLGPD(TimeStampedModel):
+    """
+    Registro de consentimento LGPD para coleta e tratamento de dados
+    Armazenado junto com a resposta para fins de auditoria
+    """
+
+    resposta = models.OneToOneField(
+        Resposta,
+        on_delete=models.CASCADE,
+        related_name='consentimento'
+    )
+
+    # Consentimento
+    aceito = models.BooleanField(default=False)
+    data_consentimento = models.DateTimeField(auto_now_add=True)
+    versao_termo = models.CharField(max_length=10, default='1.0')
+
+    # Texto do termo aceito (para auditoria)
+    texto_termo = models.TextField(blank=True)
+
+    # Metadados para auditoria
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        db_table = 'consentimentos_lgpd'
+        verbose_name = 'Consentimento LGPD'
+        verbose_name_plural = 'Consentimentos LGPD'
+
+    def __str__(self):
+        return f"Consentimento {str(self.id)[:8]} - {'Aceito' if self.aceito else 'Negado'}"

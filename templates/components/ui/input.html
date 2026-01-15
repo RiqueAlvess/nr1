@@ -1,0 +1,119 @@
+{% comment %}
+===========================================
+INPUT COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de input padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+{% include 'components/ui/input.html' with label='Email' name='email' type='email' %}
+
+PARAMETERS:
+-----------
+- label: Label do input (string)
+- name: Atributo name do input (string, obrigatório)
+- type: Tipo do input (text, email, password, number, tel, url, etc) - default: 'text'
+- value: Valor inicial do input
+- placeholder: Placeholder do input
+- required: true/false
+- disabled: true/false
+- readonly: true/false
+- error: Mensagem de erro (string)
+- helper_text: Texto de ajuda abaixo do input (string)
+- icon_left: Ícone Lucide à esquerda (ex: 'mail')
+- icon_right: Ícone Lucide à direita (ex: 'eye')
+- extra_classes: Classes CSS adicionais para o input
+- wrapper_classes: Classes CSS adicionais para o wrapper
+- attrs: Atributos HTML adicionais
+
+EXAMPLES:
+---------
+Basic input:
+{% include 'components/ui/input.html' with label='Name' name='name' %}
+
+Email with icon:
+{% include 'components/ui/input.html' with
+  label='Email Address'
+  name='email'
+  type='email'
+  icon_left='mail'
+  placeholder='you@example.com'
+%}
+
+Password with validation:
+{% include 'components/ui/input.html' with
+  label='Password'
+  name='password'
+  type='password'
+  required=True
+  helper_text='Minimum 8 characters'
+%}
+
+With error:
+{% include 'components/ui/input.html' with
+  label='Username'
+  name='username'
+  value='ab'
+  error='Username must be at least 3 characters'
+%}
+
+Number input:
+{% include 'components/ui/input.html' with
+  label='Age'
+  name='age'
+  type='number'
+  attrs='min="0" max="120"'
+%}
+{% endcomment %}
+
+<div class="{{ wrapper_classes }}">
+  {% if label %}
+  <label for="id_{{ name }}" class="block text-sm font-medium leading-none mb-2 peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+    {{ label }}
+    {% if required %}<span class="text-destructive ml-1">*</span>{% endif %}
+  </label>
+  {% endif %}
+
+  <div class="relative">
+    {% if icon_left %}
+    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+      {% include 'components/icons/icon.html' with name=icon_left class='w-4 h-4' %}
+    </div>
+    {% endif %}
+
+    <input
+      type="{{ type|default:'text' }}"
+      id="id_{{ name }}"
+      name="{{ name }}"
+      {% if value %}value="{{ value }}"{% endif %}
+      {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+      {% if required %}required{% endif %}
+      {% if disabled %}disabled{% endif %}
+      {% if readonly %}readonly{% endif %}
+      class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50
+      {% if icon_left %}pl-10{% endif %}
+      {% if icon_right %}pr-10{% endif %}
+      {% if error %}border-destructive focus-visible:ring-destructive{% endif %}
+      {{ extra_classes }}"
+      {{ attrs }}
+    >
+
+    {% if icon_right %}
+    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+      {% include 'components/icons/icon.html' with name=icon_right class='w-4 h-4' %}
+    </div>
+    {% endif %}
+  </div>
+
+  {% if error %}
+  <p class="text-sm text-destructive mt-1.5 flex items-center gap-1">
+    {% include 'components/icons/icon.html' with name='alert-circle' class='w-3.5 h-3.5' %}
+    {{ error }}
+  </p>
+  {% endif %}
+
+  {% if helper_text and not error %}
+  <p class="text-sm text-muted-foreground mt-1.5">{{ helper_text }}</p>
+  {% endif %}
+</div>

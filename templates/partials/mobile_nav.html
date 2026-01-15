@@ -1,0 +1,163 @@
+{% load static %}
+<!-- Mobile Header - Apenas visível em telas < lg -->
+<header class="lg:hidden fixed top-0 left-0 right-0 z-50 h-14 bg-card border-b border-border shadow-sm">
+    <div class="flex h-full items-center justify-between px-4" x-data="{ menuOpen: false }">
+
+        <!-- Botão Menu Hamburger -->
+        <button @click="menuOpen = true"
+                class="p-2 rounded-lg hover:bg-accent/10 transition-colors"
+                aria-label="Abrir menu">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+        </button>
+
+        <!-- Logo Central -->
+        <a href="{% url 'account:dashboard' %}" class="flex items-center gap-2">
+            <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-8 h-8">
+            <span class="font-semibold text-foreground">Vivamente360</span>
+        </a>
+
+        <!-- Espaçador -->
+        <div class="w-10"></div>
+
+        <!-- Sidebar Overlay -->
+        <div x-show="menuOpen"
+             x-transition:enter="transition-opacity ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition-opacity ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="menuOpen = false"
+             class="fixed inset-0 bg-black/50 z-40"
+             x-cloak>
+        </div>
+
+        <!-- Sidebar Mobile -->
+        <aside x-show="menuOpen"
+               x-transition:enter="transition ease-out duration-300 transform"
+               x-transition:enter-start="-translate-x-full"
+               x-transition:enter-end="translate-x-0"
+               x-transition:leave="transition ease-in duration-200 transform"
+               x-transition:leave-start="translate-x-0"
+               x-transition:leave-end="-translate-x-full"
+               @click.outside="menuOpen = false"
+               @keydown.escape.window="menuOpen = false"
+               class="fixed top-0 left-0 bottom-0 w-72 bg-card border-r border-border z-50 overflow-y-auto"
+               x-cloak>
+
+            <!-- Header do Sidebar -->
+            <div class="flex items-center justify-between p-4 border-b border-border">
+                <div class="flex items-center gap-3">
+                    <img src="{% static 'public/icone.png' %}" alt="Logo" class="w-10 h-10">
+                    <span class="font-semibold">Vivamente360</span>
+                </div>
+                <button @click="menuOpen = false" class="p-2 rounded-lg hover:bg-accent/10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Menu Items -->
+            <nav class="p-4 space-y-1">
+                <p class="px-3 py-2 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Principal</p>
+
+                <a href="{% url 'account:dashboard' %}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/10 transition-colors {% if request.resolver_match.url_name == 'dashboard' %}bg-accent/10 text-primary font-medium{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                    </svg>
+                    Início
+                </a>
+
+                {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
+                <p class="px-3 py-2 mt-4 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Análises</p>
+
+                <a href="{% url 'dashboard:principal' %}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/10 transition-colors {% if request.resolver_match.app_name == 'dashboard' %}bg-accent/10 text-primary font-medium{% endif %}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Dashboard
+                </a>
+                {% endif %}
+
+                {% if user.perfil_acesso.is_rh %}
+                <p class="px-3 py-2 mt-4 text-xs uppercase tracking-wider text-muted-foreground font-semibold">Gestão</p>
+
+                <a href="{% url 'importacao:importacao' %}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/10 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Importação
+                </a>
+
+                <a href="{% url 'quiz:gerenciar_links' %}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-accent/10 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                    Enviar Pesquisa
+                </a>
+                {% endif %}
+
+                <div class="border-t border-border my-4"></div>
+
+                <a href="{% url 'account:logout' %}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-destructive/10 text-destructive transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    Sair
+                </a>
+            </nav>
+        </aside>
+    </div>
+</header>
+
+<!-- Bottom Navigation Mobile -->
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-card border-t border-border">
+    <div class="flex h-full items-center justify-around px-2">
+        <a href="{% url 'account:dashboard' %}"
+           class="flex flex-col items-center justify-center flex-1 py-2 {% if request.resolver_match.url_name == 'dashboard' and request.resolver_match.app_name == 'account' %}text-primary{% else %}text-muted-foreground{% endif %}">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            <span class="text-xs font-medium">Início</span>
+        </a>
+
+        {% if user.perfil_acesso.tem_acesso_completo_dashboards or user.perfil_acesso.tem_acesso_limitado %}
+        <a href="{% url 'dashboard:principal' %}"
+           class="flex flex-col items-center justify-center flex-1 py-2 {% if request.resolver_match.app_name == 'dashboard' %}text-primary{% else %}text-muted-foreground{% endif %}">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span class="text-xs font-medium">Dashboard</span>
+        </a>
+        {% endif %}
+
+        {% if user.perfil_acesso.is_rh %}
+        <a href="{% url 'quiz:gerenciar_links' %}"
+           class="flex flex-col items-center justify-center flex-1 py-2 {% if request.resolver_match.app_name == 'quiz' %}text-primary{% else %}text-muted-foreground{% endif %}">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+            <span class="text-xs font-medium">Enviar</span>
+        </a>
+        {% endif %}
+
+        <a href="{% url 'account:logout' %}"
+           class="flex flex-col items-center justify-center flex-1 py-2 text-muted-foreground">
+            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+            <span class="text-xs font-medium">Sair</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Espaçador para o bottom nav não sobrepor conteúdo -->
+<div class="lg:hidden h-16"></div>

@@ -1,0 +1,56 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Acesso bloqueado - Vivamente360{% endblock %}
+
+{% block public_content %}
+<div class="flex flex-col items-center justify-center min-h-screen px-4 bg-base-200">
+    <div class="card w-full max-w-md bg-base-100 shadow-xl">
+        <div class="card-body text-center">
+            <!-- Ícone de bloqueio -->
+            <div class="mb-4">
+                <i class="fas fa-lock text-6xl text-error"></i>
+            </div>
+
+            <!-- Título -->
+            <h1 class="card-title text-2xl font-bold text-error justify-center mb-2">
+                Acesso Temporariamente Bloqueado
+            </h1>
+
+            <!-- Mensagem descritiva -->
+            <p class="text-base-content/80 mb-6">
+                Muitas tentativas de login falharam. Por segurança, o acesso foi
+                temporariamente bloqueado por <strong>1 hora</strong>.
+            </p>
+
+            <!-- Informações adicionais -->
+            <div class="alert alert-warning">
+                <i class="fas fa-info-circle text-lg"></i>
+                <div class="text-sm text-left">
+                    <p class="font-semibold mb-1">O que fazer?</p>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Aguarde 1 hora para tentar novamente</li>
+                        <li>Verifique se está usando as credenciais corretas</li>
+                        <li>Se esqueceu sua senha, use a recuperação de senha</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="card-actions justify-center mt-6 flex-col sm:flex-row gap-2">
+                <a href="{% url 'account:password_reset_request' %}"
+                   class="btn btn-primary">
+                    <i class="fas fa-key mr-2"></i>
+                    Recuperar Senha
+                </a>
+
+                <a href="{% url 'account:login' %}"
+                   class="btn btn-outline btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Voltar ao Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

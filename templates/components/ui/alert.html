@@ -1,0 +1,108 @@
+{% comment %}
+===========================================
+ALERT COMPONENT - Shadcn UI Style
+===========================================
+
+Componente de alerta padronizado seguindo Shadcn UI design system.
+
+USAGE:
+------
+{% include 'components/ui/alert.html' with variant='info' title='Info' message='This is an informational alert' %}
+
+PARAMETERS:
+-----------
+- variant: 'info', 'success', 'warning', 'error' (default: 'info')
+- title: Título do alerta (string, opcional)
+- message: Mensagem do alerta (string, obrigatório)
+- icon: Nome do ícone Lucide customizado (opcional, usa ícone padrão por variant)
+- dismissible: true/false - Mostra botão para fechar (default: false)
+- extra_classes: Classes CSS adicionais
+
+VARIANTS & DEFAULT ICONS:
+-------------------------
+- info: 'info' icon, azul
+- success: 'check-circle' icon, verde
+- warning: 'alert-triangle' icon, amarelo
+- error: 'alert-circle' icon, vermelho
+
+EXAMPLES:
+---------
+Info alert:
+{% include 'components/ui/alert.html' with
+  variant='info'
+  title='Did you know?'
+  message='You can customize your dashboard layout.'
+%}
+
+Success alert:
+{% include 'components/ui/alert.html' with
+  variant='success'
+  message='Your changes have been saved successfully!'
+%}
+
+Warning (dismissible):
+{% include 'components/ui/alert.html' with
+  variant='warning'
+  title='Warning'
+  message='This action cannot be undone.'
+  dismissible=True
+%}
+
+Error:
+{% include 'components/ui/alert.html' with
+  variant='error'
+  title='Error'
+  message='Something went wrong. Please try again.'
+%}
+{% endcomment %}
+
+{% comment %} Define default icons per variant {% endcomment %}
+{% if not icon %}
+  {% if variant == 'info' %}{% with icon='info' %}{% endwith %}{% endif %}
+  {% if variant == 'success' %}{% with icon='check-circle' %}{% endwith %}{% endif %}
+  {% if variant == 'warning' %}{% with icon='alert-triangle' %}{% endwith %}{% endif %}
+  {% if variant == 'error' %}{% with icon='alert-circle' %}{% endwith %}{% endif %}
+{% endif %}
+
+<div
+  class="relative w-full rounded-lg border px-4 py-3 text-sm
+  {% if variant == 'info' or not variant %}border-blue-200 bg-blue-50 text-blue-900{% endif %}
+  {% if variant == 'success' %}border-green-200 bg-green-50 text-green-900{% endif %}
+  {% if variant == 'warning' %}border-yellow-200 bg-yellow-50 text-yellow-900{% endif %}
+  {% if variant == 'error' %}border-red-200 bg-red-50 text-red-900{% endif %}
+  {{ extra_classes }}"
+  role="alert"
+  {% if dismissible %}x-data="{ show: true }" x-show="show" x-transition{% endif %}
+>
+  <div class="flex gap-3">
+    <div class="shrink-0 mt-0.5">
+      {% if variant == 'success' %}
+        {% include 'components/icons/icon.html' with name='check-circle' class='w-5 h-5' %}
+      {% elif variant == 'warning' %}
+        {% include 'components/icons/icon.html' with name='alert-triangle' class='w-5 h-5' %}
+      {% elif variant == 'error' %}
+        {% include 'components/icons/icon.html' with name='alert-circle' class='w-5 h-5' %}
+      {% else %}
+        {% include 'components/icons/icon.html' with name='info' class='w-5 h-5' %}
+      {% endif %}
+    </div>
+
+    <div class="flex-1">
+      {% if title %}
+      <h5 class="mb-1 font-medium leading-none tracking-tight">{{ title }}</h5>
+      {% endif %}
+      <div class="text-sm {% if not title %}leading-relaxed{% endif %}">{{ message|safe }}</div>
+    </div>
+
+    {% if dismissible %}
+    <button
+      type="button"
+      class="shrink-0 p-1 rounded-md hover:bg-black/5 transition-colors"
+      @click="show = false"
+      aria-label="Close alert"
+    >
+      {% include 'components/icons/icon.html' with name='x' class='w-4 h-4' %}
+    </button>
+    {% endif %}
+  </div>
+</div>

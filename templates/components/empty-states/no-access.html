@@ -1,0 +1,67 @@
+{% comment %}
+No Access Empty State - Shadcn UI Style
+Exibe quando o usuário não tem permissão para acessar um recurso
+
+Usage:
+{% include 'components/empty-states/no-access.html' with
+    title='Acesso Restrito'
+    message='Você não tem permissão para visualizar este conteúdo.'
+    show_button=True
+    button_text='Voltar'
+    button_url='/dashboard/'
+%}
+{% endcomment %}
+
+<div class="flex min-h-[400px] flex-col items-center justify-center p-8 text-center">
+    <!-- Icon -->
+    <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+        {% include 'components/icons/icon.html' with name='shield-off' class='h-10 w-10 text-destructive' %}
+    </div>
+
+    <!-- Title -->
+    <h3 class="mb-2 text-xl font-semibold text-foreground">
+        {{ title|default:'Acesso Restrito' }}
+    </h3>
+
+    <!-- Message -->
+    <p class="mb-6 max-w-md text-sm text-muted-foreground">
+        {{ message|default:'Você não tem permissão para acessar este recurso. Entre em contato com o administrador se acredita que isso é um erro.' }}
+    </p>
+
+    <!-- Action Button -->
+    {% if show_button %}
+    <div class="flex gap-3">
+        {% if button_url %}
+        <a href="{{ button_url }}"
+           class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            {% include 'components/icons/icon.html' with name='arrow-left' class='h-4 w-4' %}
+            {{ button_text|default:'Voltar ao Dashboard' }}
+        </a>
+        {% endif %}
+
+        {% if contact_email %}
+        <a href="mailto:{{ contact_email }}"
+           class="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+            {% include 'components/icons/icon.html' with name='mail' class='h-4 w-4' %}
+            Solicitar Acesso
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Additional Info -->
+    {% if additional_info %}
+    <div class="mt-6 rounded-lg border border-border bg-muted p-4 text-left max-w-md">
+        <p class="text-xs text-muted-foreground">
+            {{ additional_info }}
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<script nonce="{{ csp_nonce }}">
+    // Initialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+</script>

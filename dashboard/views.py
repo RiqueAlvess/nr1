@@ -1,7 +1,11 @@
+import json
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.contrib import messages
+from django.core.serializers.json import DjangoJSONEncoder
+from django.views.decorators.http import require_GET
+from django.db.models import F
 from core.models import Empresa, Unidade
 from dashboard.services.dashboard_service import DashboardService
 from core.services.audit_service import AuditService
@@ -12,17 +16,20 @@ def dashboard_principal_view(request):
     """
     Dashboard principal consolidado com visão geral e análises detalhadas
     Suporta múltiplas empresas no perfil de acesso
+    HTMX-ready: Retorna apenas o conteúdo quando requisição vem do HTMX
     """
 
     # Verificar perfil de acesso
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
 
     # Verificar se o usuário tem acesso ao dashboard
     if not (perfil.tem_acesso_completo_dashboards() or perfil.tem_acesso_limitado()):
-        return render(request, 'dashboard/sem_permissao.html')
+        template = 'dashboard/sem_permissao_content.html' if request.htmx else 'dashboard/sem_permissao.html'
+        return render(request, template)
 
     # Obter empresas do usuário
     empresas = perfil.get_empresas()
@@ -86,11 +93,56 @@ def dashboard_principal_view(request):
         }
     )
 
+    # Buscar dados avançados adicionais
+    estatisticas_avancadas = dashboard_service.get_estatisticas_avancadas(empresa_id)
+    distribuicao_scores = dashboard_service.get_distribuicao_scores(empresa_id)
+    tempo_medio = dashboard_service.get_tempo_medio_resposta(empresa_id)
+    pontuacao_por_pergunta = dashboard_service.get_pontuacao_por_pergunta(empresa_id)
+    analise_genero = dashboard_service.get_analise_por_genero(empresa_id)
+    analise_faixa_etaria = dashboard_service.get_analise_por_faixa_etaria(empresa_id)
+    piramide_etaria = dashboard_service.get_piramide_etaria_com_risco(empresa_id)
+    dimensoes_por_genero = dashboard_service.get_dimensoes_por_genero(empresa_id)
+
+    # Novos dados para análises avançadas
+    distribuicao_respostas = dashboard_service.get_distribuicao_respostas_completa(empresa_id)
+    dimensoes_polaridade = dashboard_service.get_dimensoes_por_polaridade(empresa_id)
+    radar_multinivel = dashboard_service.get_radar_multinivel(empresa_id)
+    consistencia_interna = dashboard_service.get_consistencia_interna(empresa_id)
+    histograma_scores = dashboard_service.get_histograma_scores(empresa_id)
+    cargos_disponiveis = dashboard_service.get_cargos_disponiveis(empresa_id)
+
     context = {
+        # Dados originais para uso no template HTML
         'kpis': kpis,
         'dados_unidades': dados_unidades,
         'dados_setores': dados_setores,
         'dados_dimensoes': dados_dimensoes,
+        'estatisticas_avancadas': estatisticas_avancadas,
+        'tempo_medio': tempo_medio,
+        # Dados serializados em JSON para uso no JavaScript
+        'kpis_json': json.dumps(kpis, cls=DjangoJSONEncoder),
+        'dados_unidades_json': json.dumps(dados_unidades, cls=DjangoJSONEncoder),
+        'dados_setores_json': json.dumps(dados_setores, cls=DjangoJSONEncoder),
+        'dados_dimensoes_json': json.dumps(dados_dimensoes, cls=DjangoJSONEncoder),
+        'estatisticas_avancadas_json': json.dumps(estatisticas_avancadas, cls=DjangoJSONEncoder),
+        'distribuicao_scores_json': json.dumps(distribuicao_scores, cls=DjangoJSONEncoder),
+        'tempo_medio_json': json.dumps(tempo_medio, cls=DjangoJSONEncoder),
+        'pontuacao_por_pergunta_json': json.dumps(pontuacao_por_pergunta, cls=DjangoJSONEncoder),
+        'analise_genero_json': json.dumps(analise_genero, cls=DjangoJSONEncoder),
+        'analise_faixa_etaria_json': json.dumps(analise_faixa_etaria, cls=DjangoJSONEncoder),
+        'piramide_etaria_json': json.dumps(piramide_etaria, cls=DjangoJSONEncoder),
+        'dimensoes_por_genero_json': json.dumps(dimensoes_por_genero, cls=DjangoJSONEncoder),
+        # Novos dados para análises avançadas
+        'distribuicao_respostas': distribuicao_respostas,
+        'distribuicao_respostas_json': json.dumps(distribuicao_respostas, cls=DjangoJSONEncoder),
+        'dimensoes_polaridade': dimensoes_polaridade,
+        'dimensoes_polaridade_json': json.dumps(dimensoes_polaridade, cls=DjangoJSONEncoder),
+        'radar_multinivel_json': json.dumps(radar_multinivel, cls=DjangoJSONEncoder),
+        'consistencia_interna': consistencia_interna,
+        'consistencia_interna_json': json.dumps(consistencia_interna, cls=DjangoJSONEncoder),
+        'histograma_scores_json': json.dumps(histograma_scores, cls=DjangoJSONEncoder),
+        'cargos_disponiveis_json': json.dumps(cargos_disponiveis, cls=DjangoJSONEncoder),
+        # Outros dados do contexto
         'empresa': empresa_selecionada,
         'empresas': empresas,
         'empresa_selecionada_id': str(empresa_selecionada.id),
@@ -98,15 +150,18 @@ def dashboard_principal_view(request):
         'perfil': perfil
     }
 
-    return render(request, 'dashboard/principal.html', context)
+    # Se requisição HTMX, retorna apenas o conteúdo
+    template = 'dashboard/principal_content.html' if request.htmx else 'dashboard/principal.html'
+    return render(request, template, context)
 
 
 @login_required
 def dashboard_unidades_view(request):
-    """Dashboard com dados por unidade"""
+    """Dashboard com dados por unidade - HTMX-ready"""
 
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
 
@@ -147,15 +202,17 @@ def dashboard_unidades_view(request):
         'tem_multiplas_empresas': empresas.count() > 1,
     }
 
-    return render(request, 'dashboard/unidades.html', context)
+    template = 'dashboard/unidades_content.html' if request.htmx else 'dashboard/unidades.html'
+    return render(request, template, context)
 
 
 @login_required
 def dashboard_setores_view(request):
-    """Dashboard com dados por setor"""
+    """Dashboard com dados por setor - HTMX-ready"""
 
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
     unidade_id = request.GET.get('unidade')
@@ -208,15 +265,95 @@ def dashboard_setores_view(request):
         'unidade_id': unidade_id
     }
 
-    return render(request, 'dashboard/setores.html', context)
+    template = 'dashboard/setores_content.html' if request.htmx else 'dashboard/setores.html'
+    return render(request, template, context)
+
+
+@login_required
+def dashboard_graficos_view(request):
+    """
+    Dashboard de gráficos interativos com Chart.js
+    HTMX-ready: Retorna apenas o conteúdo quando requisição vem do HTMX
+    """
+    # Verificar perfil de acesso
+    if not hasattr(request.user, 'perfil_acesso'):
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
+
+    perfil = request.user.perfil_acesso
+
+    # Verificar se o usuário tem acesso ao dashboard
+    if not (perfil.tem_acesso_completo_dashboards() or perfil.tem_acesso_limitado()):
+        template = 'dashboard/sem_permissao_content.html' if request.htmx else 'dashboard/sem_permissao.html'
+        return render(request, template)
+
+    # Obter empresas do usuário
+    empresas = perfil.get_empresas()
+    if not empresas.exists():
+        return render(request, 'dashboard/sem_empresa.html')
+
+    # Empresa selecionada
+    empresa_id_selecionada = request.GET.get('empresa')
+    if empresa_id_selecionada:
+        empresa_selecionada = empresas.filter(id=empresa_id_selecionada).first()
+        if not empresa_selecionada:
+            empresa_selecionada = empresas.first()
+    else:
+        empresa_selecionada = empresas.first()
+
+    # Buscar unidades e setores para filtros
+    dashboard_service = DashboardService()
+    empresa_id = str(empresa_selecionada.id)
+
+    unidades = list(Unidade.objects.filter(
+        empresa_id=empresa_id
+    ).values('id', 'nome'))
+
+    setores = []
+    for unidade in Unidade.objects.filter(empresa_id=empresa_id):
+        setores.extend(
+            unidade.setores.values('id', 'nome', unidade_id=F('unidade_id'))
+        )
+
+    context = {
+        'empresa': empresa_selecionada,
+        'empresas': empresas,
+        'tem_multiplas_empresas': empresas.count() > 1,
+        'unidades': json.dumps([{
+            'id': str(u['id']),
+            'nome': u['nome']
+        } for u in unidades], cls=DjangoJSONEncoder),
+        'setores': json.dumps([{
+            'id': str(s['id']),
+            'nome': s['nome'],
+            'unidade_id': str(s['unidade_id'])
+        } for s in setores], cls=DjangoJSONEncoder),
+    }
+
+    # Auditoria
+    AuditService.log(
+        action='DASHBOARD_GRAFICOS_ACCESSED',
+        description=f'Dashboard de gráficos acessado por {request.user.username}',
+        user=request.user,
+        ip_address=AuditService.get_client_ip(request),
+        user_agent=AuditService.get_user_agent(request),
+        metadata={
+            'empresa_id': empresa_id,
+            'empresa_nome': empresa_selecionada.nome,
+        }
+    )
+
+    template = 'dashboard/graficos_content.html' if request.htmx else 'dashboard/graficos.html'
+    return render(request, template, context)
 
 
 @login_required
 def dashboard_dimensoes_view(request):
-    """Dashboard com análise de dimensões"""
+    """Dashboard com análise de dimensões - HTMX-ready"""
 
     if not hasattr(request.user, 'perfil_acesso'):
-        return render(request, 'dashboard/sem_acesso.html')
+        template = 'dashboard/sem_acesso_content.html' if request.htmx else 'dashboard/sem_acesso.html'
+        return render(request, template)
 
     perfil = request.user.perfil_acesso
 
@@ -243,4 +380,231 @@ def dashboard_dimensoes_view(request):
         'tem_multiplas_empresas': empresas.count() > 1,
     }
 
-    return render(request, 'dashboard/dimensoes.html', context)
+    template = 'dashboard/dimensoes_content.html' if request.htmx else 'dashboard/dimensoes.html'
+    return render(request, template, context)
+
+
+# ============================================================================
+# APIs para Filtros Dinâmicos - Análises Avançadas
+# ============================================================================
+
+@login_required
+@require_GET
+def api_radar_multinivel(request):
+    """
+    API para obter dados do radar com filtros dinâmicos.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        unidade: UUID da unidade (opcional)
+        setor: UUID do setor (opcional)
+        cargo: UUID do cargo (opcional)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    # Verificar acesso à empresa
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    unidade_id = request.GET.get('unidade')
+    setor_id = request.GET.get('setor')
+    cargo_id = request.GET.get('cargo')
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_radar_multinivel(
+        empresa_id,
+        unidade_id=unidade_id,
+        setor_id=setor_id,
+        cargo_id=cargo_id
+    )
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_distribuicao_respostas(request):
+    """
+    API para obter distribuição de respostas com filtros dinâmicos.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        unidade: UUID da unidade (opcional)
+        setor: UUID do setor (opcional)
+        cargo: UUID do cargo (opcional)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    unidade_id = request.GET.get('unidade')
+    setor_id = request.GET.get('setor')
+    cargo_id = request.GET.get('cargo')
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_distribuicao_respostas_completa(
+        empresa_id,
+        unidade_id=unidade_id,
+        setor_id=setor_id,
+        cargo_id=cargo_id
+    )
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_scores_agrupamento(request):
+    """
+    API para obter scores por agrupamento.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        agrupamento: 'unidade', 'setor' ou 'cargo' (default: 'unidade')
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    agrupamento = request.GET.get('agrupamento', 'unidade')
+    if agrupamento not in ['unidade', 'setor', 'cargo']:
+        agrupamento = 'unidade'
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_scores_por_agrupamento(empresa_id, agrupamento)
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_cargos_disponiveis(request):
+    """
+    API para obter lista de cargos disponíveis para filtros.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    dashboard_service = DashboardService()
+    cargos = dashboard_service.get_cargos_disponiveis(empresa_id)
+
+    return JsonResponse({'cargos': cargos}, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_evolucao_temporal(request):
+    """
+    API para obter evolução temporal dos scores.
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        unidade: UUID da unidade (opcional)
+        setor: UUID do setor (opcional)
+        periodo: 'diario', 'semanal' ou 'mensal' (default: 'mensal')
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    unidade_id = request.GET.get('unidade')
+    setor_id = request.GET.get('setor')
+    periodo = request.GET.get('periodo', 'mensal')
+
+    if periodo not in ['diario', 'semanal', 'mensal']:
+        periodo = 'mensal'
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_evolucao_temporal(
+        empresa_id,
+        unidade_id=unidade_id,
+        setor_id=setor_id,
+        periodo=periodo
+    )
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)
+
+
+@login_required
+@require_GET
+def api_matriz_nr1(request):
+    """
+    API para obter matriz NR-1 (Probabilidade × Severidade).
+
+    Query params:
+        empresa: UUID da empresa (obrigatório)
+        unidade: UUID da unidade (opcional)
+        setor: UUID do setor (opcional)
+    """
+    if not hasattr(request.user, 'perfil_acesso'):
+        return JsonResponse({'error': 'Sem acesso'}, status=403)
+
+    perfil = request.user.perfil_acesso
+    empresas = perfil.get_empresas()
+
+    empresa_id = request.GET.get('empresa')
+    if not empresa_id:
+        return JsonResponse({'error': 'Empresa não especificada'}, status=400)
+
+    if not empresas.filter(id=empresa_id).exists():
+        return JsonResponse({'error': 'Acesso negado'}, status=403)
+
+    unidade_id = request.GET.get('unidade')
+    setor_id = request.GET.get('setor')
+
+    dashboard_service = DashboardService()
+    dados = dashboard_service.get_matriz_nr1_completa(
+        empresa_id,
+        unidade_id=unidade_id,
+        setor_id=setor_id
+    )
+
+    return JsonResponse(dados, encoder=DjangoJSONEncoder)

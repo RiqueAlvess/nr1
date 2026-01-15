@@ -1,0 +1,307 @@
+/**
+ * Animations - Vivamente360
+ * Centraliza todas as animações CSS usadas no sistema
+ */
+
+/* ============================================
+   Fade In Up (Entrada de elementos)
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeInUp 0.5s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+.delay-4 { animation-delay: 0.4s; }
+.delay-5 { animation-delay: 0.5s; }
+
+/* ============================================
+   Confetti Animation
+   ============================================ */
+.confetti-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 10;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    top: -20px;
+    animation: confetti-fall 4s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        transform: translateY(0) rotate(0deg) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg) scale(0.5);
+        opacity: 0;
+    }
+}
+
+/* ============================================
+   Success Icon Animation (obrigado.html)
+   ============================================ */
+@keyframes success-pop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes success-ring {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: scale(2);
+        opacity: 0;
+    }
+}
+
+.success-icon {
+    animation: success-pop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+.success-ring {
+    position: absolute;
+    inset: 0;
+    border: 3px solid #1EEB88;
+    border-radius: 50%;
+    animation: success-ring 1.5s ease-out infinite;
+}
+
+/* Checkmark animation */
+@keyframes checkmark {
+    0% {
+        stroke-dashoffset: 100;
+    }
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+.checkmark-path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: checkmark 0.8s ease-out 0.3s forwards;
+}
+
+/* ============================================
+   Icon Pop Animation (ja_respondido.html)
+   ============================================ */
+@keyframes icon-pop {
+    0% {
+        transform: scale(0) rotate(-180deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+    }
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.animate-icon-pop {
+    animation: icon-pop 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+}
+
+/* ============================================
+   Pulse Ring Animation
+   ============================================ */
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(1.5);
+        opacity: 0;
+    }
+}
+
+.pulse-ring {
+    animation: pulse-ring 2s ease-out infinite;
+}
+
+/* ============================================
+   Icon Shake Animation (link_invalido.html)
+   ============================================ */
+@keyframes icon-shake {
+    0%, 100% {
+        transform: translateX(0) rotate(0deg);
+    }
+    25% {
+        transform: translateX(-10px) rotate(-5deg);
+    }
+    75% {
+        transform: translateX(10px) rotate(5deg);
+    }
+}
+
+.animate-icon-shake {
+    animation: icon-shake 0.6s ease-in-out;
+}
+
+/* ============================================
+   Warning Pulse Animation
+   ============================================ */
+@keyframes warning-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+}
+
+.warning-pulse {
+    animation: warning-pulse 2s ease-in-out infinite;
+}
+
+/* ============================================
+   Floating Animation
+   ============================================ */
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.floating {
+    animation: float 3s ease-in-out infinite;
+}
+
+/* ============================================
+   Pulse Green (Submit Button)
+   ============================================ */
+@keyframes pulse-green {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(30, 235, 136, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 12px rgba(30, 235, 136, 0);
+    }
+}
+
+.btn-submit-ready {
+    animation: pulse-green 2s infinite;
+}
+
+/* ============================================
+   Skeleton Loading Animation
+   ============================================ */
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #F8FAFC 25%,
+        #E2E8F0 50%,
+        #F8FAFC 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 0.375rem;
+}
+
+/* Variantes de skeleton */
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    margin-bottom: 0.75rem;
+    width: 60%;
+}
+
+.skeleton-card {
+    height: 200px;
+    width: 100%;
+}
+
+.skeleton-circle {
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+}
+
+/* ============================================
+   Spin Animation
+   ============================================ */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* ============================================
+   Bounce Animation
+   ============================================ */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-25%);
+    }
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite;
+}

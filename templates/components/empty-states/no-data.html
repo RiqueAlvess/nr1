@@ -1,0 +1,71 @@
+{% comment %}
+===========================================
+EMPTY STATE - No Data
+===========================================
+
+Componente de estado vazio quando não há dados disponíveis.
+
+USAGE:
+------
+{% include 'components/empty-states/no-data.html' with
+  title='No data yet'
+  message='Start by creating your first item'
+%}
+
+PARAMETERS:
+-----------
+- title: Título do empty state (default: 'No data available')
+- message: Mensagem explicativa (opcional)
+- icon: Ícone Lucide customizado (default: 'inbox')
+- action_text: Texto do botão de ação (opcional)
+- action_url: URL do botão de ação (opcional)
+- action_onclick: Atributo onclick do botão (opcional)
+- extra_classes: Classes CSS adicionais
+
+EXAMPLES:
+---------
+Basic:
+{% include 'components/empty-states/no-data.html' %}
+
+With action:
+{% include 'components/empty-states/no-data.html' with
+  title='No users yet'
+  message='Create your first user to get started'
+  action_text='Add User'
+  action_url='/users/create'
+%}
+
+Custom icon:
+{% include 'components/empty-states/no-data.html' with
+  icon='users'
+  title='No team members'
+%}
+{% endcomment %}
+
+<div class="flex flex-col items-center justify-center py-12 px-4 text-center {{ extra_classes }}">
+  <div class="rounded-full bg-muted p-6 mb-4">
+    {% include 'components/icons/icon.html' with name=icon|default:'inbox' class='w-12 h-12 text-muted-foreground' %}
+  </div>
+
+  <h3 class="text-lg font-semibold mb-2">
+    {% if title %}{{ title }}{% else %}No data available{% endif %}
+  </h3>
+
+  {% if message %}
+  <p class="text-sm text-muted-foreground mb-6 max-w-sm">{{ message }}</p>
+  {% endif %}
+
+  {% if action_text %}
+    {% if action_url %}
+    <a href="{{ action_url }}" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground h-10 px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
+      {% include 'components/icons/icon.html' with name='plus' class='w-4 h-4' %}
+      {{ action_text }}
+    </a>
+    {% elif action_onclick %}
+    <button onclick="{{ action_onclick }}" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground h-10 px-4 py-2 text-sm font-medium hover:bg-primary/90 transition-colors">
+      {% include 'components/icons/icon.html' with name='plus' class='w-4 h-4' %}
+      {{ action_text }}
+    </button>
+    {% endif %}
+  {% endif %}
+</div>
