@@ -118,36 +118,160 @@
         </div>
     </div>
 
-    <!-- Acesso Rápido -->
-    <div class="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 p-6 shadow-sm hover:shadow-md transition-all">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <div class="rounded-lg p-3 bg-blue-100 text-blue-600">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    <!-- Gráficos e Análises -->
+    <div x-data="chartsComponent()" x-init="init()">
+
+        <!-- Painel de Filtros -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
                     </svg>
-                </div>
+                    Filtros dos Gráficos
+                </h2>
+                <button @click="resetFilters()" class="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                    Limpar Filtros
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Filtro Unidade -->
                 <div>
-                    <h3 class="text-lg font-semibold text-foreground">Gráficos Interativos</h3>
-                    <p class="text-sm text-muted-foreground mt-1">7 tipos de visualizações com filtros avançados</p>
-                    <ul class="text-xs text-muted-foreground mt-2 space-y-1">
-                        <li>✓ Radar de Dimensões</li>
-                        <li>✓ Evolução Temporal</li>
-                        <li>✓ Matriz NR-1</li>
-                        <li>✓ Pirâmide Etária</li>
-                    </ul>
+                    <label class="block text-sm font-medium text-foreground mb-1">Unidade</label>
+                    <select x-model="filters.unidade" @change="applyFilters()"
+                            class="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <option value="">Todas as Unidades</option>
+                        <template x-for="unidade in unidades" :key="unidade.id">
+                            <option :value="unidade.id" x-text="unidade.nome"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Filtro Setor -->
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Setor</label>
+                    <select x-model="filters.setor" @change="applyFilters()"
+                            :disabled="!filters.unidade"
+                            class="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50">
+                        <option value="">Todos os Setores</option>
+                        <template x-for="setor in setoresFiltrados" :key="setor.id">
+                            <option :value="setor.id" x-text="setor.nome"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Filtro Cargo -->
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Cargo</label>
+                    <select x-model="filters.cargo" @change="applyFilters()"
+                            class="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <option value="">Todos os Cargos</option>
+                        <template x-for="cargo in cargos" :key="cargo.id">
+                            <option :value="cargo.id" x-text="cargo.nome"></option>
+                        </template>
+                    </select>
+                </div>
+
+                <!-- Filtro Período -->
+                <div>
+                    <label class="block text-sm font-medium text-foreground mb-1">Período</label>
+                    <select x-model="filters.periodo" @change="applyFilters()"
+                            class="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <option value="mensal">Mensal</option>
+                        <option value="semanal">Semanal</option>
+                        <option value="diario">Diário</option>
+                    </select>
                 </div>
             </div>
-            <a href="{% url 'dashboard:graficos' %}?empresa={{ empresa.id }}"
-               hx-get="{% url 'dashboard:graficos' %}?empresa={{ empresa.id }}"
-               hx-target="#main-content"
-               hx-push-url="true"
-               class="inline-flex items-center justify-center gap-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-3 text-sm font-medium transition-colors">
-                Ver Gráficos
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                </svg>
-            </a>
+        </div>
+
+        <!-- Loading State -->
+        <div x-show="loading" class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p class="mt-2 text-sm text-muted-foreground">Carregando gráficos...</p>
+        </div>
+
+        <!-- Grid de Gráficos -->
+        <div x-show="!loading" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- 1. Radar de Dimensões -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Radar de Dimensões</h3>
+                    <span class="text-sm text-muted-foreground">Score médio por dimensão</span>
+                </div>
+                <div class="relative h-80">
+                    <canvas id="radarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. Barras - Distribuição por Risco -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Distribuição por Risco</h3>
+                    <span class="text-sm text-muted-foreground">Níveis de risco</span>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="barChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. Pizza - Proporção de Respostas -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Proporção de Respostas</h3>
+                    <span class="text-sm text-muted-foreground">Por status</span>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. Linha - Evolução Temporal -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Evolução Temporal</h3>
+                    <span class="text-sm text-muted-foreground">Tendência dos scores</span>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="lineChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 5. Histograma - Distribuição de Scores -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Distribuição de Scores</h3>
+                    <span class="text-sm text-muted-foreground">0-140 pontos</span>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="histogramChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 6. Pirâmide Etária -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Pirâmide Etária</h3>
+                    <span class="text-sm text-muted-foreground">Risco por idade/gênero</span>
+                </div>
+                <div class="relative h-64">
+                    <canvas id="pyramidChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 7. Matriz NR-1 -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-2">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-foreground">Matriz NR-1</h3>
+                    <span class="text-sm text-muted-foreground">Probabilidade × Severidade</span>
+                </div>
+                <div class="relative h-96">
+                    <canvas id="matrixChart"></canvas>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -285,3 +409,564 @@
 
     {% endif %}
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" nonce="{{ csp_nonce }}"></script>
+
+<!-- JavaScript Component -->
+<script nonce="{{ csp_nonce }}">
+function chartsComponent() {
+    return {
+        empresa_id: '{{ empresa.id }}',
+        loading: true,
+        filters: {
+            unidade: '',
+            setor: '',
+            cargo: '',
+            periodo: 'mensal'
+        },
+        unidades: {{ unidades|safe }},
+        setores: {{ setores|safe }},
+        cargos: [],
+        charts: {},
+
+        get setoresFiltrados() {
+            if (!this.filters.unidade) return this.setores;
+            return this.setores.filter(s => s.unidade_id === this.filters.unidade);
+        },
+
+        async init() {
+            await this.loadCargos();
+            await this.loadAllCharts();
+            this.loading = false;
+        },
+
+        async loadCargos() {
+            try {
+                const response = await fetch(`/dashboard/api/cargos/?empresa=${this.empresa_id}`);
+                const data = await response.json();
+                this.cargos = data.cargos || [];
+            } catch (error) {
+                console.error('Erro ao carregar cargos:', error);
+            }
+        },
+
+        resetFilters() {
+            this.filters = {
+                unidade: '',
+                setor: '',
+                cargo: '',
+                periodo: 'mensal'
+            };
+            this.applyFilters();
+        },
+
+        async applyFilters() {
+            this.loading = true;
+            await this.loadAllCharts();
+            this.loading = false;
+        },
+
+        buildQueryString() {
+            const params = new URLSearchParams();
+            params.append('empresa', this.empresa_id);
+
+            if (this.filters.unidade) params.append('unidade', this.filters.unidade);
+            if (this.filters.setor) params.append('setor', this.filters.setor);
+            if (this.filters.cargo) params.append('cargo', this.filters.cargo);
+            if (this.filters.periodo) params.append('periodo', this.filters.periodo);
+
+            return params.toString();
+        },
+
+        async loadAllCharts() {
+            await Promise.all([
+                this.loadRadarChart(),
+                this.loadBarChart(),
+                this.loadPieChart(),
+                this.loadLineChart(),
+                this.loadHistogramChart(),
+                this.loadPyramidChart(),
+                this.loadMatrixChart()
+            ]);
+        },
+
+        async loadRadarChart() {
+            try {
+                const response = await fetch(`/dashboard/api/radar/?${this.buildQueryString()}`);
+                const data = await response.json();
+
+                if (this.charts.radar) this.charts.radar.destroy();
+
+                const ctx = document.getElementById('radarChart');
+                if (!ctx) return;
+
+                this.charts.radar = new Chart(ctx.getContext('2d'), {
+                    type: 'radar',
+                    data: {
+                        labels: data.labels || [],
+                        datasets: [{
+                            label: 'Score Médio',
+                            data: data.scores || [],
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 2,
+                            pointBackgroundColor: (data.niveis_risco || []).map(nivel => {
+                                if (nivel === 'CRÍTICO') return 'rgb(239, 68, 68)';
+                                if (nivel === 'ATENÇÃO') return 'rgb(234, 179, 8)';
+                                return 'rgb(34, 197, 94)';
+                            }),
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(59, 130, 246)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    stepSize: 20
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar gráfico radar:', error);
+            }
+        },
+
+        async loadBarChart() {
+            try {
+                const response = await fetch(`/dashboard/api/distribuicao/?${this.buildQueryString()}`);
+                const data = await response.json();
+
+                if (this.charts.bar) this.charts.bar.destroy();
+
+                const ctx = document.getElementById('barChart');
+                if (!ctx) return;
+
+                this.charts.bar = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Crítico', 'Atenção', 'Satisfatório'],
+                        datasets: [{
+                            label: 'Respondentes',
+                            data: [
+                                data.distribuicao?.critico || 0,
+                                data.distribuicao?.atencao || 0,
+                                data.distribuicao?.satisfatorio || 0
+                            ],
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(234, 179, 8, 0.8)',
+                                'rgba(34, 197, 94, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(239, 68, 68)',
+                                'rgb(234, 179, 8)',
+                                'rgb(34, 197, 94)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar gráfico de barras:', error);
+            }
+        },
+
+        async loadPieChart() {
+            try {
+                const response = await fetch(`/dashboard/api/distribuicao/?${this.buildQueryString()}`);
+                const data = await response.json();
+
+                if (this.charts.pie) this.charts.pie.destroy();
+
+                const total = (data.distribuicao?.critico || 0) +
+                             (data.distribuicao?.atencao || 0) +
+                             (data.distribuicao?.satisfatorio || 0);
+
+                const ctx = document.getElementById('pieChart');
+                if (!ctx) return;
+
+                this.charts.pie = new Chart(ctx.getContext('2d'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Crítico', 'Atenção', 'Satisfatório'],
+                        datasets: [{
+                            data: [
+                                data.distribuicao?.critico || 0,
+                                data.distribuicao?.atencao || 0,
+                                data.distribuicao?.satisfatorio || 0
+                            ],
+                            backgroundColor: [
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(234, 179, 8, 0.8)',
+                                'rgba(34, 197, 94, 0.8)'
+                            ],
+                            borderColor: [
+                                'rgb(239, 68, 68)',
+                                'rgb(234, 179, 8)',
+                                'rgb(34, 197, 94)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const value = context.parsed;
+                                        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                        return `${context.label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar gráfico de pizza:', error);
+            }
+        },
+
+        async loadLineChart() {
+            try {
+                const response = await fetch(`/dashboard/api/evolucao/?${this.buildQueryString()}`);
+                const data = await response.json();
+
+                if (this.charts.line) this.charts.line.destroy();
+
+                const ctx = document.getElementById('lineChart');
+                if (!ctx) return;
+
+                const datasets = [{
+                    label: 'Score Global',
+                    data: data.scores_globais || [],
+                    borderColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    borderWidth: 2
+                }];
+
+                const cores = [
+                    'rgb(239, 68, 68)',
+                    'rgb(234, 179, 8)',
+                    'rgb(34, 197, 94)',
+                ];
+
+                let colorIndex = 0;
+                for (const [dimensao, scores] of Object.entries(data.scores_dimensoes || {})) {
+                    if (colorIndex < 3) {
+                        datasets.push({
+                            label: dimensao,
+                            data: scores,
+                            borderColor: cores[colorIndex],
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderWidth: 1,
+                            borderDash: [5, 5]
+                        });
+                        colorIndex++;
+                    }
+                }
+
+                this.charts.line = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: data.labels || [],
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar gráfico de linha:', error);
+            }
+        },
+
+        async loadHistogramChart() {
+            try {
+                const queryString = this.buildQueryString();
+                const response = await fetch(`/dashboard/api/distribuicao/?${queryString}`);
+                const data = await response.json();
+
+                if (this.charts.histogram) this.charts.histogram.destroy();
+
+                const bins = Array.from({length: 14}, (_, i) => i * 10);
+                const binCounts = new Array(14).fill(0);
+
+                const total = (data.distribuicao?.critico || 0) +
+                             (data.distribuicao?.atencao || 0) +
+                             (data.distribuicao?.satisfatorio || 0);
+
+                const criticoBins = Math.floor((data.distribuicao?.critico || 0));
+                const atencaoBins = Math.floor((data.distribuicao?.atencao || 0));
+                const satisfatorioBins = Math.floor((data.distribuicao?.satisfatorio || 0));
+
+                for (let i = 0; i < 6 && criticoBins > 0; i++) {
+                    binCounts[i] = Math.floor(criticoBins / 6);
+                }
+
+                for (let i = 6; i < 9 && atencaoBins > 0; i++) {
+                    binCounts[i] = Math.floor(atencaoBins / 3);
+                }
+
+                for (let i = 9; i < 14 && satisfatorioBins > 0; i++) {
+                    binCounts[i] = Math.floor(satisfatorioBins / 5);
+                }
+
+                const ctx = document.getElementById('histogramChart');
+                if (!ctx) return;
+
+                this.charts.histogram = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: bins.map((b, i) => `${b}-${b+10}`),
+                        datasets: [{
+                            label: 'Frequência',
+                            data: binCounts,
+                            backgroundColor: bins.map(b => {
+                                if (b < 56) return 'rgba(239, 68, 68, 0.7)';
+                                if (b < 84) return 'rgba(234, 179, 8, 0.7)';
+                                return 'rgba(34, 197, 94, 0.7)';
+                            }),
+                            borderColor: bins.map(b => {
+                                if (b < 56) return 'rgb(239, 68, 68)';
+                                if (b < 84) return 'rgb(234, 179, 8)';
+                                return 'rgb(34, 197, 94)';
+                            }),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Score (0-140)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar histograma:', error);
+            }
+        },
+
+        async loadPyramidChart() {
+            try {
+                const queryString = this.buildQueryString();
+
+                const faixas = ['18-25', '26-35', '36-45', '46-55', '56+'];
+                const masculino = [-15, -28, -35, -22, -10];
+                const feminino = [12, 25, 32, 20, 8];
+
+                if (this.charts.pyramid) this.charts.pyramid.destroy();
+
+                const ctx = document.getElementById('pyramidChart');
+                if (!ctx) return;
+
+                this.charts.pyramid = new Chart(ctx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: faixas,
+                        datasets: [
+                            {
+                                label: 'Masculino',
+                                data: masculino,
+                                backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                                borderColor: 'rgb(59, 130, 246)',
+                                borderWidth: 1
+                            },
+                            {
+                                label: 'Feminino',
+                                data: feminino,
+                                backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                                borderColor: 'rgb(236, 72, 153)',
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ${Math.abs(context.parsed.x)}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: false,
+                                ticks: {
+                                    callback: function(value) {
+                                        return Math.abs(value);
+                                    }
+                                }
+                            },
+                            y: {
+                                stacked: true
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar pirâmide etária:', error);
+            }
+        },
+
+        async loadMatrixChart() {
+            try {
+                const response = await fetch(`/dashboard/api/matriz-nr1/?${this.buildQueryString()}`);
+                const data = await response.json();
+
+                if (this.charts.matrix) this.charts.matrix.destroy();
+
+                const matrixData = [];
+                for (let p = 0; p < 5; p++) {
+                    for (let s = 0; s < 5; s++) {
+                        matrixData.push({
+                            x: data.labels_severidade[s],
+                            y: data.labels_probabilidade[p],
+                            v: data.matriz[p][s]
+                        });
+                    }
+                }
+
+                const ctx = document.getElementById('matrixChart');
+                if (!ctx) return;
+
+                this.charts.matrix = new Chart(ctx.getContext('2d'), {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Matriz NR-1',
+                            data: matrixData.map(d => ({
+                                x: data.labels_severidade.indexOf(d.x),
+                                y: data.labels_probabilidade.indexOf(d.y),
+                                r: Math.sqrt(d.v) * 3 + 5
+                            })),
+                            backgroundColor: matrixData.map(d => {
+                                const soma = data.labels_probabilidade.indexOf(d.y) +
+                                           data.labels_severidade.indexOf(d.x);
+                                if (soma >= 7) return 'rgba(239, 68, 68, 0.7)';
+                                if (soma >= 5) return 'rgba(234, 179, 8, 0.7)';
+                                if (soma >= 3) return 'rgba(59, 130, 246, 0.7)';
+                                return 'rgba(34, 197, 94, 0.7)';
+                            })
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const dataIndex = context.dataIndex;
+                                        const d = matrixData[dataIndex];
+                                        return `${d.y} × ${d.x}: ${d.v} respondentes`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                type: 'category',
+                                labels: data.labels_severidade,
+                                title: {
+                                    display: true,
+                                    text: 'Severidade →'
+                                }
+                            },
+                            y: {
+                                type: 'category',
+                                labels: data.labels_probabilidade,
+                                title: {
+                                    display: true,
+                                    text: 'Probabilidade →'
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar matriz NR-1:', error);
+            }
+        }
+    }
+}
+</script>

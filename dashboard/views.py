@@ -111,6 +111,17 @@ def dashboard_principal_view(request):
     histograma_scores = dashboard_service.get_histograma_scores(empresa_id)
     cargos_disponiveis = dashboard_service.get_cargos_disponiveis(empresa_id)
 
+    # Buscar unidades e setores para filtros dos gráficos
+    unidades = list(Unidade.objects.filter(
+        empresa_id=empresa_id
+    ).values('id', 'nome'))
+
+    setores = []
+    for unidade in Unidade.objects.filter(empresa_id=empresa_id):
+        setores.extend(
+            unidade.setores.values('id', 'nome', 'unidade_id')
+        )
+
     context = {
         # Dados originais para uso no template HTML
         'kpis': kpis,
@@ -147,7 +158,17 @@ def dashboard_principal_view(request):
         'empresas': empresas,
         'empresa_selecionada_id': str(empresa_selecionada.id),
         'tem_multiplas_empresas': empresas.count() > 1,
-        'perfil': perfil
+        'perfil': perfil,
+        # Dados para filtros dos gráficos
+        'unidades': json.dumps([{
+            'id': str(u['id']),
+            'nome': u['nome']
+        } for u in unidades], cls=DjangoJSONEncoder),
+        'setores': json.dumps([{
+            'id': str(s['id']),
+            'nome': s['nome'],
+            'unidade_id': str(s['unidade_id'])
+        } for s in setores], cls=DjangoJSONEncoder),
     }
 
     # Se requisição HTMX, retorna apenas o conteúdo
@@ -312,7 +333,7 @@ def dashboard_graficos_view(request):
     setores = []
     for unidade in Unidade.objects.filter(empresa_id=empresa_id):
         setores.extend(
-            unidade.setores.values('id', 'nome', unidade_id=F('unidade_id'))
+            unidade.setores.values('id', 'nome', 'unidade_id')
         )
 
     context = {
