@@ -239,48 +239,51 @@ CACHE_TTL = {
 }
 
 # ============================================================================
-# CELERY - ASYNC TASKS
+# CELERY - ASYNC TASKS (DESABILITADO - Envio de e-mails é síncrono)
 # ============================================================================
+# NOTA: Celery/Redis foram removidos para simplificar o envio de e-mails.
+# Os e-mails agora são enviados de forma síncrona diretamente do backend.
+# Se necessário reativar o Celery no futuro, descomente as linhas abaixo.
 
-# Broker e Backend
-CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
-CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://127.0.0.1:6379/0')
+# # Broker e Backend
+# CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://127.0.0.1:6379/0')
+# CELERY_RESULT_BACKEND = config('CELERY_RESULT_BACKEND', default='redis://127.0.0.1:6379/0')
 
-# Configurações
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ENABLE_UTC = True
+# # Configurações
+# CELERY_ACCEPT_CONTENT = ['json']
+# CELERY_TASK_SERIALIZER = 'json'
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TIMEZONE = TIME_ZONE
+# CELERY_ENABLE_UTC = True
 
-# Task routing
-CELERY_TASK_ROUTES = {
-    'quiz.tasks.send_magic_links_async': {'queue': 'emails'},
-    'emails.tasks.send_email_task': {'queue': 'emails'},
-    'usercompany.tasks.atualizar_contador_notificacoes_empresa_task': {'queue': 'default'},
-    'core.tasks.purge_expired_data': {'queue': 'maintenance'},
-}
+# # Task routing
+# CELERY_TASK_ROUTES = {
+#     'quiz.tasks.send_magic_links_async': {'queue': 'emails'},
+#     'emails.tasks.send_email_task': {'queue': 'emails'},
+#     'usercompany.tasks.atualizar_contador_notificacoes_empresa_task': {'queue': 'default'},
+#     'core.tasks.purge_expired_data': {'queue': 'maintenance'},
+# }
 
-# Rate limiting configurável via env (padrão: 100 emails por hora)
-SEND_RATE_LIMIT = config('SEND_RATE_LIMIT', default='100/h')
+# # Rate limiting configurável via env (padrão: 100 emails por hora)
+# SEND_RATE_LIMIT = config('SEND_RATE_LIMIT', default='100/h')
 
-# Rate limiting para tarefas de email (respeitar free tier da API)
-CELERY_TASK_ANNOTATIONS = {
-    'quiz.tasks.send_magic_links_async': {'rate_limit': '100/h'},  # 100 emails por hora
-    'emails.tasks.send_email_task': {'rate_limit': SEND_RATE_LIMIT},  # Rate limit configurável
-}
+# # Rate limiting para tarefas de email (respeitar free tier da API)
+# CELERY_TASK_ANNOTATIONS = {
+#     'quiz.tasks.send_magic_links_async': {'rate_limit': '100/h'},  # 100 emails por hora
+#     'emails.tasks.send_email_task': {'rate_limit': SEND_RATE_LIMIT},  # Rate limit configurável
+# }
 
-# Retry policy
-CELERY_TASK_ACKS_LATE = True
-CELERY_TASK_REJECT_ON_WORKER_LOST = True
+# # Retry policy
+# CELERY_TASK_ACKS_LATE = True
+# CELERY_TASK_REJECT_ON_WORKER_LOST = True
 
-# Beat schedule (tarefas periódicas)
-CELERY_BEAT_SCHEDULE = {
-    'purge-expired-data-daily': {
-        'task': 'core.tasks.purge_expired_data',
-        'schedule': 86400.0,  # 24 horas
-    },
-}
+# # Beat schedule (tarefas periódicas)
+# CELERY_BEAT_SCHEDULE = {
+#     'purge-expired-data-daily': {
+#         'task': 'core.tasks.purge_expired_data',
+#         'schedule': 86400.0,  # 24 horas
+#     },
+# }
 
 # ============================================================================
 # LGPD - RETENÇÃO DE DADOS
