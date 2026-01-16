@@ -56,4 +56,6 @@ tzlocal==5.3.1
 urllib3==2.6.2
 vine==5.1.0
 wcwidth==0.2.14
+gunicorn
+whitenoise
 wrapt==2.0.1
