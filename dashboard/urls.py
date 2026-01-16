@@ -17,4 +17,7 @@ urlpatterns = [
     path('api/cargos/', views.api_cargos_disponiveis, name='api_cargos'),
     path('api/evolucao/', views.api_evolucao_temporal, name='api_evolucao'),
     path('api/matriz-nr1/', views.api_matriz_nr1, name='api_matriz_nr1'),
+
+    # DEBUG - TEMPORÁRIO - REMOVER APÓS CORRIGIR
+    path('debug-data/', views.debug_dashboard_data, name='debug_data'),
 ]
