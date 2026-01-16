@@ -43,27 +43,27 @@
       try {
         const elKpis = document.getElementById('dados-kpis-json');
         kpis = elKpis ? JSON.parse(elKpis.textContent) : {};
-      } catch (e) { console.error('Erro ao parsear KPIs:', e); }
+      } catch (e) { /* silencioso */ }
 
       try {
         const elDim = document.getElementById('dados-dimensoes-json');
         dimensoes = elDim ? JSON.parse(elDim.textContent) : {};
-      } catch (e) { console.error('Erro ao parsear dimensões:', e); }
+      } catch (e) { /* silencioso */ }
 
       try {
         const elHist = document.getElementById('dados-histograma-json');
         histograma = elHist ? JSON.parse(elHist.textContent) : {};
-      } catch (e) { console.error('Erro ao parsear histograma:', e); }
+      } catch (e) { /* silencioso */ }
 
       try {
         const elPir = document.getElementById('dados-piramide-json');
         piramide = elPir ? JSON.parse(elPir.textContent) : {};
-      } catch (e) { console.error('Erro ao parsear pirâmide:', e); }
+      } catch (e) { /* silencioso */ }
 
       try {
         const elRadar = document.getElementById('dados-radar-json');
         radar = elRadar ? JSON.parse(elRadar.textContent) : {};
-      } catch (e) { console.error('Erro ao parsear radar:', e); }
+      } catch (e) { /* silencioso */ }
 
       // ========================================
       // CORES PADRÃO (mesmo padrão de unidades/setores)
@@ -114,7 +114,6 @@
           if (loadingDist) loadingDist.classList.add('hidden');
           if (containerDist) containerDist.classList.remove('hidden');
         } catch (e) {
-          console.error('Erro gráfico distribuição:', e);
           if (loadingDist) loadingDist.classList.add('hidden');
         }
       } else {
@@ -161,7 +160,6 @@
           if (loadingRadar) loadingRadar.classList.add('hidden');
           if (containerRadar) containerRadar.classList.remove('hidden');
         } catch (e) {
-          console.error('Erro gráfico radar:', e);
           if (loadingRadar) loadingRadar.classList.add('hidden');
         }
       } else {
@@ -205,7 +203,6 @@
           if (loadingHist) loadingHist.classList.add('hidden');
           if (containerHist) containerHist.classList.remove('hidden');
         } catch (e) {
-          console.error('Erro gráfico histograma:', e);
           if (loadingHist) loadingHist.classList.add('hidden');
         }
       } else {
@@ -256,7 +253,6 @@
           if (loadingDimChart) loadingDimChart.classList.add('hidden');
           if (containerDimChart) containerDimChart.classList.remove('hidden');
         } catch (e) {
-          console.error('Erro gráfico dimensões:', e);
           if (loadingDimChart) loadingDimChart.classList.add('hidden');
         }
       } else {
@@ -309,7 +305,6 @@
           if (loadingPir) loadingPir.classList.add('hidden');
           if (containerPir) containerPir.classList.remove('hidden');
         } catch (e) {
-          console.error('Erro gráfico pirâmide:', e);
           if (loadingPir) loadingPir.classList.add('hidden');
         }
       } else {
@@ -322,8 +317,6 @@
       if (typeof lucide !== 'undefined') {
         lucide.createIcons();
       }
-
-      console.log('✅ Dashboard charts initialized');
     });
   </script>
 {% endblock %}

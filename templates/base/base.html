@@ -222,15 +222,6 @@
                 }));
             }
         }
-
-        // Performance logging
-        window.addEventListener('load', function() {
-            if (performance && performance.timing) {
-                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-                console.log(`✨ Página carregada em ${loadTime}ms`);
-            }
-            console.log('✅ Vivamente360 - Sistema pronto!');
-        });
     </script>
 
     {% block extra_js %}{% endblock %}

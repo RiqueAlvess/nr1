@@ -130,6 +130,9 @@ def dashboard_principal_view(request):
         'dados_dimensoes': dados_dimensoes,
         'estatisticas_avancadas': estatisticas_avancadas,
         'tempo_medio': tempo_medio,
+        'piramide_etaria': piramide_etaria,
+        'radar_multinivel': radar_multinivel,
+        'histograma_scores': histograma_scores,
         # Dados serializados em JSON para uso no JavaScript
         'kpis_json': json.dumps(kpis, cls=DjangoJSONEncoder),
         'dados_unidades_json': json.dumps(dados_unidades, cls=DjangoJSONEncoder),
