@@ -190,19 +190,23 @@ AXES_LOCKOUT_TEMPLATE = 'account/locked_out.html'
 AXES_USERNAME_FORM_FIELD = 'username'
 
 # ============================================================================
-# CACHE (produção simplificada)
+# CACHE - MEMÓRIA LOCAL (SEM REDIS)
 # ============================================================================
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # 🔹 LocMem no Render Free
-        'LOCATION': 'unique-snowflake',
-        'TIMEOUT': 300,
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'nr1-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,  # Máximo de 1000 entradas
+        }
     }
 }
+
+# Cache TTL (timeouts em segundos)
 CACHE_TTL = {
-    'dashboard_stats': 3600,
-    'dashboard_kpis': 1800,
-    'user_permissions': 600,
+    'dashboard_stats': 3600,   # 1 hora
+    'dashboard_kpis': 1800,    # 30 minutos
+    'user_permissions': 600,   # 10 minutos
 }
 
 # ============================================================================

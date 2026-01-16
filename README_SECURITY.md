@@ -205,18 +205,17 @@ python manage.py purge_expired_data --dry-run    # Simular sem deletar
 3. **MagicLink** expirados há mais de 1 ano
 4. **AuditLog** mais antigos que `DATA_RETENTION_YEARS` (padrão: 5 anos)
 
-#### Celery Task Automática
-**Arquivo:** `core/tasks.py` → `purge_expired_data()`
+#### Purge Automático via Cron Job
+**Arquivo:** `core/management/commands/purge_expired_data_cron.py`
 
-**Schedule:** Diário (configurado no `CELERY_BEAT_SCHEDULE`)
+Para executar o purge automaticamente em produção, configure um cron job:
 
-```python
-CELERY_BEAT_SCHEDULE = {
-    'purge-expired-data-daily': {
-        'task': 'core.tasks.purge_expired_data',
-        'schedule': 86400.0,  # 24 horas
-    },
-}
+```bash
+# Editar crontab
+crontab -e
+
+# Adicionar linha (executar diariamente às 3h da manhã)
+0 3 * * * cd /caminho/do/projeto && /caminho/do/venv/bin/python manage.py purge_expired_data_cron >> /var/log/nr1_purge.log 2>&1
 ```
 
 #### Campo de Expiração
@@ -256,55 +255,21 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ## 3. Performance
 
-### 3.1 Processamento Assíncrono (Celery)
+### 3.1 Envio de Emails Síncrono
 
-#### Configuração
-**Arquivo:** `nr1_platform/celery.py` (novo)
-**Inicialização:** `nr1_platform/__init__.py`
+**Arquivo:** `quiz/views.py` → `enviar_links_view()`
 
-```python
-# Broker e Backend
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
-
-# Task Routing
-CELERY_TASK_ROUTES = {
-    'quiz.tasks.send_magic_links_async': {'queue': 'emails'},
-    'core.tasks.purge_expired_data': {'queue': 'maintenance'},
-}
-
-# Rate Limiting
-CELERY_TASK_ANNOTATIONS = {
-    'quiz.tasks.send_magic_links_async': {'rate_limit': '100/h'},
-}
-```
-
-#### Task: Envio de Magic Links
-**Arquivo:** `quiz/tasks.py` → `send_magic_links_async()`
-
-**Features:**
-- ✅ Envio assíncrono em background
-- ✅ Rate limiting: 100 emails/hora (respeita free tier Resend API)
-- ✅ Delay de 36 segundos entre cada email
-- ✅ Retry automático (max 3 tentativas)
+**Implementação:**
+- ✅ Envio síncrono via `EmailService.send_magic_links()`
+- ✅ Rate limiting: 5 envios/hora por usuário (via `django-ratelimit`)
+- ✅ Retry automático na API Resend
 - ✅ Logging completo
 
-**View atualizada:** `quiz/views.py` → `enviar_links_view()`
-
-```python
-# Antes:
-enviados, erros = MagicLinkService.enviar_magic_links_bulk(...)
-
-# Depois:
-from quiz.tasks import send_magic_links_async
-send_magic_links_async.delay(colaboradores_ids, base_url)
-```
-
-**Impacto:** Resposta HTTP imediata + envio em background.
+**Impacto:** Para volumes pequenos (<50 colaboradores), o envio síncrono é adequado e simplifica a arquitetura.
 
 ---
 
-### 3.2 Cache Redis
+### 3.2 Cache em Memória
 
 #### Configuração
 **Arquivo:** `nr1_platform/settings.py`
@@ -312,14 +277,11 @@ send_magic_links_async.delay(colaboradores_ids, base_url)
 ```python
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'nr1-cache',
         'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
-        },
-        'KEY_PREFIX': 'nr1',
-        'TIMEOUT': 300,  # 5 minutos (padrão)
+            'MAX_ENTRIES': 1000,
+        }
     }
 }
 
@@ -330,6 +292,8 @@ CACHE_TTL = {
     'user_permissions': 600,  # 10 minutos
 }
 ```
+
+**Nota:** Cache em memória é resetado a cada reinício do servidor. Para cache persistente em produção, considere migrar para Redis no futuro.
 
 #### Uso Recomendado
 
@@ -374,16 +338,13 @@ def invalidate_dashboard_cache(sender, instance, **kwargs):
 pip install -r requirements.txt
 ```
 
-**Novas dependências:**
+**Principais dependências:**
 - `django-csp==3.8`
 - `django-ratelimit==4.1.0`
-- `django-axes==6.9.0`
-- `bleach==6.2.0`
+- `django-axes==8.1.0`
 - `django-encrypted-model-fields==0.6.5`
-- `cryptography==44.0.0`
-- `celery==5.4.0`
-- `redis==5.2.1`
-- `django-redis==5.4.0`
+- `cryptography==46.0.3`
+- `resend==2.19.0`
 
 ---
 
@@ -392,10 +353,12 @@ pip install -r requirements.txt
 **Arquivo:** `.env` (usar `.env.example` como referência)
 
 ```bash
-# Novas variáveis obrigatórias:
-REDIS_URL=redis://127.0.0.1:6379/1
-CELERY_BROKER_URL=redis://127.0.0.1:6379/0
-CELERY_RESULT_BACKEND=redis://127.0.0.1:6379/0
+# Variáveis obrigatórias:
+SECRET_KEY=<sua-secret-key>
+DATABASE_URL=postgresql://user:password@localhost:5432/nr1_db
+DEFAULT_FROM_EMAIL=noreply@yourdomain.com
+RESEND_API_KEY=re_your_api_key
+API_RESEND=re_your_api_key
 DATA_RETENTION_YEARS=5
 
 # IMPORTANTE: Gerar chave de criptografia separada
@@ -423,86 +386,22 @@ python manage.py migrate
 
 ---
 
-### 4.4 Instalar Redis
-
-**Ubuntu/Debian:**
-```bash
-sudo apt-get install redis-server
-sudo systemctl start redis
-```
-
-**MacOS:**
-```bash
-brew install redis
-brew services start redis
-```
-
-**Verificar:**
-```bash
-redis-cli ping  # Deve retornar "PONG"
-```
-
----
-
 ## 5. Execução
 
-### 5.1 Executar o Servidor Django
+### 5.1 Desenvolvimento Local
 
 ```bash
 python manage.py runserver
 ```
 
----
+### 5.2 Produção
 
-### 5.2 Executar o Celery Worker
-
+**Com Gunicorn:**
 ```bash
-celery -A nr1_platform worker --loglevel=info
+gunicorn nr1_platform.wsgi:application --bind 0.0.0.0:8000
 ```
 
-**Com queues específicas:**
-```bash
-celery -A nr1_platform worker -Q emails,maintenance --loglevel=info
-```
-
----
-
-### 5.3 Executar o Celery Beat (Scheduler)
-
-```bash
-celery -A nr1_platform beat --loglevel=info
-```
-
-**Nota:** Necessário para executar o purge automático diário.
-
----
-
-### 5.4 Executar Tudo em Produção (Supervisor/Systemd)
-
-**Exemplo com Supervisor:**
-
-```ini
-[program:nr1_web]
-command=/path/to/venv/bin/gunicorn nr1_platform.wsgi:application
-directory=/path/to/nr1
-user=www-data
-autostart=true
-autorestart=true
-
-[program:nr1_celery]
-command=/path/to/venv/bin/celery -A nr1_platform worker --loglevel=info
-directory=/path/to/nr1
-user=www-data
-autostart=true
-autorestart=true
-
-[program:nr1_celery_beat]
-command=/path/to/venv/bin/celery -A nr1_platform beat --loglevel=info
-directory=/path/to/nr1
-user=www-data
-autostart=true
-autorestart=true
-```
+**Nota:** Para purge automático de dados, configure um cron job conforme descrito na seção 2.4.
 
 ---
 
@@ -525,11 +424,10 @@ autorestart=true
 - [x] Auditoria completa de consentimentos
 
 ### ✅ Performance
-- [x] Celery configurado para tarefas assíncronas
-- [x] Envio de magic links em background
-- [x] Redis configurado para cache
-- [x] Purge automático diário
-- [x] Rate limiting de tasks (respeita API limits)
+- [x] Envio de magic links síncrono (adequado para volumes pequenos)
+- [x] Cache em memória (LocMemCache)
+- [x] Management command para purge de dados
+- [x] Rate limiting em views críticas (respeita API limits)
 
 ---
 
@@ -552,25 +450,24 @@ autorestart=true
 
 1. **Migrações de Dados:** O campo `email` criptografado requer migração manual dos dados existentes.
 2. **Chave de Criptografia:** NUNCA committar `FIELD_ENCRYPTION_KEY` no repositório.
-3. **Redis:** Necessário em produção para Celery e cache funcionarem.
-4. **Celery Beat:** Executar em produção para purge automático diário.
+3. **Cache em Memória:** Cache é resetado a cada reinício do servidor. Adequado para volumes pequenos.
+4. **Purge Automático:** Configure cron job em produção para executar purge diário.
 5. **SSL em Produção:** Habilitar `SECURE_SSL_REDIRECT=True` apenas em HTTPS.
+6. **Envio de Emails:** Síncrono - adequado para <50 colaboradores por envio.
 
 ---
 
 ## 🔐 Checklist de Deploy
 
 - [ ] Dependências instaladas (`pip install -r requirements.txt`)
-- [ ] Redis instalado e rodando
 - [ ] `.env` configurado com todas as variáveis
 - [ ] `FIELD_ENCRYPTION_KEY` gerada e configurada
 - [ ] Migrações executadas (`python manage.py migrate`)
-- [ ] Django rodando
-- [ ] Celery Worker rodando
-- [ ] Celery Beat rodando
+- [ ] Django/Gunicorn rodando
+- [ ] Cron job configurado para purge de dados (opcional)
 - [ ] SSL/HTTPS habilitado em produção
 - [ ] Headers de segurança verificados
-- [ ] Teste de envio de email assíncrono
+- [ ] Teste de envio de email síncrono
 - [ ] Teste de purge de dados (`--dry-run`)
 
 ---
