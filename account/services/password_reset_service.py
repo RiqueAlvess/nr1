@@ -74,28 +74,35 @@ class PasswordResetService:
             text_message = strip_tags(html_message)
             subject = 'Redefinição de Senha - Plataforma NR-1'
 
-            # Enfileirar envio via Celery
+            # Enviar email de forma síncrona
             logger.info(
-                f"[CELERY DEBUG] Disparando task send_email_task | "
+                f"[EMAIL] Enviando email de redefinição de senha | "
                 f"to_email={user.email} | subject={subject}"
             )
 
             try:
-                task_result = send_email_task.delay(
+                result = send_email_task(
                     to_email=user.email,
                     subject=subject,
                     html_body=html_message,
                     text_body=text_message
                 )
 
-                logger.info(
-                    f"[CELERY DEBUG] Task enfileirada com sucesso | "
-                    f"task_id={task_result.id} | to_email={user.email} | "
-                    f"Token: {reset_token.token[:10]}..."
-                )
+                if result['status'] == 'success':
+                    logger.info(
+                        f"[EMAIL] Email enviado com sucesso | "
+                        f"email_id={result.get('email_id')} | to_email={user.email} | "
+                        f"Token: {reset_token.token[:10]}..."
+                    )
+                else:
+                    logger.error(
+                        f"[EMAIL] Falha ao enviar email: {result.get('message')} | "
+                        f"to_email={user.email}"
+                    )
+                    return False
             except Exception as e:
                 logger.error(
-                    f"[CELERY DEBUG] ERRO ao enfileirar task: {str(e)} | "
+                    f"[EMAIL] ERRO ao enviar email: {str(e)} | "
                     f"to_email={user.email}",
                     exc_info=True
                 )

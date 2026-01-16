@@ -1,12 +1,10 @@
-from celery import shared_task
 import logging
 
 logger = logging.getLogger('nr1')
 
-@shared_task(name='usercompany.tasks.atualizar_contador_notificacoes_empresa_task', bind=True, max_retries=3)
-def atualizar_contador_notificacoes_empresa_task(self, company_id):
+def atualizar_contador_notificacoes_empresa_task(company_id):
     """
-    Stub/implementação mínima para evitar KeyError.
+    Stub/implementação mínima para atualizar contador de notificações.
     Substitua pelo código real que atualiza contador de notificações.
     """
     try:
@@ -15,4 +13,4 @@ def atualizar_contador_notificacoes_empresa_task(self, company_id):
         return True
     except Exception as e:
         logger.exception("Erro em atualizar_contador_notificacoes_empresa_task")
-        raise self.retry(exc=e, countdown=60)
+        raise
