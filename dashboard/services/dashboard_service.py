@@ -572,11 +572,22 @@ class DashboardService:
         Returns:
             Dict com scores médios e distribuição por gênero
         """
+        # OTIMIZAÇÃO: Carregar apenas campos necessários
         respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).select_related('magic_link__colaborador')
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+            score_global__isnull=False
+        ).select_related(
+            'magic_link__colaborador'
+        ).only(
+            'score_global',
+            'magic_link__colaborador__sexo'
+        ).defer(
+            'respostas',
+            'scores_dimensoes'
+        )
 
-        if respostas.count() == 0:
+        total_respostas = respostas.count()
+        if total_respostas == 0:
             return {
                 'por_genero': {},
                 'total': 0
@@ -586,10 +597,8 @@ class DashboardService:
         por_genero = defaultdict(list)
 
         for resposta in respostas:
-            colaborador = resposta.magic_link.colaborador
-            sexo = colaborador.sexo
-            if resposta.score_global is not None:
-                por_genero[sexo].append(resposta.score_global)
+            sexo = resposta.magic_link.colaborador.sexo
+            por_genero[sexo].append(resposta.score_global)
 
         # Calcular estatísticas por gênero
         resultado = {}
@@ -607,7 +616,7 @@ class DashboardService:
 
         return {
             'por_genero': resultado,
-            'total': respostas.count()
+            'total': total_respostas
         }
 
     def get_analise_por_faixa_etaria(self, empresa_id: str) -> Dict[str, Any]:
@@ -620,11 +629,22 @@ class DashboardService:
         Returns:
             Dict com scores médios e distribuição por faixa etária
         """
+        # OTIMIZAÇÃO: Carregar apenas campos necessários, sem JSONField pesado
         respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).select_related('magic_link__colaborador')
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+            score_global__isnull=False
+        ).select_related(
+            'magic_link__colaborador'
+        ).only(
+            'score_global',
+            'magic_link__colaborador__data_nascimento'
+        ).defer(
+            'respostas',
+            'scores_dimensoes'
+        )
 
-        if respostas.count() == 0:
+        total_respostas = respostas.count()
+        if total_respostas == 0:
             return {
                 'por_faixa': {},
                 'total': 0
@@ -633,15 +653,38 @@ class DashboardService:
         # Agrupar por faixa etária
         por_faixa = defaultdict(list)
 
+        # Helper para calcular faixa etária
+        from datetime import date
+        today = date.today()
+
         for resposta in respostas:
             colaborador = resposta.magic_link.colaborador
-            faixa = colaborador.faixa_etaria
-            if resposta.score_global is not None:
-                por_faixa[faixa].append(resposta.score_global)
+            # Calcular faixa inline para evitar property overhead
+            if colaborador.data_nascimento:
+                idade = today.year - colaborador.data_nascimento.year - (
+                    (today.month, today.day) < (colaborador.data_nascimento.month, colaborador.data_nascimento.day)
+                )
+                if idade < 18:
+                    faixa = 'Menor de 18'
+                elif idade < 25:
+                    faixa = '18-24'
+                elif idade < 30:
+                    faixa = '25-29'
+                elif idade < 40:
+                    faixa = '30-39'
+                elif idade < 50:
+                    faixa = '40-49'
+                elif idade < 60:
+                    faixa = '50-59'
+                else:
+                    faixa = '60+'
+            else:
+                faixa = 'Não informado'
+
+            por_faixa[faixa].append(resposta.score_global)
 
         # Calcular estatísticas por faixa
         resultado = {}
-
         faixas_ordem = ['18-24', '25-29', '30-39', '40-49', '50-59', '60+', 'Não informado']
 
         for faixa in faixas_ordem:
@@ -656,7 +699,7 @@ class DashboardService:
 
         return {
             'por_faixa': resultado,
-            'total': respostas.count()
+            'total': total_respostas
         }
 
     def get_piramide_etaria_com_risco(self, empresa_id: str) -> Dict[str, Any]:
@@ -669,11 +712,23 @@ class DashboardService:
         Returns:
             Dict com dados para pirâmide etária dividida por sexo e nível de risco
         """
+        # OTIMIZAÇÃO: Carregar apenas campos necessários
         respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).select_related('magic_link__colaborador')
+            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+            score_global__isnull=False
+        ).select_related(
+            'magic_link__colaborador'
+        ).only(
+            'score_global',
+            'magic_link__colaborador__data_nascimento',
+            'magic_link__colaborador__sexo'
+        ).defer(
+            'respostas',
+            'scores_dimensoes'
+        )
 
-        if respostas.count() == 0:
+        total_respostas = respostas.count()
+        if total_respostas == 0:
             return {
                 'faixas': [],
                 'masculino': {},
@@ -684,11 +739,45 @@ class DashboardService:
         # Estrutura de dados por faixa, sexo e nível de risco
         piramide = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
 
+        # Helper para calcular faixa etária e nível de risco inline
+        from datetime import date
+        today = date.today()
+
         for resposta in respostas:
             colaborador = resposta.magic_link.colaborador
-            faixa = colaborador.faixa_etaria
+
+            # Calcular faixa inline
+            if colaborador.data_nascimento:
+                idade = today.year - colaborador.data_nascimento.year - (
+                    (today.month, today.day) < (colaborador.data_nascimento.month, colaborador.data_nascimento.day)
+                )
+                if idade < 18:
+                    faixa = 'Menor de 18'
+                elif idade < 25:
+                    faixa = '18-24'
+                elif idade < 30:
+                    faixa = '25-29'
+                elif idade < 40:
+                    faixa = '30-39'
+                elif idade < 50:
+                    faixa = '40-49'
+                elif idade < 60:
+                    faixa = '50-59'
+                else:
+                    faixa = '60+'
+            else:
+                faixa = 'Não informado'
+
             sexo = colaborador.sexo
-            nivel_risco = resposta.get_nivel_risco_global()
+
+            # Calcular nível de risco inline (evitar chamada de método)
+            score = resposta.score_global
+            if score <= 35:
+                nivel_risco = 'CRÍTICO'
+            elif score <= 50:
+                nivel_risco = 'ATENÇÃO'
+            else:
+                nivel_risco = 'SATISFATÓRIO'
 
             piramide[faixa][sexo][nivel_risco] += 1
 
@@ -740,11 +829,21 @@ class DashboardService:
         Returns:
             Dict com scores por dimensão e gênero
         """
+        # OTIMIZAÇÃO: Carregar apenas campos necessários
+        # scores_dimensoes é necessário aqui, mas defer respostas
         respostas = Resposta.objects.filter(
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).select_related('magic_link__colaborador')
+        ).select_related(
+            'magic_link__colaborador'
+        ).only(
+            'scores_dimensoes',
+            'magic_link__colaborador__sexo'
+        ).defer(
+            'respostas'
+        )
 
-        if respostas.count() == 0:
+        total_respostas = respostas.count()
+        if total_respostas == 0:
             return {
                 'dimensoes': [],
                 'por_genero': {}
@@ -754,11 +853,13 @@ class DashboardService:
         dimensoes_por_genero = defaultdict(lambda: defaultdict(list))
 
         for resposta in respostas:
-            colaborador = resposta.magic_link.colaborador
-            sexo = colaborador.sexo
+            sexo = resposta.magic_link.colaborador.sexo
 
-            for dimensao_nome, dados in resposta.scores_dimensoes.items():
-                dimensoes_por_genero[sexo][dimensao_nome].append(dados['score'])
+            # Verificar se scores_dimensoes existe e não está vazio
+            if resposta.scores_dimensoes:
+                for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                    if isinstance(dados, dict) and 'score' in dados:
+                        dimensoes_por_genero[sexo][dimensao_nome].append(dados['score'])
 
         # Calcular médias
         resultado = defaultdict(dict)
@@ -768,8 +869,9 @@ class DashboardService:
             sexo_display = dict(Colaborador.SEXO_CHOICES).get(sexo, 'Não informado')
 
             for dimensao, scores in dimensoes.items():
-                todas_dimensoes.add(dimensao)
-                resultado[sexo_display][dimensao] = round(statistics.mean(scores), 2)
+                if scores:  # Verificar se há scores
+                    todas_dimensoes.add(dimensao)
+                    resultado[sexo_display][dimensao] = round(statistics.mean(scores), 2)
 
         return {
             'dimensoes': sorted(list(todas_dimensoes)),
