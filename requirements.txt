@@ -36,7 +36,6 @@ pytz==2025.2
 requests==2.32.5
 resend==2.19.0
 ruamel.yaml==0.19.0
-ruamel.yaml.clib==0.3.4
 six==1.17.0
 SQLAlchemy==2.0.45
 sqlparse==0.5.5
