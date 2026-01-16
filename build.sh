@@ -10,6 +10,7 @@ echo "📁 Coletando arquivos estáticos..."
 python manage.py collectstatic --no-input
 
 echo "🗃️ Executando migrações..."
+python manage.py makemigrations
 python manage.py migrate --no-input
 
 echo "👥 Configurando grupos de acesso..."
