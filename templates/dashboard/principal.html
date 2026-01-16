@@ -13,13 +13,23 @@
 
 {% block extra_js %}
   {# Passar dados de forma segura com json_script #}
-  {{ kpis|json_script:"dados-kpis-json" }}
-  {{ dados_dimensoes|json_script:"dados-dimensoes-json" }}
-  {{ histograma_scores|json_script:"dados-histograma-json" }}
-  {{ piramide_etaria|json_script:"dados-piramide-json" }}
-  {{ radar_multinivel|json_script:"dados-radar-json" }}
+  {% if kpis %}
+    {{ kpis|json_script:"dados-kpis-json" }}
+  {% endif %}
+  {% if dados_dimensoes %}
+    {{ dados_dimensoes|json_script:"dados-dimensoes-json" }}
+  {% endif %}
+  {% if histograma_scores %}
+    {{ histograma_scores|json_script:"dados-histograma-json" }}
+  {% endif %}
+  {% if piramide_etaria %}
+    {{ piramide_etaria|json_script:"dados-piramide-json" }}
+  {% endif %}
+  {% if radar_multinivel %}
+    {{ radar_multinivel|json_script:"dados-radar-json" }}
+  {% endif %}
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
     document.addEventListener('DOMContentLoaded', function() {
       // ========================================
       // PARSE SEGURO DOS DADOS
@@ -56,7 +66,7 @@
       } catch (e) { console.error('Erro ao parsear radar:', e); }
 
       // ========================================
-      // CORES PADRÃO
+      // CORES PADRÃO (mesmo padrão de unidades/setores)
       // ========================================
       const cores = {
         critico: '#EF4444',
@@ -74,7 +84,7 @@
       const loadingDist = document.getElementById('chart-dist-loading');
       const containerDist = document.getElementById('chart-dist-container');
 
-      if (canvasDistribuicao && kpis.distribuicao_risco) {
+      if (canvasDistribuicao && kpis.distribuicao_risco && typeof Chart !== 'undefined') {
         try {
           new Chart(canvasDistribuicao.getContext('2d'), {
             type: 'doughnut',
@@ -96,7 +106,7 @@
               maintainAspectRatio: false,
               cutout: '60%',
               plugins: {
-                legend: { position: 'bottom', labels: { padding: 15 } },
+                legend: { position: 'bottom', labels: { padding: 15, font: { size: 12 } } },
                 tooltip: { padding: 12 }
               }
             }
@@ -107,6 +117,8 @@
           console.error('Erro gráfico distribuição:', e);
           if (loadingDist) loadingDist.classList.add('hidden');
         }
+      } else {
+        if (loadingDist) loadingDist.classList.add('hidden');
       }
 
       // ========================================
@@ -116,7 +128,7 @@
       const loadingRadar = document.getElementById('chart-radar-loading');
       const containerRadar = document.getElementById('chart-radar-container');
 
-      if (canvasRadar && radar && radar.labels && radar.scores) {
+      if (canvasRadar && radar && radar.labels && radar.scores && typeof Chart !== 'undefined') {
         try {
           new Chart(canvasRadar.getContext('2d'), {
             type: 'radar',
@@ -143,9 +155,7 @@
                   pointLabels: { font: { size: 11 } }
                 }
               },
-              plugins: {
-                legend: { display: false }
-              }
+              plugins: { legend: { display: false } }
             }
           });
           if (loadingRadar) loadingRadar.classList.add('hidden');
@@ -154,6 +164,8 @@
           console.error('Erro gráfico radar:', e);
           if (loadingRadar) loadingRadar.classList.add('hidden');
         }
+      } else {
+        if (loadingRadar) loadingRadar.classList.add('hidden');
       }
 
       // ========================================
@@ -163,7 +175,7 @@
       const loadingHist = document.getElementById('chart-hist-loading');
       const containerHist = document.getElementById('chart-hist-container');
 
-      if (canvasHistograma && histograma && histograma.labels && histograma.counts) {
+      if (canvasHistograma && histograma && histograma.labels && histograma.counts && typeof Chart !== 'undefined') {
         try {
           new Chart(canvasHistograma.getContext('2d'), {
             type: 'bar',
@@ -173,7 +185,8 @@
                 label: 'Frequência',
                 data: histograma.counts,
                 backgroundColor: cores.primary,
-                borderRadius: 4
+                borderRadius: 6,
+                borderSkipped: false
               }]
             },
             options: {
@@ -185,7 +198,7 @@
               },
               scales: {
                 y: { beginAtZero: true, title: { display: true, text: 'Quantidade' } },
-                x: { title: { display: true, text: 'Faixa de Score' } }
+                x: { title: { display: true, text: 'Faixa de Score' }, grid: { display: false } }
               }
             }
           });
@@ -195,88 +208,18 @@
           console.error('Erro gráfico histograma:', e);
           if (loadingHist) loadingHist.classList.add('hidden');
         }
+      } else {
+        if (loadingHist) loadingHist.classList.add('hidden');
       }
 
       // ========================================
-      // 4. PIRÂMIDE ETÁRIA POR RISCO E GÊNERO
-      // ========================================
-      const canvasPiramide = document.getElementById('graficoPiramide');
-      const loadingPir = document.getElementById('chart-pir-loading');
-      const containerPir = document.getElementById('chart-pir-container');
-
-      if (canvasPiramide && piramide && piramide.faixas) {
-        try {
-          const faixas = piramide.faixas;
-          const masc = piramide.masculino || {};
-          const fem = piramide.feminino || {};
-
-          // Dados para barras empilhadas horizontais
-          const mascAtencao = faixas.map(f => masc[f]?.atencao || 0);
-          const mascSatisf = faixas.map(f => masc[f]?.satisfatorio || 0);
-          const femAtencao = faixas.map(f => fem[f]?.atencao || 0);
-          const femSatisf = faixas.map(f => fem[f]?.satisfatorio || 0);
-
-          new Chart(canvasPiramide.getContext('2d'), {
-            type: 'bar',
-            data: {
-              labels: faixas,
-              datasets: [
-                {
-                  label: 'Masc. Atenção',
-                  data: mascAtencao,
-                  backgroundColor: 'rgba(250, 204, 21, 0.7)',
-                  stack: 'masc'
-                },
-                {
-                  label: 'Masc. Satisfatório',
-                  data: mascSatisf,
-                  backgroundColor: 'rgba(34, 197, 94, 0.7)',
-                  stack: 'masc'
-                },
-                {
-                  label: 'Fem. Atenção',
-                  data: femAtencao,
-                  backgroundColor: 'rgba(250, 204, 21, 1)',
-                  stack: 'fem'
-                },
-                {
-                  label: 'Fem. Satisfatório',
-                  data: femSatisf,
-                  backgroundColor: 'rgba(34, 197, 94, 1)',
-                  stack: 'fem'
-                }
-              ]
-            },
-            options: {
-              indexAxis: 'y',
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' },
-                title: { display: true, text: '← Masculino | Feminino →' }
-              },
-              scales: {
-                x: { stacked: true },
-                y: { stacked: true }
-              }
-            }
-          });
-          if (loadingPir) loadingPir.classList.add('hidden');
-          if (containerPir) containerPir.classList.remove('hidden');
-        } catch (e) {
-          console.error('Erro gráfico pirâmide:', e);
-          if (loadingPir) loadingPir.classList.add('hidden');
-        }
-      }
-
-      // ========================================
-      // 5. GRÁFICO DE BARRAS POR DIMENSÃO
+      // 4. GRÁFICO DE BARRAS POR DIMENSÃO
       // ========================================
       const canvasDimensoes = document.getElementById('graficoDimensoes');
       const loadingDimChart = document.getElementById('chart-dim-loading');
       const containerDimChart = document.getElementById('chart-dim-container');
 
-      if (canvasDimensoes && dimensoes && dimensoes.dimensoes && dimensoes.dimensoes.length > 0) {
+      if (canvasDimensoes && dimensoes && dimensoes.dimensoes && dimensoes.dimensoes.length > 0 && typeof Chart !== 'undefined') {
         try {
           const dims = dimensoes.dimensoes;
           const labels = dims.map(d => d.dimensao);
@@ -295,18 +238,18 @@
                 label: 'Score Médio',
                 data: scores,
                 backgroundColor: bgColors,
-                borderRadius: 6
+                borderRadius: 6,
+                borderSkipped: false
               }]
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
               indexAxis: 'y',
-              plugins: {
-                legend: { display: false }
-              },
+              plugins: { legend: { display: false } },
               scales: {
-                x: { beginAtZero: true, max: 4 }
+                x: { beginAtZero: true, max: 4, grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { grid: { display: false } }
               }
             }
           });
@@ -316,6 +259,61 @@
           console.error('Erro gráfico dimensões:', e);
           if (loadingDimChart) loadingDimChart.classList.add('hidden');
         }
+      } else {
+        if (loadingDimChart) loadingDimChart.classList.add('hidden');
+      }
+
+      // ========================================
+      // 5. PIRÂMIDE ETÁRIA POR RISCO E GÊNERO
+      // ========================================
+      const canvasPiramide = document.getElementById('graficoPiramide');
+      const loadingPir = document.getElementById('chart-pir-loading');
+      const containerPir = document.getElementById('chart-pir-container');
+
+      if (canvasPiramide && piramide && piramide.faixas && typeof Chart !== 'undefined') {
+        try {
+          const faixas = piramide.faixas;
+          const masc = piramide.masculino || {};
+          const fem = piramide.feminino || {};
+
+          const mascAtencao = faixas.map(f => masc[f]?.atencao || 0);
+          const mascSatisf = faixas.map(f => masc[f]?.satisfatorio || 0);
+          const femAtencao = faixas.map(f => fem[f]?.atencao || 0);
+          const femSatisf = faixas.map(f => fem[f]?.satisfatorio || 0);
+
+          new Chart(canvasPiramide.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: faixas,
+              datasets: [
+                { label: 'Masc. Atenção', data: mascAtencao, backgroundColor: 'rgba(250, 204, 21, 0.6)', stack: 'masc' },
+                { label: 'Masc. Satisf.', data: mascSatisf, backgroundColor: 'rgba(34, 197, 94, 0.6)', stack: 'masc' },
+                { label: 'Fem. Atenção', data: femAtencao, backgroundColor: 'rgba(250, 204, 21, 1)', stack: 'fem' },
+                { label: 'Fem. Satisf.', data: femSatisf, backgroundColor: 'rgba(34, 197, 94, 1)', stack: 'fem' }
+              ]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom', labels: { font: { size: 11 } } },
+                title: { display: true, text: '← Masculino | Feminino →', font: { size: 12 } }
+              },
+              scales: {
+                x: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                y: { stacked: true, grid: { display: false } }
+              }
+            }
+          });
+          if (loadingPir) loadingPir.classList.add('hidden');
+          if (containerPir) containerPir.classList.remove('hidden');
+        } catch (e) {
+          console.error('Erro gráfico pirâmide:', e);
+          if (loadingPir) loadingPir.classList.add('hidden');
+        }
+      } else {
+        if (loadingPir) loadingPir.classList.add('hidden');
       }
 
       // ========================================
@@ -324,6 +322,8 @@
       if (typeof lucide !== 'undefined') {
         lucide.createIcons();
       }
+
+      console.log('✅ Dashboard charts initialized');
     });
   </script>
 {% endblock %}
