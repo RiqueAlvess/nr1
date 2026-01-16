@@ -118,137 +118,6 @@
         </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- SEÇÃO DE GRÁFICOS - Container Alpine.js     -->
-    <!-- ============================================ -->
-    <div x-data="dashboardApp()"
-         x-cloak
-         data-empresa="{{ empresa_selecionada_id }}"
-         data-kpis='{{ kpis_json|escapejs }}'
-         data-unidades='{{ dados_unidades_json|escapejs }}'
-         data-setores='{{ dados_setores_json|escapejs }}'
-         data-dimensoes='{{ dados_dimensoes_json|escapejs }}'
-         data-perguntas='{{ pontuacao_por_pergunta_json|escapejs }}'
-         data-histograma='{{ histograma_scores_json|escapejs }}'
-         data-radar='{{ radar_multinivel_json|escapejs }}'
-         data-piramide='{{ piramide_etaria_json|escapejs }}'
-         data-distribuicao='{{ distribuicao_respostas_json|escapejs }}'
-         class="space-y-6">
-
-        <!-- Filtros e Controles -->
-        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <h2 class="text-lg font-semibold text-foreground flex items-center gap-2">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5 text-primary"></i>
-                    Análises Gráficas
-                </h2>
-                <div class="flex flex-wrap items-center gap-3">
-                    <!-- Tipo de Visualização -->
-                    <select x-model="filtroTipo" @change="atualizarGraficos()"
-                            class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm">
-                        <option value="geral">Visão Geral</option>
-                        <option value="unidades">Por Unidade</option>
-                        <option value="setores">Por Setor</option>
-                        <option value="dimensoes">Por Dimensão</option>
-                    </select>
-
-                    <!-- Filtro de Unidade (apenas para setores) -->
-                    <select x-show="filtroTipo === 'setores'" x-model="filtroUnidade" @change="atualizarGraficos()"
-                            class="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm">
-                        <option value="">Todas as Unidades</option>
-                        <template x-for="unidade in dados.unidades" :key="unidade.unidade_id">
-                            <option :value="unidade.unidade_id" x-text="unidade.unidade_nome"></option>
-                        </template>
-                    </select>
-
-                    <!-- Tipo de Gráfico -->
-                    <div class="flex rounded-md border border-input overflow-hidden">
-                        <button @click="tipoGrafico = 'bar'; atualizarGraficos()"
-                                :class="tipoGrafico === 'bar' ? 'bg-primary text-white' : 'bg-background'"
-                                class="px-3 py-1.5 text-sm transition-colors">
-                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
-                        </button>
-                        <button @click="tipoGrafico = 'line'; atualizarGraficos()"
-                                :class="tipoGrafico === 'line' ? 'bg-primary text-white' : 'bg-background'"
-                                class="px-3 py-1.5 text-sm transition-colors border-x border-input">
-                            <i data-lucide="line-chart" class="w-4 h-4"></i>
-                        </button>
-                        <button @click="tipoGrafico = 'doughnut'; atualizarGraficos()"
-                                :class="tipoGrafico === 'doughnut' ? 'bg-primary text-white' : 'bg-background'"
-                                class="px-3 py-1.5 text-sm transition-colors">
-                            <i data-lucide="pie-chart" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Grid de Gráficos -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-            <!-- Gráfico Principal -->
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <h3 class="text-base font-semibold text-foreground mb-4" x-text="tituloGrafico"></h3>
-                <div id="chart-main-loading" class="flex items-center justify-center h-64">
-                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                </div>
-                <div id="chart-main-container" class="hidden" style="height: 280px;">
-                    <canvas id="graficoMain"></canvas>
-                </div>
-            </div>
-
-            <!-- Gráfico de Distribuição por Risco -->
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <h3 class="text-base font-semibold text-foreground mb-4">Distribuição por Nível de Risco</h3>
-                <div id="chart-dist-loading" class="flex items-center justify-center h-64">
-                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                </div>
-                <div id="chart-dist-container" class="hidden" style="height: 280px;">
-                    <canvas id="graficoDistribuicao"></canvas>
-                </div>
-            </div>
-
-            <!-- Gráfico Radar de Dimensões -->
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <h3 class="text-base font-semibold text-foreground mb-4">Perfil por Dimensões</h3>
-                <div style="height: 300px;">
-                    <canvas id="graficoRadar"></canvas>
-                </div>
-            </div>
-
-            <!-- Histograma de Scores -->
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <h3 class="text-base font-semibold text-foreground mb-4">Distribuição de Scores</h3>
-                <div style="height: 300px;">
-                    <canvas id="graficoHistograma"></canvas>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Seção de Análises Avançadas (opcional, se houver dados) -->
-        <template x-if="piramideData && piramideData.faixas">
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <h3 class="text-base font-semibold text-foreground mb-4">Pirâmide Etária por Risco</h3>
-                <div style="height: 350px;">
-                    <canvas id="graficoPiramide"></canvas>
-                </div>
-            </div>
-        </template>
-
-        <!-- Distribuição de Respostas por Pergunta -->
-        <template x-if="distribuicaoRespostas && distribuicaoRespostas.perguntas_info">
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-                <h3 class="text-base font-semibold text-foreground mb-4">Distribuição de Respostas por Pergunta</h3>
-                <div style="height: 350px;">
-                    <canvas id="graficoDistribuicaoPerguntas"></canvas>
-                </div>
-            </div>
-        </template>
-
-    </div>
-    <!-- FIM DA SEÇÃO DE GRÁFICOS -->
-
     <!-- Distribuição de Risco -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div class="rounded-xl border border-red-200 bg-red-50/50 p-6">
@@ -347,6 +216,93 @@
             </div>
         </div>
     </div>
+
+    <!-- ============================================ -->
+    <!-- SEÇÃO DE GRÁFICOS                           -->
+    <!-- ============================================ -->
+    <div class="space-y-6 mt-6">
+        <h2 class="text-xl font-semibold text-foreground flex items-center gap-2">
+            <i data-lucide="bar-chart-3" class="w-6 h-6 text-primary"></i>
+            Análises Gráficas
+        </h2>
+
+        <!-- Grid Principal de Gráficos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Gráfico 1: Distribuição por Nível de Risco (Donut) -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <i data-lucide="pie-chart" class="w-5 h-5 text-primary"></i>
+                    Distribuição por Nível de Risco
+                </h3>
+                <div id="chart-dist-loading" class="flex items-center justify-center h-64">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+                <div id="chart-dist-container" class="hidden" style="height: 280px;">
+                    <canvas id="graficoDistribuicao"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 2: Radar de Dimensões -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <i data-lucide="radar" class="w-5 h-5 text-primary"></i>
+                    Perfil por Dimensões
+                </h3>
+                <div id="chart-radar-loading" class="flex items-center justify-center h-64">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+                <div id="chart-radar-container" class="hidden" style="height: 280px;">
+                    <canvas id="graficoRadar"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 3: Histograma de Scores -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5 text-primary"></i>
+                    Distribuição de Scores (0-140)
+                </h3>
+                <div id="chart-hist-loading" class="flex items-center justify-center h-64">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+                <div id="chart-hist-container" class="hidden" style="height: 280px;">
+                    <canvas id="graficoHistograma"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 4: Score por Dimensão (Barras Horizontais) -->
+            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+                <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <i data-lucide="align-left" class="w-5 h-5 text-primary"></i>
+                    Score Médio por Dimensão
+                </h3>
+                <div id="chart-dim-loading" class="flex items-center justify-center h-64">
+                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+                </div>
+                <div id="chart-dim-container" class="hidden" style="height: 280px;">
+                    <canvas id="graficoDimensoes"></canvas>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Gráfico 5: Pirâmide Etária (Full Width) -->
+        <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <h3 class="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+                <i data-lucide="users" class="w-5 h-5 text-primary"></i>
+                Pirâmide Etária por Risco e Gênero
+            </h3>
+            <div id="chart-pir-loading" class="flex items-center justify-center h-80">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            </div>
+            <div id="chart-pir-container" class="hidden" style="height: 350px;">
+                <canvas id="graficoPiramide"></canvas>
+            </div>
+        </div>
+
+    </div>
+    <!-- FIM DA SEÇÃO DE GRÁFICOS -->
 
     <!-- Ações (apenas RH) -->
     {% if perfil.is_rh %}

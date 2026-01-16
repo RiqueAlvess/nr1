@@ -4,7 +4,7 @@
 {% block title %}Dashboard - Vivamente360{% endblock %}
 
 {% block chart_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" nonce="{{ csp_nonce }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}
 
 {% block content %}
@@ -12,5 +12,318 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dashboard-charts.js' %}" nonce="{{ csp_nonce }}"></script>
+  {# Passar dados de forma segura com json_script #}
+  {{ kpis|json_script:"dados-kpis-json" }}
+  {{ dados_dimensoes|json_script:"dados-dimensoes-json" }}
+  {{ histograma_scores|json_script:"dados-histograma-json" }}
+  {{ piramide_etaria|json_script:"dados-piramide-json" }}
+  {{ radar_multinivel|json_script:"dados-radar-json" }}
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // ========================================
+      // PARSE SEGURO DOS DADOS
+      // ========================================
+      let kpis = {};
+      let dimensoes = {};
+      let histograma = {};
+      let piramide = {};
+      let radar = {};
+
+      try {
+        const elKpis = document.getElementById('dados-kpis-json');
+        kpis = elKpis ? JSON.parse(elKpis.textContent) : {};
+      } catch (e) { console.error('Erro ao parsear KPIs:', e); }
+
+      try {
+        const elDim = document.getElementById('dados-dimensoes-json');
+        dimensoes = elDim ? JSON.parse(elDim.textContent) : {};
+      } catch (e) { console.error('Erro ao parsear dimensões:', e); }
+
+      try {
+        const elHist = document.getElementById('dados-histograma-json');
+        histograma = elHist ? JSON.parse(elHist.textContent) : {};
+      } catch (e) { console.error('Erro ao parsear histograma:', e); }
+
+      try {
+        const elPir = document.getElementById('dados-piramide-json');
+        piramide = elPir ? JSON.parse(elPir.textContent) : {};
+      } catch (e) { console.error('Erro ao parsear pirâmide:', e); }
+
+      try {
+        const elRadar = document.getElementById('dados-radar-json');
+        radar = elRadar ? JSON.parse(elRadar.textContent) : {};
+      } catch (e) { console.error('Erro ao parsear radar:', e); }
+
+      // ========================================
+      // CORES PADRÃO
+      // ========================================
+      const cores = {
+        critico: '#EF4444',
+        atencao: '#FACC15',
+        satisfatorio: '#22C55E',
+        primary: '#1EEB88',
+        secondary: '#0F3D52',
+        accent: '#6EDBC1'
+      };
+
+      // ========================================
+      // 1. GRÁFICO DE DISTRIBUIÇÃO POR RISCO (DONUT)
+      // ========================================
+      const canvasDistribuicao = document.getElementById('graficoDistribuicao');
+      const loadingDist = document.getElementById('chart-dist-loading');
+      const containerDist = document.getElementById('chart-dist-container');
+
+      if (canvasDistribuicao && kpis.distribuicao_risco) {
+        try {
+          new Chart(canvasDistribuicao.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+              labels: ['Crítico', 'Atenção', 'Satisfatório'],
+              datasets: [{
+                data: [
+                  kpis.distribuicao_risco.critico || 0,
+                  kpis.distribuicao_risco.atencao || 0,
+                  kpis.distribuicao_risco.satisfatorio || 0
+                ],
+                backgroundColor: [cores.critico, cores.atencao, cores.satisfatorio],
+                borderWidth: 2,
+                borderColor: '#fff'
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '60%',
+              plugins: {
+                legend: { position: 'bottom', labels: { padding: 15 } },
+                tooltip: { padding: 12 }
+              }
+            }
+          });
+          if (loadingDist) loadingDist.classList.add('hidden');
+          if (containerDist) containerDist.classList.remove('hidden');
+        } catch (e) {
+          console.error('Erro gráfico distribuição:', e);
+          if (loadingDist) loadingDist.classList.add('hidden');
+        }
+      }
+
+      // ========================================
+      // 2. GRÁFICO RADAR DE DIMENSÕES
+      // ========================================
+      const canvasRadar = document.getElementById('graficoRadar');
+      const loadingRadar = document.getElementById('chart-radar-loading');
+      const containerRadar = document.getElementById('chart-radar-container');
+
+      if (canvasRadar && radar && radar.labels && radar.scores) {
+        try {
+          new Chart(canvasRadar.getContext('2d'), {
+            type: 'radar',
+            data: {
+              labels: radar.labels,
+              datasets: [{
+                label: 'Score Médio',
+                data: radar.scores,
+                backgroundColor: 'rgba(30, 235, 136, 0.2)',
+                borderColor: cores.primary,
+                borderWidth: 2,
+                pointBackgroundColor: cores.primary,
+                pointRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                r: {
+                  beginAtZero: true,
+                  max: 4,
+                  ticks: { stepSize: 1 },
+                  pointLabels: { font: { size: 11 } }
+                }
+              },
+              plugins: {
+                legend: { display: false }
+              }
+            }
+          });
+          if (loadingRadar) loadingRadar.classList.add('hidden');
+          if (containerRadar) containerRadar.classList.remove('hidden');
+        } catch (e) {
+          console.error('Erro gráfico radar:', e);
+          if (loadingRadar) loadingRadar.classList.add('hidden');
+        }
+      }
+
+      // ========================================
+      // 3. HISTOGRAMA DE SCORES (0-140)
+      // ========================================
+      const canvasHistograma = document.getElementById('graficoHistograma');
+      const loadingHist = document.getElementById('chart-hist-loading');
+      const containerHist = document.getElementById('chart-hist-container');
+
+      if (canvasHistograma && histograma && histograma.labels && histograma.counts) {
+        try {
+          new Chart(canvasHistograma.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: histograma.labels,
+              datasets: [{
+                label: 'Frequência',
+                data: histograma.counts,
+                backgroundColor: cores.primary,
+                borderRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: { padding: 10 }
+              },
+              scales: {
+                y: { beginAtZero: true, title: { display: true, text: 'Quantidade' } },
+                x: { title: { display: true, text: 'Faixa de Score' } }
+              }
+            }
+          });
+          if (loadingHist) loadingHist.classList.add('hidden');
+          if (containerHist) containerHist.classList.remove('hidden');
+        } catch (e) {
+          console.error('Erro gráfico histograma:', e);
+          if (loadingHist) loadingHist.classList.add('hidden');
+        }
+      }
+
+      // ========================================
+      // 4. PIRÂMIDE ETÁRIA POR RISCO E GÊNERO
+      // ========================================
+      const canvasPiramide = document.getElementById('graficoPiramide');
+      const loadingPir = document.getElementById('chart-pir-loading');
+      const containerPir = document.getElementById('chart-pir-container');
+
+      if (canvasPiramide && piramide && piramide.faixas) {
+        try {
+          const faixas = piramide.faixas;
+          const masc = piramide.masculino || {};
+          const fem = piramide.feminino || {};
+
+          // Dados para barras empilhadas horizontais
+          const mascAtencao = faixas.map(f => masc[f]?.atencao || 0);
+          const mascSatisf = faixas.map(f => masc[f]?.satisfatorio || 0);
+          const femAtencao = faixas.map(f => fem[f]?.atencao || 0);
+          const femSatisf = faixas.map(f => fem[f]?.satisfatorio || 0);
+
+          new Chart(canvasPiramide.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: faixas,
+              datasets: [
+                {
+                  label: 'Masc. Atenção',
+                  data: mascAtencao,
+                  backgroundColor: 'rgba(250, 204, 21, 0.7)',
+                  stack: 'masc'
+                },
+                {
+                  label: 'Masc. Satisfatório',
+                  data: mascSatisf,
+                  backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                  stack: 'masc'
+                },
+                {
+                  label: 'Fem. Atenção',
+                  data: femAtencao,
+                  backgroundColor: 'rgba(250, 204, 21, 1)',
+                  stack: 'fem'
+                },
+                {
+                  label: 'Fem. Satisfatório',
+                  data: femSatisf,
+                  backgroundColor: 'rgba(34, 197, 94, 1)',
+                  stack: 'fem'
+                }
+              ]
+            },
+            options: {
+              indexAxis: 'y',
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: '← Masculino | Feminino →' }
+              },
+              scales: {
+                x: { stacked: true },
+                y: { stacked: true }
+              }
+            }
+          });
+          if (loadingPir) loadingPir.classList.add('hidden');
+          if (containerPir) containerPir.classList.remove('hidden');
+        } catch (e) {
+          console.error('Erro gráfico pirâmide:', e);
+          if (loadingPir) loadingPir.classList.add('hidden');
+        }
+      }
+
+      // ========================================
+      // 5. GRÁFICO DE BARRAS POR DIMENSÃO
+      // ========================================
+      const canvasDimensoes = document.getElementById('graficoDimensoes');
+      const loadingDimChart = document.getElementById('chart-dim-loading');
+      const containerDimChart = document.getElementById('chart-dim-container');
+
+      if (canvasDimensoes && dimensoes && dimensoes.dimensoes && dimensoes.dimensoes.length > 0) {
+        try {
+          const dims = dimensoes.dimensoes;
+          const labels = dims.map(d => d.dimensao);
+          const scores = dims.map(d => d.score_medio);
+          const bgColors = dims.map(d => {
+            if (d.nivel_risco === 'CRÍTICO') return cores.critico;
+            if (d.nivel_risco === 'ATENÇÃO') return cores.atencao;
+            return cores.satisfatorio;
+          });
+
+          new Chart(canvasDimensoes.getContext('2d'), {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Score Médio',
+                data: scores,
+                backgroundColor: bgColors,
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              indexAxis: 'y',
+              plugins: {
+                legend: { display: false }
+              },
+              scales: {
+                x: { beginAtZero: true, max: 4 }
+              }
+            }
+          });
+          if (loadingDimChart) loadingDimChart.classList.add('hidden');
+          if (containerDimChart) containerDimChart.classList.remove('hidden');
+        } catch (e) {
+          console.error('Erro gráfico dimensões:', e);
+          if (loadingDimChart) loadingDimChart.classList.add('hidden');
+        }
+      }
+
+      // ========================================
+      // REINICIALIZAR LUCIDE ICONS
+      // ========================================
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
+    });
+  </script>
 {% endblock %}
