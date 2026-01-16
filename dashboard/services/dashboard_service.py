@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from django.db.models import Count, Q, Avg
 from typing import Dict, Any, Optional, List
 from django.conf import settings
-from quiz.models import Resposta, MagicLink
+from quiz.models import Resposta, MagicLink, Pergunta
 from core.models import Setor, Unidade
 from core.utils.anonymity import AnonymityChecker
 from quiz.services.calculation_service import CalculationService
@@ -476,8 +476,6 @@ class DashboardService:
         Returns:
             Lista de dicts com número, texto, média e nível de risco por pergunta
         """
-        from quiz.models import Pergunta
-
         respostas = Resposta.objects.filter(
             magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
         )
@@ -802,29 +800,97 @@ class DashboardService:
         Returns:
             Dict com distribuição por pergunta e metadados das perguntas
         """
-        from quiz.models import Pergunta
+        try:
+            logger.info(f"get_distribuicao_respostas_completa - início (empresa_id={empresa_id})")
 
-        # Query base com filtros hierárquicos
-        respostas_query = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        )
-
-        if unidade_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
-            )
-        if setor_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor_id=setor_id
-            )
-        if cargo_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo_id=cargo_id
+            # Query base com filtros hierárquicos
+            respostas_query = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
             )
 
-        respostas = respostas_query.all()
+            if unidade_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+                )
+            if setor_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor_id=setor_id
+                )
+            if cargo_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo_id=cargo_id
+                )
 
-        if not respostas.exists():
+            respostas = respostas_query.all()
+
+            if not respostas.exists():
+                logger.info("get_distribuicao_respostas_completa - sucesso (sem respostas)")
+                return {
+                    'distribuicao': {},
+                    'perguntas_info': [],
+                    'total_respostas': 0,
+                    'filtros_aplicados': {
+                        'unidade_id': unidade_id,
+                        'setor_id': setor_id,
+                        'cargo_id': cargo_id
+                    }
+                }
+
+            # Agregar distribuição por pergunta
+            distribuicao = {}
+
+            for resposta in respostas:
+                for perg_num, valor in resposta.respostas.items():
+                    if perg_num not in distribuicao:
+                        distribuicao[perg_num] = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+
+                    if valor in [0, 1, 2, 3, 4]:
+                        distribuicao[perg_num][valor] += 1
+
+            # Obter metadados das perguntas
+            perguntas_info = []
+            for perg_num in sorted(distribuicao.keys(), key=int):
+                try:
+                    pergunta = Pergunta.objects.select_related('dimensao').get(
+                        numero=int(perg_num)
+                    )
+                    total = sum(distribuicao[perg_num].values())
+                    valores = [
+                        v * distribuicao[perg_num][v]
+                        for v in range(5)
+                    ]
+                    media = sum(valores) / total if total > 0 else 0
+
+                    perguntas_info.append({
+                        'numero': int(perg_num),
+                        'texto': pergunta.texto,
+                        'dimensao': pergunta.dimensao.nome,
+                        'polaridade': pergunta.dimensao.polaridade,
+                        'distribuicao': [
+                            distribuicao[perg_num][i] for i in range(5)
+                        ],
+                        'total': total,
+                        'media': round(media, 2),
+                        'nivel_risco': self.calc_service._interpretar_dimensao(
+                            media, pergunta.dimensao.polaridade
+                        )
+                    })
+                except Pergunta.DoesNotExist:
+                    continue
+
+            logger.info("get_distribuicao_respostas_completa - sucesso")
+            return {
+                'distribuicao': distribuicao,
+                'perguntas_info': perguntas_info,
+                'total_respostas': respostas.count(),
+                'filtros_aplicados': {
+                    'unidade_id': unidade_id,
+                    'setor_id': setor_id,
+                    'cargo_id': cargo_id
+                }
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_distribuicao_respostas_completa: {str(e)}", exc_info=True)
             return {
                 'distribuicao': {},
                 'perguntas_info': [],
@@ -835,59 +901,6 @@ class DashboardService:
                     'cargo_id': cargo_id
                 }
             }
-
-        # Agregar distribuição por pergunta
-        distribuicao = {}
-
-        for resposta in respostas:
-            for perg_num, valor in resposta.respostas.items():
-                if perg_num not in distribuicao:
-                    distribuicao[perg_num] = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
-
-                if valor in [0, 1, 2, 3, 4]:
-                    distribuicao[perg_num][valor] += 1
-
-        # Obter metadados das perguntas
-        perguntas_info = []
-        for perg_num in sorted(distribuicao.keys(), key=int):
-            try:
-                pergunta = Pergunta.objects.select_related('dimensao').get(
-                    numero=int(perg_num)
-                )
-                total = sum(distribuicao[perg_num].values())
-                valores = [
-                    v * distribuicao[perg_num][v]
-                    for v in range(5)
-                ]
-                media = sum(valores) / total if total > 0 else 0
-
-                perguntas_info.append({
-                    'numero': int(perg_num),
-                    'texto': pergunta.texto,
-                    'dimensao': pergunta.dimensao.nome,
-                    'polaridade': pergunta.dimensao.polaridade,
-                    'distribuicao': [
-                        distribuicao[perg_num][i] for i in range(5)
-                    ],
-                    'total': total,
-                    'media': round(media, 2),
-                    'nivel_risco': self.calc_service._interpretar_dimensao(
-                        media, pergunta.dimensao.polaridade
-                    )
-                })
-            except Pergunta.DoesNotExist:
-                continue
-
-        return {
-            'distribuicao': distribuicao,
-            'perguntas_info': perguntas_info,
-            'total_respostas': respostas.count(),
-            'filtros_aplicados': {
-                'unidade_id': unidade_id,
-                'setor_id': setor_id,
-                'cargo_id': cargo_id
-            }
-        }
 
     def get_dimensoes_por_polaridade(self, empresa_id: str) -> Dict[str, Any]:
         """
@@ -900,11 +913,84 @@ class DashboardService:
         Returns:
             Dict com dimensões separadas por polaridade e estatísticas
         """
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        )
+        try:
+            logger.info(f"get_dimensoes_por_polaridade - início (empresa_id={empresa_id})")
 
-        if not respostas.exists():
+            respostas = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+            )
+
+            if not respostas.exists():
+                logger.info("get_dimensoes_por_polaridade - sucesso (sem respostas)")
+                return {
+                    'positivas': [],
+                    'negativas': [],
+                    'resumo': {
+                        'media_positivas': 0,
+                        'media_negativas': 0,
+                        'total_positivas': 0,
+                        'total_negativas': 0
+                    }
+                }
+
+            # Agregar por dimensão e polaridade
+            dimensoes_data = defaultdict(lambda: {'scores': [], 'polaridade': None})
+
+            for resposta in respostas:
+                for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                    dimensoes_data[dimensao_nome]['scores'].append(dados['score'])
+                    dimensoes_data[dimensao_nome]['polaridade'] = dados['polaridade']
+
+            # Separar e calcular estatísticas
+            positivas = []
+            negativas = []
+
+            for dimensao_nome, dados in dimensoes_data.items():
+                score_medio = self.stats_service.calcular_media(dados['scores'])
+                desvio = self.stats_service.calcular_desvio_padrao_populacional(dados['scores'])
+                nivel_risco = self.calc_service._interpretar_dimensao(
+                    score_medio, dados['polaridade']
+                )
+
+                item = {
+                    'dimensao': dimensao_nome,
+                    'score_medio': round(score_medio, 2),
+                    'desvio_padrao': round(desvio, 2),
+                    'nivel_risco': nivel_risco,
+                    'total_respostas': len(dados['scores'])
+                }
+
+                if dados['polaridade'] == 'POSITIVA':
+                    positivas.append(item)
+                else:
+                    negativas.append(item)
+
+            # Ordenar por criticidade
+            ordem_risco = {'CRÍTICO': 0, 'ATENÇÃO': 1, 'SATISFATÓRIO': 2}
+            positivas.sort(key=lambda x: ordem_risco[x['nivel_risco']])
+            negativas.sort(key=lambda x: ordem_risco[x['nivel_risco']])
+
+            # Calcular médias gerais
+            media_positivas = self.stats_service.calcular_media(
+                [d['score_medio'] for d in positivas]
+            ) if positivas else 0
+            media_negativas = self.stats_service.calcular_media(
+                [d['score_medio'] for d in negativas]
+            ) if negativas else 0
+
+            logger.info("get_dimensoes_por_polaridade - sucesso")
+            return {
+                'positivas': positivas,
+                'negativas': negativas,
+                'resumo': {
+                    'media_positivas': round(media_positivas, 2),
+                    'media_negativas': round(media_negativas, 2),
+                    'total_positivas': len(positivas),
+                    'total_negativas': len(negativas)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_dimensoes_por_polaridade: {str(e)}", exc_info=True)
             return {
                 'positivas': [],
                 'negativas': [],
@@ -915,62 +1001,6 @@ class DashboardService:
                     'total_negativas': 0
                 }
             }
-
-        # Agregar por dimensão e polaridade
-        dimensoes_data = defaultdict(lambda: {'scores': [], 'polaridade': None})
-
-        for resposta in respostas:
-            for dimensao_nome, dados in resposta.scores_dimensoes.items():
-                dimensoes_data[dimensao_nome]['scores'].append(dados['score'])
-                dimensoes_data[dimensao_nome]['polaridade'] = dados['polaridade']
-
-        # Separar e calcular estatísticas
-        positivas = []
-        negativas = []
-
-        for dimensao_nome, dados in dimensoes_data.items():
-            score_medio = self.stats_service.calcular_media(dados['scores'])
-            desvio = self.stats_service.calcular_desvio_padrao_populacional(dados['scores'])
-            nivel_risco = self.calc_service._interpretar_dimensao(
-                score_medio, dados['polaridade']
-            )
-
-            item = {
-                'dimensao': dimensao_nome,
-                'score_medio': round(score_medio, 2),
-                'desvio_padrao': round(desvio, 2),
-                'nivel_risco': nivel_risco,
-                'total_respostas': len(dados['scores'])
-            }
-
-            if dados['polaridade'] == 'POSITIVA':
-                positivas.append(item)
-            else:
-                negativas.append(item)
-
-        # Ordenar por criticidade
-        ordem_risco = {'CRÍTICO': 0, 'ATENÇÃO': 1, 'SATISFATÓRIO': 2}
-        positivas.sort(key=lambda x: ordem_risco[x['nivel_risco']])
-        negativas.sort(key=lambda x: ordem_risco[x['nivel_risco']])
-
-        # Calcular médias gerais
-        media_positivas = self.stats_service.calcular_media(
-            [d['score_medio'] for d in positivas]
-        ) if positivas else 0
-        media_negativas = self.stats_service.calcular_media(
-            [d['score_medio'] for d in negativas]
-        ) if negativas else 0
-
-        return {
-            'positivas': positivas,
-            'negativas': negativas,
-            'resumo': {
-                'media_positivas': round(media_positivas, 2),
-                'media_negativas': round(media_negativas, 2),
-                'total_positivas': len(positivas),
-                'total_negativas': len(negativas)
-            }
-        }
 
     def get_radar_multinivel(
         self,
@@ -992,95 +1022,111 @@ class DashboardService:
         Returns:
             Dict com scores por dimensão para o nível selecionado
         """
-        # Query base
-        respostas_query = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        )
+        try:
+            logger.info(f"get_radar_multinivel - início (empresa_id={empresa_id})")
 
-        # Aplicar filtros hierárquicos
-        nivel = 'empresa'
-        nivel_nome = None
-
-        if cargo_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo_id=cargo_id
+            # Query base
+            respostas_query = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
             )
-            nivel = 'cargo'
-            try:
-                cargo = Cargo.objects.get(id=cargo_id)
-                nivel_nome = cargo.nome
-            except Cargo.DoesNotExist:
-                nivel_nome = 'Cargo não encontrado'
-        elif setor_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor_id=setor_id
-            )
-            nivel = 'setor'
-            try:
-                setor = Setor.objects.get(id=setor_id)
-                nivel_nome = setor.nome
-            except Setor.DoesNotExist:
-                nivel_nome = 'Setor não encontrado'
-        elif unidade_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
-            )
-            nivel = 'unidade'
-            try:
-                unidade = Unidade.objects.get(id=unidade_id)
-                nivel_nome = unidade.nome
-            except Unidade.DoesNotExist:
-                nivel_nome = 'Unidade não encontrada'
 
-        respostas = respostas_query.all()
+            # Aplicar filtros hierárquicos
+            nivel = 'empresa'
+            nivel_nome = None
 
-        if not respostas.exists():
+            if cargo_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo_id=cargo_id
+                )
+                nivel = 'cargo'
+                try:
+                    cargo = Cargo.objects.get(id=cargo_id)
+                    nivel_nome = cargo.nome
+                except Cargo.DoesNotExist:
+                    nivel_nome = 'Cargo não encontrado'
+            elif setor_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor_id=setor_id
+                )
+                nivel = 'setor'
+                try:
+                    setor = Setor.objects.get(id=setor_id)
+                    nivel_nome = setor.nome
+                except Setor.DoesNotExist:
+                    nivel_nome = 'Setor não encontrado'
+            elif unidade_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+                )
+                nivel = 'unidade'
+                try:
+                    unidade = Unidade.objects.get(id=unidade_id)
+                    nivel_nome = unidade.nome
+                except Unidade.DoesNotExist:
+                    nivel_nome = 'Unidade não encontrada'
+
+            respostas = respostas_query.all()
+
+            if not respostas.exists():
+                logger.info("get_radar_multinivel - sucesso (sem respostas)")
+                return {
+                    'labels': [],
+                    'scores': [],
+                    'niveis_risco': [],
+                    'polaridades': [],
+                    'nivel': nivel,
+                    'nivel_nome': nivel_nome,
+                    'total_respostas': 0
+                }
+
+            # Agregar por dimensão
+            dimensoes_scores = defaultdict(list)
+            polaridades = {}
+
+            for resposta in respostas:
+                for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                    dimensoes_scores[dimensao_nome].append(dados['score'])
+                    polaridades[dimensao_nome] = dados['polaridade']
+
+            # Calcular médias e riscos
+            labels = []
+            scores = []
+            niveis_risco = []
+            pols = []
+
+            for dimensao_nome in sorted(dimensoes_scores.keys()):
+                score_medio = self.stats_service.calcular_media(
+                    dimensoes_scores[dimensao_nome]
+                )
+                pol = polaridades[dimensao_nome]
+                nivel_risco = self.calc_service._interpretar_dimensao(score_medio, pol)
+
+                labels.append(dimensao_nome)
+                scores.append(round(score_medio, 2))
+                niveis_risco.append(nivel_risco)
+                pols.append(pol)
+
+            logger.info("get_radar_multinivel - sucesso")
+            return {
+                'labels': labels,
+                'scores': scores,
+                'niveis_risco': niveis_risco,
+                'polaridades': pols,
+                'nivel': nivel,
+                'nivel_nome': nivel_nome,
+                'total_respostas': respostas.count()
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_radar_multinivel: {str(e)}", exc_info=True)
             return {
                 'labels': [],
                 'scores': [],
                 'niveis_risco': [],
                 'polaridades': [],
-                'nivel': nivel,
-                'nivel_nome': nivel_nome,
+                'nivel': 'empresa',
+                'nivel_nome': None,
                 'total_respostas': 0
             }
-
-        # Agregar por dimensão
-        dimensoes_scores = defaultdict(list)
-        polaridades = {}
-
-        for resposta in respostas:
-            for dimensao_nome, dados in resposta.scores_dimensoes.items():
-                dimensoes_scores[dimensao_nome].append(dados['score'])
-                polaridades[dimensao_nome] = dados['polaridade']
-
-        # Calcular médias e riscos
-        labels = []
-        scores = []
-        niveis_risco = []
-        pols = []
-
-        for dimensao_nome in sorted(dimensoes_scores.keys()):
-            score_medio = self.stats_service.calcular_media(
-                dimensoes_scores[dimensao_nome]
-            )
-            pol = polaridades[dimensao_nome]
-            nivel_risco = self.calc_service._interpretar_dimensao(score_medio, pol)
-
-            labels.append(dimensao_nome)
-            scores.append(round(score_medio, 2))
-            niveis_risco.append(nivel_risco)
-            pols.append(pol)
-
-        return {
-            'labels': labels,
-            'scores': scores,
-            'niveis_risco': niveis_risco,
-            'polaridades': pols,
-            'nivel': nivel,
-            'nivel_nome': nivel_nome,
-            'total_respostas': respostas.count()
-        }
 
     def get_consistencia_interna(self, empresa_id: str) -> Dict[str, Any]:
         """
@@ -1093,13 +1139,100 @@ class DashboardService:
         Returns:
             Dict com métricas de consistência por dimensão e pergunta
         """
-        from quiz.models import Pergunta
+        try:
+            logger.info(f"get_consistencia_interna - início (empresa_id={empresa_id})")
 
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        )
+            respostas = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+            )
 
-        if not respostas.exists():
+            if not respostas.exists():
+                logger.info("get_consistencia_interna - sucesso (sem respostas)")
+                return {
+                    'por_dimensao': [],
+                    'por_pergunta': [],
+                    'consistencia_geral': {
+                        'cv_percent': 0,
+                        'classificacao': 'SEM DADOS'
+                    }
+                }
+
+            # Consistência por dimensão
+            dimensoes_scores = defaultdict(list)
+
+            for resposta in respostas:
+                for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                    dimensoes_scores[dimensao_nome].append(dados['score'])
+
+            por_dimensao = []
+            for dimensao_nome in sorted(dimensoes_scores.keys()):
+                scores = dimensoes_scores[dimensao_nome]
+                estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+                por_dimensao.append({
+                    'dimensao': dimensao_nome,
+                    'media': estatisticas['media'],
+                    'desvio_padrao': estatisticas['desvio_padrao'],
+                    'variancia': estatisticas['variancia'],
+                    'cv_percent': estatisticas['cv_percent'],
+                    'classificacao_cv': self.stats_service.interpretar_cv(
+                        estatisticas['cv_percent']
+                    ),
+                    'n': estatisticas['n']
+                })
+
+            # Consistência por pergunta
+            perguntas_valores = defaultdict(list)
+
+            for resposta in respostas:
+                for perg_num, valor in resposta.respostas.items():
+                    perguntas_valores[perg_num].append(valor)
+
+            por_pergunta = []
+            for perg_num in sorted(perguntas_valores.keys(), key=int):
+                valores = perguntas_valores[perg_num]
+                estatisticas = self.stats_service.calcular_estatisticas_completas(
+                    [float(v) for v in valores]
+                )
+
+                try:
+                    pergunta = Pergunta.objects.select_related('dimensao').get(
+                        numero=int(perg_num)
+                    )
+                    dimensao = pergunta.dimensao.nome
+                except Pergunta.DoesNotExist:
+                    dimensao = 'Desconhecida'
+
+                por_pergunta.append({
+                    'numero': int(perg_num),
+                    'dimensao': dimensao,
+                    'media': estatisticas['media'],
+                    'desvio_padrao': estatisticas['desvio_padrao'],
+                    'variancia': estatisticas['variancia'],
+                    'cv_percent': estatisticas['cv_percent'],
+                    'classificacao_cv': self.stats_service.interpretar_cv(
+                        estatisticas['cv_percent']
+                    ),
+                    'n': estatisticas['n']
+                })
+
+            # Consistência geral (usando scores globais)
+            scores_globais = [
+                r.score_global for r in respostas if r.score_global is not None
+            ]
+            cv_geral = self.stats_service.calcular_coeficiente_variacao(scores_globais)
+
+            logger.info("get_consistencia_interna - sucesso")
+            return {
+                'por_dimensao': por_dimensao,
+                'por_pergunta': por_pergunta,
+                'consistencia_geral': {
+                    'cv_percent': round(cv_geral, 2),
+                    'classificacao': self.stats_service.interpretar_cv(cv_geral)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_consistencia_interna: {str(e)}", exc_info=True)
             return {
                 'por_dimensao': [],
                 'por_pergunta': [],
@@ -1108,80 +1241,6 @@ class DashboardService:
                     'classificacao': 'SEM DADOS'
                 }
             }
-
-        # Consistência por dimensão
-        dimensoes_scores = defaultdict(list)
-
-        for resposta in respostas:
-            for dimensao_nome, dados in resposta.scores_dimensoes.items():
-                dimensoes_scores[dimensao_nome].append(dados['score'])
-
-        por_dimensao = []
-        for dimensao_nome in sorted(dimensoes_scores.keys()):
-            scores = dimensoes_scores[dimensao_nome]
-            estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
-
-            por_dimensao.append({
-                'dimensao': dimensao_nome,
-                'media': estatisticas['media'],
-                'desvio_padrao': estatisticas['desvio_padrao'],
-                'variancia': estatisticas['variancia'],
-                'cv_percent': estatisticas['cv_percent'],
-                'classificacao_cv': self.stats_service.interpretar_cv(
-                    estatisticas['cv_percent']
-                ),
-                'n': estatisticas['n']
-            })
-
-        # Consistência por pergunta
-        perguntas_valores = defaultdict(list)
-
-        for resposta in respostas:
-            for perg_num, valor in resposta.respostas.items():
-                perguntas_valores[perg_num].append(valor)
-
-        por_pergunta = []
-        for perg_num in sorted(perguntas_valores.keys(), key=int):
-            valores = perguntas_valores[perg_num]
-            estatisticas = self.stats_service.calcular_estatisticas_completas(
-                [float(v) for v in valores]
-            )
-
-            try:
-                pergunta = Pergunta.objects.select_related('dimensao').get(
-                    numero=int(perg_num)
-                )
-                dimensao = pergunta.dimensao.nome
-            except Pergunta.DoesNotExist:
-                dimensao = 'Desconhecida'
-
-            por_pergunta.append({
-                'numero': int(perg_num),
-                'dimensao': dimensao,
-                'media': estatisticas['media'],
-                'desvio_padrao': estatisticas['desvio_padrao'],
-                'variancia': estatisticas['variancia'],
-                'cv_percent': estatisticas['cv_percent'],
-                'classificacao_cv': self.stats_service.interpretar_cv(
-                    estatisticas['cv_percent']
-                ),
-                'n': estatisticas['n']
-            })
-
-        # Consistência geral (usando scores globais)
-        scores_globais = [
-            r.score_global for r in respostas if r.score_global is not None
-        ]
-        cv_geral = self.stats_service.calcular_coeficiente_variacao(scores_globais)
-
-        return {
-            'por_dimensao': por_dimensao,
-            'por_pergunta': por_pergunta,
-            'consistencia_geral': {
-                'cv_percent': round(cv_geral, 2),
-                'classificacao': self.stats_service.interpretar_cv(cv_geral)
-            }
-        }
 
     def get_scores_por_agrupamento(
         self,
@@ -1198,64 +1257,72 @@ class DashboardService:
         Returns:
             Dict com scores por agrupamento selecionado
         """
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).select_related(
-            'magic_link__colaborador__cargo__setor__unidade'
-        )
+        try:
+            logger.info(f"get_scores_por_agrupamento - início (empresa_id={empresa_id})")
 
-        if not respostas.exists():
+            respostas = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+            ).select_related(
+                'magic_link__colaborador__cargo__setor__unidade'
+            )
+
+            if not respostas.exists():
+                logger.info("get_scores_por_agrupamento - sucesso (sem respostas)")
+                return {'grupos': [], 'agrupamento': agrupamento}
+
+            grupos_scores = defaultdict(list)
+
+            for resposta in respostas:
+                if resposta.score_global is None:
+                    continue
+
+                colaborador = resposta.magic_link.colaborador
+
+                if agrupamento == 'unidade':
+                    grupo_nome = colaborador.cargo.setor.unidade.nome
+                    grupo_id = str(colaborador.cargo.setor.unidade.id)
+                elif agrupamento == 'setor':
+                    grupo_nome = colaborador.cargo.setor.nome
+                    grupo_id = str(colaborador.cargo.setor.id)
+                elif agrupamento == 'cargo':
+                    grupo_nome = colaborador.cargo.nome
+                    grupo_id = str(colaborador.cargo.id)
+                else:
+                    continue
+
+                grupos_scores[grupo_nome].append({
+                    'id': grupo_id,
+                    'score': resposta.score_global
+                })
+
+            grupos = []
+            for grupo_nome, dados in grupos_scores.items():
+                scores = [d['score'] for d in dados]
+                estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+                grupos.append({
+                    'nome': grupo_nome,
+                    'id': dados[0]['id'],
+                    'score_medio': estatisticas['media'],
+                    'mediana': estatisticas['mediana'],
+                    'desvio_padrao': estatisticas['desvio_padrao'],
+                    'cv_percent': estatisticas['cv_percent'],
+                    'total_respostas': estatisticas['n'],
+                    'score_minimo': estatisticas['minimo'],
+                    'score_maximo': estatisticas['maximo']
+                })
+
+            # Ordenar por score médio (menor = maior risco)
+            grupos.sort(key=lambda x: x['score_medio'])
+
+            logger.info("get_scores_por_agrupamento - sucesso")
+            return {
+                'grupos': grupos,
+                'agrupamento': agrupamento
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_scores_por_agrupamento: {str(e)}", exc_info=True)
             return {'grupos': [], 'agrupamento': agrupamento}
-
-        grupos_scores = defaultdict(list)
-
-        for resposta in respostas:
-            if resposta.score_global is None:
-                continue
-
-            colaborador = resposta.magic_link.colaborador
-
-            if agrupamento == 'unidade':
-                grupo_nome = colaborador.cargo.setor.unidade.nome
-                grupo_id = str(colaborador.cargo.setor.unidade.id)
-            elif agrupamento == 'setor':
-                grupo_nome = colaborador.cargo.setor.nome
-                grupo_id = str(colaborador.cargo.setor.id)
-            elif agrupamento == 'cargo':
-                grupo_nome = colaborador.cargo.nome
-                grupo_id = str(colaborador.cargo.id)
-            else:
-                continue
-
-            grupos_scores[grupo_nome].append({
-                'id': grupo_id,
-                'score': resposta.score_global
-            })
-
-        grupos = []
-        for grupo_nome, dados in grupos_scores.items():
-            scores = [d['score'] for d in dados]
-            estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
-
-            grupos.append({
-                'nome': grupo_nome,
-                'id': dados[0]['id'],
-                'score_medio': estatisticas['media'],
-                'mediana': estatisticas['mediana'],
-                'desvio_padrao': estatisticas['desvio_padrao'],
-                'cv_percent': estatisticas['cv_percent'],
-                'total_respostas': estatisticas['n'],
-                'score_minimo': estatisticas['minimo'],
-                'score_maximo': estatisticas['maximo']
-            })
-
-        # Ordenar por score médio (menor = maior risco)
-        grupos.sort(key=lambda x: x['score_medio'])
-
-        return {
-            'grupos': grupos,
-            'agrupamento': agrupamento
-        }
 
     def get_histograma_scores(
         self,
@@ -1273,15 +1340,53 @@ class DashboardService:
         Returns:
             Dict com dados do histograma e quartis
         """
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        )
+        try:
+            logger.info(f"get_histograma_scores - início (empresa_id={empresa_id})")
 
-        scores = [
-            r.score_global for r in respostas if r.score_global is not None
-        ]
+            respostas = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+            )
 
-        if not scores:
+            scores = [
+                r.score_global for r in respostas if r.score_global is not None
+            ]
+
+            if not scores:
+                logger.info("get_histograma_scores - sucesso (sem scores)")
+                return {
+                    'labels': [],
+                    'counts': [],
+                    'total': 0,
+                    'quartis': {'Q1': 0, 'Q2': 0, 'Q3': 0},
+                    'estatisticas': {}
+                }
+
+            # Gerar histograma com range fixo (0-140)
+            histograma = self.stats_service.gerar_histograma(
+                scores,
+                num_bins=num_bins,
+                min_valor=0,
+                max_valor=140
+            )
+
+            # Calcular estatísticas e quartis
+            estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
+
+            logger.info("get_histograma_scores - sucesso")
+            return {
+                'labels': histograma['labels'],
+                'counts': histograma['counts'],
+                'total': histograma['total'],
+                'quartis': estatisticas['quartis'],
+                'estatisticas': {
+                    'media': estatisticas['media'],
+                    'mediana': estatisticas['mediana'],
+                    'desvio_padrao': estatisticas['desvio_padrao'],
+                    'cv_percent': estatisticas['cv_percent']
+                }
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_histograma_scores: {str(e)}", exc_info=True)
             return {
                 'labels': [],
                 'counts': [],
@@ -1289,30 +1394,6 @@ class DashboardService:
                 'quartis': {'Q1': 0, 'Q2': 0, 'Q3': 0},
                 'estatisticas': {}
             }
-
-        # Gerar histograma com range fixo (0-140)
-        histograma = self.stats_service.gerar_histograma(
-            scores,
-            num_bins=num_bins,
-            min_valor=0,
-            max_valor=140
-        )
-
-        # Calcular estatísticas e quartis
-        estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
-
-        return {
-            'labels': histograma['labels'],
-            'counts': histograma['counts'],
-            'total': histograma['total'],
-            'quartis': estatisticas['quartis'],
-            'estatisticas': {
-                'media': estatisticas['media'],
-                'mediana': estatisticas['mediana'],
-                'desvio_padrao': estatisticas['desvio_padrao'],
-                'cv_percent': estatisticas['cv_percent']
-            }
-        }
 
     def get_cargos_disponiveis(self, empresa_id: str) -> List[Dict[str, Any]]:
         """
@@ -1324,20 +1405,29 @@ class DashboardService:
         Returns:
             Lista de cargos com id e nome
         """
-        cargos = Cargo.objects.filter(
-            setor__unidade__empresa_id=empresa_id,
-            ativo=True
-        ).values('id', 'nome', 'setor__nome', 'setor__unidade__nome')
+        try:
+            logger.info(f"get_cargos_disponiveis - início (empresa_id={empresa_id})")
 
-        return [
-            {
-                'id': str(c['id']),
-                'nome': c['nome'],
-                'setor': c['setor__nome'],
-                'unidade': c['setor__unidade__nome']
-            }
-            for c in cargos
-        ]
+            cargos = Cargo.objects.filter(
+                setor__unidade__empresa_id=empresa_id,
+                ativo=True
+            ).values('id', 'nome', 'setor__nome', 'setor__unidade__nome')
+
+            resultado = [
+                {
+                    'id': str(c['id']),
+                    'nome': c['nome'],
+                    'setor': c['setor__nome'],
+                    'unidade': c['setor__unidade__nome']
+                }
+                for c in cargos
+            ]
+
+            logger.info("get_cargos_disponiveis - sucesso")
+            return resultado
+        except Exception as e:
+            logger.error(f"Erro em get_cargos_disponiveis: {str(e)}", exc_info=True)
+            return []
 
     def get_evolucao_temporal(
         self,
@@ -1358,27 +1448,117 @@ class DashboardService:
         Returns:
             Dict com evolução temporal dos scores
         """
-        from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
-        from datetime import datetime, timedelta
+        try:
+            logger.info(f"get_evolucao_temporal - início (empresa_id={empresa_id})")
 
-        # Query base
-        respostas_query = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).select_related('magic_link')
+            from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+            from datetime import datetime, timedelta
 
-        # Aplicar filtros hierárquicos
-        if setor_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor_id=setor_id
-            )
-        elif unidade_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
-            )
+            # Query base
+            respostas_query = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+            ).select_related('magic_link')
 
-        respostas = respostas_query.order_by('created_at')
+            # Aplicar filtros hierárquicos
+            if setor_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor_id=setor_id
+                )
+            elif unidade_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+                )
 
-        if not respostas.exists():
+            respostas = respostas_query.order_by('created_at')
+
+            if not respostas.exists():
+                logger.info("get_evolucao_temporal - sucesso (sem respostas)")
+                return {
+                    'labels': [],
+                    'scores_globais': [],
+                    'scores_dimensoes': {},
+                    'periodo': periodo,
+                    'total_respostas': 0
+                }
+
+            # Definir truncamento baseado no período
+            trunc_func = {
+                'diario': TruncDay,
+                'semanal': TruncWeek,
+                'mensal': TruncMonth
+            }.get(periodo, TruncMonth)
+
+            # Agrupar respostas por período
+            periodos_scores = defaultdict(lambda: {
+                'scores_globais': [],
+                'scores_dimensoes': defaultdict(list)
+            })
+
+            for resposta in respostas:
+                if resposta.score_global is None:
+                    continue
+
+                # Truncar data para o período
+                if periodo == 'diario':
+                    periodo_key = resposta.created_at.date()
+                elif periodo == 'semanal':
+                    # Primeira segunda-feira da semana
+                    periodo_key = resposta.created_at.date() - timedelta(
+                        days=resposta.created_at.weekday()
+                    )
+                else:  # mensal
+                    periodo_key = resposta.created_at.replace(day=1).date()
+
+                periodos_scores[periodo_key]['scores_globais'].append(resposta.score_global)
+
+                # Adicionar scores por dimensão
+                for dimensao_nome, dados in resposta.scores_dimensoes.items():
+                    periodos_scores[periodo_key]['scores_dimensoes'][dimensao_nome].append(
+                        dados['score']
+                    )
+
+            # Ordenar períodos
+            periodos_ordenados = sorted(periodos_scores.keys())
+
+            # Calcular médias por período
+            labels = []
+            scores_globais = []
+            scores_dimensoes = defaultdict(list)
+
+            for periodo_key in periodos_ordenados:
+                dados_periodo = periodos_scores[periodo_key]
+
+                # Formatar label
+                if periodo == 'diario':
+                    label = periodo_key.strftime('%d/%m/%Y')
+                elif periodo == 'semanal':
+                    label = periodo_key.strftime('Sem %d/%m')
+                else:  # mensal
+                    label = periodo_key.strftime('%b/%Y')
+
+                labels.append(label)
+
+                # Calcular média global
+                media_global = self.stats_service.calcular_media(
+                    dados_periodo['scores_globais']
+                )
+                scores_globais.append(round(media_global, 2))
+
+                # Calcular médias por dimensão
+                for dimensao_nome, scores in dados_periodo['scores_dimensoes'].items():
+                    media_dimensao = self.stats_service.calcular_media(scores)
+                    scores_dimensoes[dimensao_nome].append(round(media_dimensao, 2))
+
+            logger.info("get_evolucao_temporal - sucesso")
+            return {
+                'labels': labels,
+                'scores_globais': scores_globais,
+                'scores_dimensoes': dict(scores_dimensoes),
+                'periodo': periodo,
+                'total_respostas': respostas.count()
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_evolucao_temporal: {str(e)}", exc_info=True)
             return {
                 'labels': [],
                 'scores_globais': [],
@@ -1386,82 +1566,6 @@ class DashboardService:
                 'periodo': periodo,
                 'total_respostas': 0
             }
-
-        # Definir truncamento baseado no período
-        trunc_func = {
-            'diario': TruncDay,
-            'semanal': TruncWeek,
-            'mensal': TruncMonth
-        }.get(periodo, TruncMonth)
-
-        # Agrupar respostas por período
-        periodos_scores = defaultdict(lambda: {
-            'scores_globais': [],
-            'scores_dimensoes': defaultdict(list)
-        })
-
-        for resposta in respostas:
-            if resposta.score_global is None:
-                continue
-
-            # Truncar data para o período
-            if periodo == 'diario':
-                periodo_key = resposta.created_at.date()
-            elif periodo == 'semanal':
-                # Primeira segunda-feira da semana
-                periodo_key = resposta.created_at.date() - timedelta(
-                    days=resposta.created_at.weekday()
-                )
-            else:  # mensal
-                periodo_key = resposta.created_at.replace(day=1).date()
-
-            periodos_scores[periodo_key]['scores_globais'].append(resposta.score_global)
-
-            # Adicionar scores por dimensão
-            for dimensao_nome, dados in resposta.scores_dimensoes.items():
-                periodos_scores[periodo_key]['scores_dimensoes'][dimensao_nome].append(
-                    dados['score']
-                )
-
-        # Ordenar períodos
-        periodos_ordenados = sorted(periodos_scores.keys())
-
-        # Calcular médias por período
-        labels = []
-        scores_globais = []
-        scores_dimensoes = defaultdict(list)
-
-        for periodo_key in periodos_ordenados:
-            dados_periodo = periodos_scores[periodo_key]
-
-            # Formatar label
-            if periodo == 'diario':
-                label = periodo_key.strftime('%d/%m/%Y')
-            elif periodo == 'semanal':
-                label = periodo_key.strftime('Sem %d/%m')
-            else:  # mensal
-                label = periodo_key.strftime('%b/%Y')
-
-            labels.append(label)
-
-            # Calcular média global
-            media_global = self.stats_service.calcular_media(
-                dados_periodo['scores_globais']
-            )
-            scores_globais.append(round(media_global, 2))
-
-            # Calcular médias por dimensão
-            for dimensao_nome, scores in dados_periodo['scores_dimensoes'].items():
-                media_dimensao = self.stats_service.calcular_media(scores)
-                scores_dimensoes[dimensao_nome].append(round(media_dimensao, 2))
-
-        return {
-            'labels': labels,
-            'scores_globais': scores_globais,
-            'scores_dimensoes': dict(scores_dimensoes),
-            'periodo': periodo,
-            'total_respostas': respostas.count()
-        }
 
     def get_matriz_nr1_completa(
         self,
@@ -1481,24 +1585,110 @@ class DashboardService:
         Returns:
             Dict com matriz de risco completa
         """
-        # Query base
-        respostas_query = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        )
+        try:
+            logger.info(f"get_matriz_nr1_completa - início (empresa_id={empresa_id})")
 
-        # Aplicar filtros hierárquicos
-        if setor_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor_id=setor_id
-            )
-        elif unidade_id:
-            respostas_query = respostas_query.filter(
-                magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+            # Query base
+            respostas_query = Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
             )
 
-        respostas = respostas_query.all()
+            # Aplicar filtros hierárquicos
+            if setor_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor_id=setor_id
+                )
+            elif unidade_id:
+                respostas_query = respostas_query.filter(
+                    magic_link__colaborador__cargo__setor__unidade_id=unidade_id
+                )
 
-        if not respostas.exists():
+            respostas = respostas_query.all()
+
+            if not respostas.exists():
+                logger.info("get_matriz_nr1_completa - sucesso (sem respostas)")
+                return {
+                    'matriz': [[0] * 5 for _ in range(5)],
+                    'labels_probabilidade': ['Raro', 'Improvável', 'Possível', 'Provável', 'Quase Certo'],
+                    'labels_severidade': ['Insignificante', 'Menor', 'Moderado', 'Maior', 'Catastrófico'],
+                    'total_respostas': 0,
+                    'distribuicao_niveis': {
+                        'BAIXO': 0,
+                        'MÉDIO': 0,
+                        'ALTO': 0,
+                        'CRÍTICO': 0
+                    }
+                }
+
+            # Criar matriz 5x5
+            matriz = [[0 for _ in range(5)] for _ in range(5)]
+            distribuicao_niveis = {'BAIXO': 0, 'MÉDIO': 0, 'ALTO': 0, 'CRÍTICO': 0}
+
+            for resposta in respostas:
+                if resposta.score_global is None:
+                    continue
+
+                # Calcular índices de probabilidade e severidade baseado no score (0-140)
+                score = resposta.score_global
+
+                # Severidade: Quanto menor o score, maior a severidade
+                # 0-28: Catastrófico (índice 4)
+                # 28-56: Maior (índice 3)
+                # 56-84: Moderado (índice 2)
+                # 84-112: Menor (índice 1)
+                # 112-140: Insignificante (índice 0)
+                if score <= 28:
+                    severidade = 4
+                elif score <= 56:
+                    severidade = 3
+                elif score <= 84:
+                    severidade = 2
+                elif score <= 112:
+                    severidade = 1
+                else:
+                    severidade = 0
+
+                # Probabilidade: Baseado no percentual de dimensões críticas
+                dimensoes_criticas = sum(
+                    1 for d in resposta.scores_dimensoes.values()
+                    if self.calc_service._interpretar_dimensao(d['score'], d['polaridade']) == 'CRÍTICO'
+                )
+                total_dimensoes = len(resposta.scores_dimensoes)
+
+                if total_dimensoes > 0:
+                    percentual_critico = dimensoes_criticas / total_dimensoes
+
+                    # Mapear para índice de probabilidade (0-4)
+                    if percentual_critico >= 0.8:
+                        probabilidade = 4  # Quase Certo
+                    elif percentual_critico >= 0.6:
+                        probabilidade = 3  # Provável
+                    elif percentual_critico >= 0.4:
+                        probabilidade = 2  # Possível
+                    elif percentual_critico >= 0.2:
+                        probabilidade = 1  # Improvável
+                    else:
+                        probabilidade = 0  # Raro
+                else:
+                    probabilidade = 0
+
+                # Incrementar célula da matriz
+                matriz[probabilidade][severidade] += 1
+
+                # Calcular nível de risco da célula
+                nivel_risco = self._calcular_nivel_risco_matriz(probabilidade, severidade)
+                distribuicao_niveis[nivel_risco] += 1
+
+            logger.info("get_matriz_nr1_completa - sucesso")
+            return {
+                'matriz': matriz,
+                'labels_probabilidade': ['Raro', 'Improvável', 'Possível', 'Provável', 'Quase Certo'],
+                'labels_severidade': ['Insignificante', 'Menor', 'Moderado', 'Maior', 'Catastrófico'],
+                'total_respostas': respostas.count(),
+                'distribuicao_niveis': distribuicao_niveis
+            }
+        except Exception as e:
+            logger.error(f"Erro em get_matriz_nr1_completa: {str(e)}", exc_info=True)
             return {
                 'matriz': [[0] * 5 for _ in range(5)],
                 'labels_probabilidade': ['Raro', 'Improvável', 'Possível', 'Provável', 'Quase Certo'],
@@ -1511,73 +1701,6 @@ class DashboardService:
                     'CRÍTICO': 0
                 }
             }
-
-        # Criar matriz 5x5
-        matriz = [[0 for _ in range(5)] for _ in range(5)]
-        distribuicao_niveis = {'BAIXO': 0, 'MÉDIO': 0, 'ALTO': 0, 'CRÍTICO': 0}
-
-        for resposta in respostas:
-            if resposta.score_global is None:
-                continue
-
-            # Calcular índices de probabilidade e severidade baseado no score (0-140)
-            score = resposta.score_global
-
-            # Severidade: Quanto menor o score, maior a severidade
-            # 0-28: Catastrófico (índice 4)
-            # 28-56: Maior (índice 3)
-            # 56-84: Moderado (índice 2)
-            # 84-112: Menor (índice 1)
-            # 112-140: Insignificante (índice 0)
-            if score <= 28:
-                severidade = 4
-            elif score <= 56:
-                severidade = 3
-            elif score <= 84:
-                severidade = 2
-            elif score <= 112:
-                severidade = 1
-            else:
-                severidade = 0
-
-            # Probabilidade: Baseado no percentual de dimensões críticas
-            dimensoes_criticas = sum(
-                1 for d in resposta.scores_dimensoes.values()
-                if self.calc_service._interpretar_dimensao(d['score'], d['polaridade']) == 'CRÍTICO'
-            )
-            total_dimensoes = len(resposta.scores_dimensoes)
-
-            if total_dimensoes > 0:
-                percentual_critico = dimensoes_criticas / total_dimensoes
-
-                # Mapear para índice de probabilidade (0-4)
-                if percentual_critico >= 0.8:
-                    probabilidade = 4  # Quase Certo
-                elif percentual_critico >= 0.6:
-                    probabilidade = 3  # Provável
-                elif percentual_critico >= 0.4:
-                    probabilidade = 2  # Possível
-                elif percentual_critico >= 0.2:
-                    probabilidade = 1  # Improvável
-                else:
-                    probabilidade = 0  # Raro
-            else:
-                probabilidade = 0
-
-            # Incrementar célula da matriz
-            matriz[probabilidade][severidade] += 1
-
-            # Calcular nível de risco da célula
-            nivel_risco = self._calcular_nivel_risco_matriz(probabilidade, severidade)
-            distribuicao_niveis[nivel_risco] += 1
-
-        return {
-            'matriz': matriz,
-            'labels_probabilidade': ['Raro', 'Improvável', 'Possível', 'Provável', 'Quase Certo'],
-            'labels_severidade': ['Insignificante', 'Menor', 'Moderado', 'Maior', 'Catastrófico'],
-            'total_respostas': respostas.count(),
-            'distribuicao_niveis': distribuicao_niveis
-        }
 
     def _calcular_nivel_risco_matriz(self, probabilidade: int, severidade: int) -> str:
         """
