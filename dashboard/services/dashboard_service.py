@@ -1,7 +1,7 @@
 import logging
 import statistics
 from collections import Counter, defaultdict
-from django.db.models import Count, Q, Avg
+from django.db.models import Count, Q, Avg, Case, When
 from typing import Dict, Any, Optional, List
 from django.conf import settings
 from quiz.models import Resposta, MagicLink, Pergunta
@@ -97,16 +97,24 @@ class DashboardService:
         # Score médio global
         score_medio = respostas.aggregate(Avg('score_global'))['score_global__avg']
 
-        # Extrair todos os scores para cálculos estatísticos
-        scores = [r.score_global for r in respostas if r.score_global is not None]
+        # OTIMIZAÇÃO: Usar values_list para carregar apenas scores
+        scores = list(respostas.filter(
+            score_global__isnull=False
+        ).values_list('score_global', flat=True))
 
         # Mediana dos scores
         mediana_score = statistics.median(scores) if scores else 0
 
-        # Distribuição por nível de risco
-        criticos = sum(1 for r in respostas if r.get_nivel_risco_global() == 'CRÍTICO')
-        atencao = sum(1 for r in respostas if r.get_nivel_risco_global() == 'ATENÇÃO')
-        satisfatorio = sum(1 for r in respostas if r.get_nivel_risco_global() == 'SATISFATÓRIO')
+        # OTIMIZAÇÃO: Distribuição por nível de risco usando contagem direta no banco
+        # Níveis de risco baseado no score: <= 35 = CRÍTICO, <= 50 = ATENÇÃO, > 50 = SATISFATÓRIO
+        distribuicao = respostas.filter(score_global__isnull=False).aggregate(
+            criticos=Count(Case(When(score_global__lte=35, then=1))),
+            atencao=Count(Case(When(score_global__gt=35, score_global__lte=50, then=1))),
+            satisfatorio=Count(Case(When(score_global__gt=50, then=1)))
+        )
+        criticos = distribuicao['criticos'] or 0
+        atencao = distribuicao['atencao'] or 0
+        satisfatorio = distribuicao['satisfatorio'] or 0
 
         # IGRP (Índice Geral de Risco Psicossocial)
         # Normalizado de 0 a 100, onde 0 = sem risco e 100 = risco máximo
@@ -118,8 +126,10 @@ class DashboardService:
         # Estatísticas avançadas usando StatisticsService
         estatisticas = self.stats_service.calcular_estatisticas_completas(scores)
 
-        # Tempo médio de resposta
-        tempos = [r.tempo_total_segundos for r in respostas if r.tempo_total_segundos]
+        # OTIMIZAÇÃO: Tempo médio usando values_list
+        tempos = list(respostas.filter(
+            tempo_total_segundos__isnull=False
+        ).values_list('tempo_total_segundos', flat=True))
         tempo_medio_minutos = round(
             self.stats_service.calcular_media(tempos) / 60, 2
         ) if tempos else 0
@@ -333,24 +343,14 @@ class DashboardService:
         Returns:
             Dict com mediana, CV%, desvio padrão, quartis, etc.
         """
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        # OTIMIZAÇÃO: Usar values_list para carregar apenas o campo necessário
+        # Evita carregar objetos completos na memória
+        scores = list(
+            Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+                score_global__isnull=False
+            ).values_list('score_global', flat=True)
         )
-
-        if respostas.count() == 0:
-            return {
-                'mediana_score': 0,
-                'cv_percentual': 0,
-                'desvio_padrao': 0,
-                'variancia': 0,
-                'quartis': {'Q1': 0, 'Q2': 0, 'Q3': 0},
-                'score_minimo': 0,
-                'score_maximo': 0,
-                'amplitude': 0,
-            }
-
-        # Extrair todos os scores
-        scores = [r.score_global for r in respostas if r.score_global is not None]
 
         if not scores:
             return {
@@ -401,11 +401,13 @@ class DashboardService:
         Returns:
             Dict com labels e counts para histograma
         """
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+        # OTIMIZAÇÃO: Usar values_list para carregar apenas o campo necessário
+        scores = list(
+            Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+                score_global__isnull=False
+            ).values_list('score_global', flat=True)
         )
-
-        scores = [r.score_global for r in respostas if r.score_global is not None]
 
         if not scores:
             return {'labels': [], 'counts': []}
@@ -444,11 +446,15 @@ class DashboardService:
         Returns:
             Dict com tempo médio em minutos
         """
-        respostas = Resposta.objects.filter(
-            magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-        ).exclude(tempo_total_segundos__isnull=True)
+        # OTIMIZAÇÃO: Usar values_list para carregar apenas o campo necessário
+        tempos_segundos = list(
+            Resposta.objects.filter(
+                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+                tempo_total_segundos__isnull=False
+            ).values_list('tempo_total_segundos', flat=True)
+        )
 
-        if respostas.count() == 0:
+        if not tempos_segundos:
             return {
                 'tempo_medio_minutos': 0,
                 'tempo_mediano_minutos': 0,
@@ -456,7 +462,6 @@ class DashboardService:
                 'tempo_maximo_minutos': 0,
             }
 
-        tempos_segundos = [r.tempo_total_segundos for r in respostas]
         tempos_minutos = [t / 60 for t in tempos_segundos]
 
         return {
@@ -1251,9 +1256,10 @@ class DashboardService:
         try:
             logger.info(f"get_consistencia_interna - início (empresa_id={empresa_id})")
 
+            # OTIMIZAÇÃO: Carregar apenas os campos JSONField necessários
             respostas = Resposta.objects.filter(
                 magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
-            )
+            ).only('scores_dimensoes', 'respostas')
 
             if not respostas.exists():
                 logger.info("get_consistencia_interna - sucesso (sem respostas)")
@@ -1326,9 +1332,13 @@ class DashboardService:
                 })
 
             # Consistência geral (usando scores globais)
-            scores_globais = [
-                r.score_global for r in respostas if r.score_global is not None
-            ]
+            # OTIMIZAÇÃO: Usar values_list para evitar recarregar objetos
+            scores_globais = list(
+                Resposta.objects.filter(
+                    magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+                    score_global__isnull=False
+                ).values_list('score_global', flat=True)
+            )
             cv_geral = self.stats_service.calcular_coeficiente_variacao(scores_globais)
 
             logger.info("get_consistencia_interna - sucesso")
@@ -1452,13 +1462,13 @@ class DashboardService:
         try:
             logger.info(f"get_histograma_scores - início (empresa_id={empresa_id})")
 
-            respostas = Resposta.objects.filter(
-                magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id
+            # OTIMIZAÇÃO: Usar values_list para carregar apenas o campo necessário
+            scores = list(
+                Resposta.objects.filter(
+                    magic_link__colaborador__cargo__setor__unidade__empresa_id=empresa_id,
+                    score_global__isnull=False
+                ).values_list('score_global', flat=True)
             )
-
-            scores = [
-                r.score_global for r in respostas if r.score_global is not None
-            ]
 
             if not scores:
                 logger.info("get_histograma_scores - sucesso (sem scores)")
