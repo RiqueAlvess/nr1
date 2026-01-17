@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.core.serializers.json import DjangoJSONEncoder
 from django.views.decorators.http import require_GET
+from django.views.decorators.cache import cache_page
 from django.db.models import F
 from core.models import Empresa, Unidade
 from dashboard.services.dashboard_service import DashboardService
