@@ -492,30 +492,37 @@ class DashboardService:
                     perguntas_data[pergunta_num] = []
                 perguntas_data[pergunta_num].append(valor)
 
+        # Buscar todas as perguntas de uma vez com suas dimensões (evita N+1 queries)
+        pergunta_numeros = [int(num) for num in perguntas_data.keys()]
+        perguntas_dict = {
+            p.numero: p
+            for p in Pergunta.objects.filter(numero__in=pergunta_numeros).select_related('dimensao')
+        }
+
         # Calcular médias
         resultado = []
 
         for pergunta_num, valores in perguntas_data.items():
-            try:
-                pergunta = Pergunta.objects.get(numero=int(pergunta_num))
-                media = statistics.mean(valores)
-
-                # Determinar criticidade baseado na polaridade da dimensão
-                nivel_risco = self.calc_service._interpretar_dimensao(
-                    media,
-                    pergunta.dimensao.polaridade
-                )
-
-                resultado.append({
-                    'numero': int(pergunta_num),
-                    'texto': pergunta.texto,
-                    'dimensao': pergunta.dimensao.nome,
-                    'media': round(media, 2),
-                    'nivel_risco': nivel_risco,
-                    'total_respostas': len(valores),
-                })
-            except Pergunta.DoesNotExist:
+            pergunta = perguntas_dict.get(int(pergunta_num))
+            if not pergunta:
                 continue
+
+            media = statistics.mean(valores)
+
+            # Determinar criticidade baseado na polaridade da dimensão
+            nivel_risco = self.calc_service._interpretar_dimensao(
+                media,
+                pergunta.dimensao.polaridade
+            )
+
+            resultado.append({
+                'numero': int(pergunta_num),
+                'texto': pergunta.texto,
+                'dimensao': pergunta.dimensao.nome,
+                'media': round(media, 2),
+                'nivel_risco': nivel_risco,
+                'total_respostas': len(valores),
+            })
 
         # Ordenar por número de pergunta
         resultado.sort(key=lambda x: x['numero'])
