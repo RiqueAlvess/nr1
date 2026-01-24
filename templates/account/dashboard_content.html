@@ -5,7 +5,7 @@
         <h1 class="text-3xl font-bold tracking-tight text-foreground">
             Bem-vindo, {{ user.get_full_name|default:user.username }}!
         </h1>
-        <p class="text-muted-foreground mt-1">Vivamente360 - Gestão de Riscos Psicossociais</p>
+        <p class="text-muted-foreground mt-1">{{ SYSTEM_NAME }} - Gestão de Riscos Psicossociais</p>
     </div>
 
     {% if not has_perfil %}
