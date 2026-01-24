@@ -3,6 +3,8 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 # View para ignorar requisições do Chrome DevTools
@@ -47,3 +49,7 @@ admin.site.index_title = "Gestão de Riscos Psicossociais"
 # Handlers de erro customizados
 handler404 = 'nr1_platform.views.handler404'
 handler500 = 'nr1_platform.views.handler500'
+
+# Servir arquivos de media em desenvolvimento
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

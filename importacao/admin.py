@@ -1,9 +1,13 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from unfold.admin import ModelAdmin
+from unfold.decorators import display
+
 from importacao.models import Colaborador, ProcessoImportacao
 
 
 @admin.register(Colaborador)
-class ColaboradorAdmin(admin.ModelAdmin):
+class ColaboradorAdmin(ModelAdmin):
     list_display = ['id_truncado', 'email', 'cargo', 'get_setor', 'get_unidade', 'get_empresa', 'ativo']
     list_filter = ['cargo__setor__unidade__empresa', 'ativo']
     search_fields = ['email', 'cargo__nome', 'cargo__setor__nome']
@@ -40,7 +44,7 @@ class ColaboradorAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProcessoImportacao)
-class ProcessoImportacaoAdmin(admin.ModelAdmin):
+class ProcessoImportacaoAdmin(ModelAdmin):
     list_display = ['created_at', 'usuario', 'arquivo_nome', 'status', 'total_linhas', 'linhas_processadas', 'linhas_erro']
     list_filter = ['status', 'created_at']
     search_fields = ['arquivo_nome', 'usuario__username']

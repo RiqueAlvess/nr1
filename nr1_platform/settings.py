@@ -18,6 +18,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(','
 # INSTALLED APPS
 # ============================================================================
 INSTALLED_APPS = [
+    'unfold',  # Django Unfold Admin - DEVE vir antes do django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -79,6 +80,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'nr1_platform.context_processors.csp_nonce',
+                'core.context_processors.branding_context',
             ],
         },
     },
@@ -223,3 +225,220 @@ FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default=SECRET_KEY)
 # DEFAULT AUTO FIELD
 # ============================================================================
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ============================================================================
+# MEDIA FILES (Uploads)
+# ============================================================================
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# ============================================================================
+# DJANGO UNFOLD - ADMIN CUSTOMIZADO
+# ============================================================================
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+
+UNFOLD = {
+    "SITE_TITLE": "Admin - Vivamente360",
+    "SITE_HEADER": "Vivamente360",
+    "SITE_URL": "/",
+    "SITE_ICON": {
+        "light": lambda request: static("public/icone.png"),
+        "dark": lambda request: static("public/icone.png"),
+    },
+    "SITE_LOGO": {
+        "light": lambda request: static("public/icone.png"),
+        "dark": lambda request: static("public/icone.png"),
+    },
+    "SITE_SYMBOL": "settings",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "ENVIRONMENT": "nr1_platform.utils.environment_callback",
+    "DASHBOARD_CALLBACK": "nr1_platform.utils.dashboard_callback",
+    "LOGIN": {
+        "image": lambda request: static("public/icone.png"),
+        "redirect_after": lambda request: reverse_lazy("admin:index"),
+    },
+    "STYLES": [
+        lambda request: static("css/admin-custom.css"),
+    ],
+    "SCRIPTS": [
+        lambda request: static("js/admin-custom.js"),
+    ],
+    "COLORS": {
+        "primary": {
+            "50": "240 253 244",
+            "100": "220 252 231",
+            "200": "187 247 208",
+            "300": "134 239 172",
+            "400": "74 222 128",
+            "500": "34 197 94",
+            "600": "22 163 74",
+            "700": "21 128 61",
+            "800": "22 101 52",
+            "900": "20 83 45",
+            "950": "5 46 22",
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": True,
+        "navigation": [
+            {
+                "title": "Dashboard",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Visão Geral",
+                        "icon": "dashboard",
+                        "link": lambda request: reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+            {
+                "title": "Configurações White Label",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Branding",
+                        "icon": "palette",
+                        "link": lambda request: reverse_lazy("admin:core_branding_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Gerenciamento",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Empresas",
+                        "icon": "business",
+                        "link": lambda request: reverse_lazy("admin:core_empresa_changelist"),
+                    },
+                    {
+                        "title": "Usuários",
+                        "icon": "person",
+                        "link": lambda request: reverse_lazy("admin:auth_user_changelist"),
+                    },
+                    {
+                        "title": "Perfis de Acesso",
+                        "icon": "admin_panel_settings",
+                        "link": lambda request: reverse_lazy("admin:account_perfilacesso_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Estrutura Organizacional",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Unidades",
+                        "icon": "apartment",
+                        "link": lambda request: reverse_lazy("admin:core_unidade_changelist"),
+                    },
+                    {
+                        "title": "Setores",
+                        "icon": "workspaces",
+                        "link": lambda request: reverse_lazy("admin:core_setor_changelist"),
+                    },
+                    {
+                        "title": "Cargos",
+                        "icon": "badge",
+                        "link": lambda request: reverse_lazy("admin:core_cargo_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Importação & Dados",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Colaboradores",
+                        "icon": "groups",
+                        "link": lambda request: reverse_lazy("admin:importacao_colaborador_changelist"),
+                    },
+                    {
+                        "title": "Processos de Importação",
+                        "icon": "upload_file",
+                        "link": lambda request: reverse_lazy("admin:importacao_processoimportacao_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Questionários NR-1",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Dimensões",
+                        "icon": "category",
+                        "link": lambda request: reverse_lazy("admin:quiz_dimensao_changelist"),
+                    },
+                    {
+                        "title": "Perguntas",
+                        "icon": "quiz",
+                        "link": lambda request: reverse_lazy("admin:quiz_pergunta_changelist"),
+                    },
+                    {
+                        "title": "Magic Links",
+                        "icon": "link",
+                        "link": lambda request: reverse_lazy("admin:quiz_magiclink_changelist"),
+                    },
+                    {
+                        "title": "Respostas",
+                        "icon": "rate_review",
+                        "link": lambda request: reverse_lazy("admin:quiz_resposta_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Auditoria & LGPD",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "Logs de Auditoria",
+                        "icon": "history",
+                        "link": lambda request: reverse_lazy("admin:core_auditlog_changelist"),
+                    },
+                    {
+                        "title": "Solicitações LGPD",
+                        "icon": "security",
+                        "link": lambda request: reverse_lazy("admin:core_solicitacaolgpd_changelist"),
+                    },
+                    {
+                        "title": "Tokens de Senha",
+                        "icon": "key",
+                        "link": lambda request: reverse_lazy("admin:account_passwordresettoken_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
+    "TABS": [
+        {
+            "models": [
+                "core.empresa",
+            ],
+            "items": [
+                {
+                    "title": "Informações Básicas",
+                    "link": lambda context: reverse_lazy(
+                        "admin:core_empresa_change",
+                        args=[context["object_id"]],
+                    ),
+                },
+                {
+                    "title": "Unidades",
+                    "link": lambda context: reverse_lazy(
+                        "admin:core_unidade_changelist",
+                    ) + f"?empresa__id__exact={context['object_id']}",
+                },
+            ],
+        },
+    ],
+}

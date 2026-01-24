@@ -19,7 +19,13 @@ ENV/
 *.log
 local_settings.py
 db.sqlite3
-media/
+
+# Media files (uploads) - preserve .gitkeep
+media/*
+!media/.gitkeep
+!media/branding/
+media/branding/*
+!media/branding/.gitkeep
 
 # Environment variables
 .env
@@ -34,3 +40,24 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Staticfiles collected
+staticfiles/
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Backups
+backups/
+*.sql
+*.dump
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary documentation
+*.md.backup
+*.md.old
+TEMP_*.md
