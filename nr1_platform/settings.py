@@ -419,26 +419,4 @@ UNFOLD = {
             },
         ],
     },
-    "TABS": [
-        {
-            "models": [
-                "core.empresa",
-            ],
-            "items": [
-                {
-                    "title": "Informações Básicas",
-                    "link": lambda context: reverse_lazy(
-                        "admin:core_empresa_change",
-                        args=[context["object_id"]],
-                    ),
-                },
-                {
-                    "title": "Unidades",
-                    "link": lambda context: reverse_lazy(
-                        "admin:core_unidade_changelist",
-                    ) + f"?empresa__id__exact={context['object_id']}",
-                },
-            ],
-        },
-    ],
 }
