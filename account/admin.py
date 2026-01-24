@@ -1,10 +1,13 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from unfold.admin import ModelAdmin
+from unfold.decorators import display
+
 from account.models import PerfilAcesso, PasswordResetToken
 
 
 @admin.register(PerfilAcesso)
-class PerfilAcessoAdmin(admin.ModelAdmin):
+class PerfilAcessoAdmin(ModelAdmin):
     list_display = ['user', 'nivel_acesso', 'get_empresas_display', 'get_grupo_display', 'ativo', 'created_at']
     list_filter = ['nivel_acesso', 'ativo', 'empresas']
     search_fields = ['user__username', 'user__email']
@@ -77,7 +80,7 @@ class PerfilAcessoAdmin(admin.ModelAdmin):
 
 
 @admin.register(PasswordResetToken)
-class PasswordResetTokenAdmin(admin.ModelAdmin):
+class PasswordResetTokenAdmin(ModelAdmin):
     list_display = ['user', 'get_status_display', 'created_at', 'expires_at', 'used_at', 'ip_address']
     list_filter = ['is_used', 'created_at', 'expires_at']
     search_fields = ['user__username', 'user__email', 'token', 'ip_address']

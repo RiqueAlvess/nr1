@@ -4,7 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Vivamente360</title>
+    <title>Login - {{ SYSTEM_NAME }}</title>
+
+    <!-- Favicon - White Label -->
+    {% if branding and branding.ativo and branding.favicon %}
+    <link rel="icon" type="image/png" href="{{ branding.get_favicon_url }}">
+    {% else %}
+    <link rel="icon" type="image/png" href="{% static 'public/icone.png' %}">
+    {% endif %}
 
     <!-- Tailwind CSS -->
     <script nonce="{{ csp_nonce }}" src="https://cdn.tailwindcss.com"></script>
@@ -12,9 +19,15 @@
 
     <style nonce="{{ csp_nonce }}">
         :root {
+            {% if branding and branding.ativo %}
+            --primary: {{ branding.cor_secundaria }};
+            --primary-light: {{ branding.cor_accent }};
+            --accent: {{ branding.cor_primaria }};
+            {% else %}
             --primary: #0F3D52;
             --primary-light: #1a5a75;
             --accent: #1EEB88;
+            {% endif %}
             --background: #f8fafc;
             --foreground: #0f172a;
             --muted: #64748b;
@@ -64,13 +77,18 @@
         <!-- Card Principal -->
         <div class="login-card rounded-2xl p-8 md:p-10">
 
-            <!-- Logo e Título -->
+            <!-- Logo e Titulo - White Label -->
             <div class="text-center mb-8">
-                <!-- Logo SEM background -->
                 <div class="flex justify-center mb-4">
+                    {% if branding and branding.ativo and branding.logo_login %}
+                    <img src="{{ branding.get_logo_login_url }}" alt="{{ SYSTEM_NAME }}" class="w-20 h-20 object-contain">
+                    {% elif branding and branding.ativo and branding.logo %}
+                    <img src="{{ branding.get_logo_url }}" alt="{{ SYSTEM_NAME }}" class="w-20 h-20 object-contain">
+                    {% else %}
                     <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-16 h-16">
+                    {% endif %}
                 </div>
-                <h1 class="text-2xl font-bold text-gray-900 mb-2">Vivamente360</h1>
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ SYSTEM_NAME }}</h1>
                 <p class="text-gray-500 text-sm">Acesse sua conta</p>
             </div>
 

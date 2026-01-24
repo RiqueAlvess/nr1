@@ -1,9 +1,13 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from unfold.admin import ModelAdmin
+from unfold.decorators import display
+
 from quiz.models import Dimensao, Pergunta, MagicLink, Resposta
 
 
 @admin.register(Dimensao)
-class DimensaoAdmin(admin.ModelAdmin):
+class DimensaoAdmin(ModelAdmin):
     list_display = ['nome', 'icon_name', 'icon_color', 'polaridade', 'ordem', 'ativa']
     list_filter = ['polaridade', 'ativa', 'icon_color']
     search_fields = ['nome']
@@ -26,7 +30,7 @@ class DimensaoAdmin(admin.ModelAdmin):
 
 
 @admin.register(Pergunta)
-class PerguntaAdmin(admin.ModelAdmin):
+class PerguntaAdmin(ModelAdmin):
     list_display = ['numero', 'texto_resumido', 'dimensao', 'pontuacao_maxima', 'ativa']
     list_filter = ['dimensao', 'ativa']
     search_fields = ['texto', 'numero']
@@ -52,7 +56,7 @@ class PerguntaAdmin(admin.ModelAdmin):
 
 
 @admin.register(MagicLink)
-class MagicLinkAdmin(admin.ModelAdmin):
+class MagicLinkAdmin(ModelAdmin):
     list_display = ['id_truncado', 'colaborador_email', 'status', 'created_at', 'expires_at']
     list_filter = ['status', 'created_at']
     search_fields = ['colaborador__email']
@@ -85,7 +89,7 @@ class MagicLinkAdmin(admin.ModelAdmin):
 
 
 @admin.register(Resposta)
-class RespostaAdmin(admin.ModelAdmin):
+class RespostaAdmin(ModelAdmin):
     list_display = ['id_truncado', 'score_global', 'nivel_risco', 'tempo_total_segundos', 'created_at']
     list_filter = ['created_at']
     readonly_fields = ['id', 'magic_link', 'respostas', 'score_global', 'scores_dimensoes', 'tempo_total_segundos', 'created_at', 'updated_at']

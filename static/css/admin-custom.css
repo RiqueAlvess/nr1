@@ -1,0 +1,143 @@
+/* Customizacoes adicionais do Django Admin com Unfold */
+
+/* Logo no header do admin */
+.unfold-header-logo img {
+    max-height: 40px;
+    width: auto;
+}
+
+/* Sidebar styling */
+.unfold-sidebar {
+    border-right: 1px solid #e5e7eb;
+}
+
+/* Cards do dashboard */
+.unfold-card {
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Botoes primarios - usando cores do Vivamente360 */
+.btn-primary,
+button[type="submit"].bg-primary-600 {
+    background-color: #1eeb88 !important;
+    color: #0f3d52 !important;
+}
+
+.btn-primary:hover,
+button[type="submit"].bg-primary-600:hover {
+    background-color: #6edbc1 !important;
+}
+
+/* Links de navegacao ativos */
+.nav-link-active,
+.sidebar-link.active {
+    background-color: rgba(30, 235, 136, 0.1);
+    border-left: 3px solid #1eeb88;
+}
+
+/* Badges de status */
+.badge-success {
+    background-color: #1eeb88;
+    color: #0f3d52;
+}
+
+.badge-warning {
+    background-color: #facc15;
+    color: #0f3d52;
+}
+
+.badge-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.badge-info {
+    background-color: #6edbc1;
+    color: #0f3d52;
+}
+
+/* Tabelas */
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f8fafc;
+}
+
+/* Form fields */
+.form-control:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #1eeb88;
+    box-shadow: 0 0 0 3px rgba(30, 235, 136, 0.1);
+}
+
+/* Color previews para o branding admin */
+.color-preview {
+    width: 100px;
+    height: 30px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+/* Image previews */
+.image-preview {
+    max-height: 120px;
+    background: #f3f4f6;
+    padding: 10px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .unfold-sidebar {
+        width: 100%;
+    }
+
+    .content-wrapper {
+        margin-left: 0;
+    }
+}
+
+/* Dark mode support (if Unfold supports it) */
+@media (prefers-color-scheme: dark) {
+    .unfold-sidebar {
+        border-right-color: #374151;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #1f2937;
+    }
+}
+
+/* Animacoes suaves */
+.transition-colors {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Tooltips */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f3d52;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+}
