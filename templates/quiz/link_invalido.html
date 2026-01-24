@@ -24,27 +24,42 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- White Label: Cores dinâmicas do branding -->
     <script nonce="{{ csp_nonce }}">
+        const brandColors = {
+            primary: '{{ branding.cor_primaria|default:"#1EEB88" }}',
+            secondary: '{{ branding.cor_secundaria|default:"#0F3D52" }}',
+            accent: '{{ branding.cor_accent|default:"#6EDBC1" }}',
+            text: '{{ branding.cor_texto|default:"#1F2933" }}'
+        };
+        function darkenColor(hex, percent) {
+            const num = parseInt(hex.replace('#', ''), 16);
+            const amt = Math.round(2.55 * percent);
+            const R = Math.max(0, (num >> 16) - amt);
+            const G = Math.max(0, ((num >> 8) & 0x00FF) - amt);
+            const B = Math.max(0, (num & 0x0000FF) - amt);
+            return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+        }
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'primary': '#1EEB88',
-                        'primary-focus': '#17c972',
+                        'primary': brandColors.primary,
+                        'primary-focus': darkenColor(brandColors.primary, 15),
                         'primary-content': '#ffffff',
-                        'secondary': '#0F3D52',
-                        'secondary-focus': '#0a2a39',
+                        'secondary': brandColors.secondary,
+                        'secondary-focus': darkenColor(brandColors.secondary, 15),
                         'secondary-content': '#ffffff',
-                        'accent': '#6EDBC1',
-                        'accent-focus': '#4fd1ab',
-                        'accent-content': '#0F3D52',
-                        'neutral': '#1F2933',
-                        'neutral-focus': '#161d22',
+                        'accent': brandColors.accent,
+                        'accent-focus': darkenColor(brandColors.accent, 15),
+                        'accent-content': brandColors.secondary,
+                        'neutral': brandColors.text,
+                        'neutral-focus': darkenColor(brandColors.text, 15),
                         'neutral-content': '#ffffff',
                         'base-100': '#FFFFFF',
                         'base-200': '#F8FAFC',
                         'base-300': '#E2E8F0',
-                        'base-content': '#1F2933',
+                        'base-content': brandColors.text,
                         'info': '#3ABFF8',
                         'success': '#22C55E',
                         'warning': '#FACC15',
