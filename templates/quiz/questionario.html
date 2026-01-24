@@ -4,12 +4,18 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Questionário HSE-IT - Vivamente360</title>
+    <title>Questionário HSE-IT - {{ SYSTEM_NAME }}</title>
 
-    <!-- Favicon -->
+    <!-- Favicon - White Label -->
+    {% if branding and branding.ativo and branding.favicon %}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ branding.get_favicon_url }}">
+    <link rel="icon" type="image/x-icon" href="{{ branding.get_favicon_url }}">
+    <link rel="apple-touch-icon" href="{{ branding.get_favicon_url }}">
+    {% else %}
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'public/icone.png' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'public/icone.ico' %}">
     <link rel="apple-touch-icon" href="{% static 'public/icone.png' %}">
+    {% endif %}
 
     <!-- DaisyUI & Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
@@ -112,8 +118,12 @@
         <div class="container mx-auto px-4 py-4 max-w-3xl">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
+                    {% if branding and branding.ativo and branding.logo %}
+                    <img src="{{ branding.get_logo_url }}" alt="{{ SYSTEM_NAME }}" class="h-10 w-auto object-contain">
+                    {% else %}
                     <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-10 h-10">
-                    <span class="font-semibold text-white">Vivamente360</span>
+                    {% endif %}
+                    <span class="font-semibold text-white">{{ SYSTEM_NAME }}</span>
                 </div>
                 <div class="text-right">
                     <div class="text-xs text-white/70">Progresso</div>

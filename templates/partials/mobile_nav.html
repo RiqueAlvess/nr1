@@ -12,10 +12,14 @@
             </svg>
         </button>
 
-        <!-- Logo Central -->
+        <!-- Logo Central - White Label -->
         <a href="{% url 'account:dashboard' %}" class="flex items-center gap-2">
+            {% if branding and branding.ativo and branding.logo %}
+            <img src="{{ branding.get_logo_url }}" alt="{{ SYSTEM_NAME }}" class="h-8 w-auto object-contain">
+            {% else %}
             <img src="{% static 'public/icone.png' %}" alt="Vivamente360" class="w-8 h-8">
-            <span class="font-semibold text-foreground">Vivamente360</span>
+            {% endif %}
+            <span class="font-semibold text-foreground">{{ SYSTEM_NAME }}</span>
         </a>
 
         <!-- Espaçador -->
@@ -47,11 +51,15 @@
                class="fixed top-0 left-0 bottom-0 w-72 bg-card border-r border-border z-50 overflow-y-auto"
                x-cloak>
 
-            <!-- Header do Sidebar -->
+            <!-- Header do Sidebar - White Label -->
             <div class="flex items-center justify-between p-4 border-b border-border">
                 <div class="flex items-center gap-3">
+                    {% if branding and branding.ativo and branding.logo %}
+                    <img src="{{ branding.get_logo_url }}" alt="{{ SYSTEM_NAME }}" class="h-10 w-auto object-contain">
+                    {% else %}
                     <img src="{% static 'public/icone.png' %}" alt="Logo" class="w-10 h-10">
-                    <span class="font-semibold">Vivamente360</span>
+                    {% endif %}
+                    <span class="font-semibold">{{ SYSTEM_NAME }}</span>
                 </div>
                 <button @click="menuOpen = false" class="p-2 rounded-lg hover:bg-accent/10">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
