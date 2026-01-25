@@ -160,10 +160,90 @@
         /* White Label - Cores Dinamicas */
         {% if branding and branding.ativo %}
         :root {
+            /* Cores do branding em HEX */
             --color-primary: {{ branding.cor_primaria }};
             --color-secondary: {{ branding.cor_secundaria }};
             --color-accent: {{ branding.cor_accent }};
             --color-text: {{ branding.cor_texto }};
+
+            /* Cores de branding para componentes */
+            --brand-primary: {{ branding.cor_primaria }};
+            --brand-secondary: {{ branding.cor_secundaria }};
+            --brand-accent: {{ branding.cor_accent }};
+            --brand-text: {{ branding.cor_texto }};
+        }
+
+        /* Aplicar cores do branding em elementos principais */
+        .btn-primary,
+        button[type="submit"]:not(.btn-ghost):not(.btn-outline) {
+            background-color: {{ branding.cor_secundaria }} !important;
+            border-color: {{ branding.cor_secundaria }} !important;
+            color: white !important;
+        }
+
+        .btn-primary:hover,
+        button[type="submit"]:not(.btn-ghost):not(.btn-outline):hover {
+            background-color: {{ branding.cor_primaria }} !important;
+            border-color: {{ branding.cor_primaria }} !important;
+        }
+
+        /* Links usam cor primária */
+        a:not(.btn):not(.sidebar-link):not(.mobile-nav-link) {
+            color: {{ branding.cor_secundaria }};
+        }
+
+        a:not(.btn):not(.sidebar-link):not(.mobile-nav-link):hover {
+            color: {{ branding.cor_primaria }};
+        }
+
+        /* Sidebar link ativo */
+        .sidebar-link.active,
+        .sidebar-link:hover {
+            background-color: {{ branding.cor_primaria }}20 !important;
+            color: {{ branding.cor_secundaria }} !important;
+        }
+
+        /* Mobile nav link ativo */
+        .mobile-nav-link.active,
+        .mobile-nav-link:hover {
+            color: {{ branding.cor_primaria }} !important;
+        }
+
+        /* Avatar de usuário */
+        .user-avatar,
+        .sidebar .w-10.h-10.bg-gray-900,
+        .header .w-8.h-8.bg-gray-900,
+        .mobile-nav .w-6.h-6.bg-gray-900 {
+            background-color: {{ branding.cor_secundaria }} !important;
+        }
+
+        /* Badges */
+        .badge-primary {
+            background-color: {{ branding.cor_secundaria }} !important;
+            color: white !important;
+        }
+
+        /* Focus ring */
+        *:focus-visible {
+            outline-color: {{ branding.cor_primaria }} !important;
+        }
+
+        /* Accent colors */
+        .bg-accent {
+            background-color: {{ branding.cor_primaria }} !important;
+        }
+
+        .text-accent {
+            color: {{ branding.cor_primaria }} !important;
+        }
+
+        .border-accent {
+            border-color: {{ branding.cor_primaria }} !important;
+        }
+
+        /* Header gradient para páginas internas */
+        .header-gradient {
+            background: linear-gradient(135deg, {{ branding.cor_secundaria }} 0%, {{ branding.cor_primaria }} 100%) !important;
         }
         {% endif %}
     </style>

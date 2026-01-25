@@ -1173,25 +1173,26 @@ textarea.input {
 
 /* ============================================
    PADRONIZAÇÃO - Botões, Avatares, Links
+   Usa variáveis CSS que podem ser sobrescritas pelo branding
    ============================================ */
 
-/* Botões Padrão - Preto com texto branco */
+/* Botões Padrão - Usa cores do branding ou fallback para cinza */
 .btn,
 button[type="submit"],
 .btn-primary {
-  background-color: #171717 !important; /* gray-900 */
-  color: white !important;
+  background-color: var(--brand-secondary, #171717);
+  color: white;
   font-weight: 500;
   border-radius: 0.5rem;
   transition: all 0.2s ease;
-  border: 1px solid #171717;
+  border: 1px solid var(--brand-secondary, #171717);
 }
 
 .btn:hover,
 button[type="submit"]:hover,
 .btn-primary:hover {
-  background-color: #262626 !important; /* gray-800 */
-  border-color: #262626;
+  background-color: var(--brand-primary, #262626);
+  border-color: var(--brand-primary, #262626);
 }
 
 .btn:disabled,
@@ -1200,37 +1201,59 @@ button[type="submit"]:disabled {
   cursor: not-allowed;
 }
 
-/* Avatares - Fundo preto, sem cores */
-.avatar,
-.user-avatar {
-  background-color: #171717 !important;
-  color: white !important;
+/* Variantes de botões */
+.btn-outline {
+  background-color: transparent;
+  color: var(--brand-secondary, #171717);
+  border: 1px solid var(--brand-secondary, #171717);
 }
 
-/* Remover bg-primary de avatares - forçar preto */
+.btn-outline:hover {
+  background-color: var(--brand-secondary, #171717);
+  color: white;
+}
+
+.btn-ghost {
+  background-color: transparent;
+  color: var(--brand-secondary, #171717);
+  border: none;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Avatares - Usa cor secundária do branding */
+.avatar,
+.user-avatar {
+  background-color: var(--brand-secondary, #171717);
+  color: white;
+}
+
+/* bg-primary usa cor do branding */
 .bg-primary {
-  background-color: #171717 !important;
+  background-color: var(--brand-secondary, #171717);
 }
 
 .text-primary-foreground {
-  color: white !important;
+  color: white;
 }
 
-/* Links e Textos */
+/* Links e Textos - Usa cores do branding */
 a {
-  color: #171717;
+  color: var(--brand-secondary, #171717);
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: #404040;
+  color: var(--brand-primary, #404040);
 }
 
 /* Links de navegação ativos */
 .nav-link.active,
 .sidebar-link.active {
-  background-color: #f3f4f6;
-  color: #171717;
+  background-color: rgba(var(--brand-primary-rgb, 23, 23, 23), 0.1);
+  color: var(--brand-secondary, #171717);
   font-weight: 600;
 }
 
@@ -1242,7 +1265,7 @@ a:hover {
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
 }
 
-/* Inputs */
+/* Inputs - Focus usa cor do branding */
 input, select, textarea {
   border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
@@ -1250,22 +1273,13 @@ input, select, textarea {
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: #171717;
-  box-shadow: 0 0 0 3px rgba(23, 23, 23, 0.1);
+  border-color: var(--brand-secondary, #171717);
+  box-shadow: 0 0 0 3px rgba(var(--brand-secondary-rgb, 23, 23, 23), 0.1);
   outline: none;
 }
 
-/* Tailwind utilities específicas para garantir preto nos botões */
-.bg-gray-900 {
-  background-color: #171717 !important;
-}
-
-.text-white {
-  color: white !important;
-}
-
-/* Garantir que badges primary também sejam pretos */
+/* Badges usa cor do branding */
 .badge-primary {
-  background-color: #171717 !important;
-  color: white !important;
+  background-color: var(--brand-secondary, #171717);
+  color: white;
 }
